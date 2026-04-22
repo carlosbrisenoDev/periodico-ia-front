@@ -1,6 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Sidebar } from "../components/sidebar.tsx";
 import { API_BASE_URL } from "../libs/config.ts";
+import { ApiError, apiFetch } from "../libs/http.ts";
 
 type DashboardArticle = {
   id: string;
@@ -13,32 +15,6 @@ type DashboardArticle = {
 type DashboardSummaryResponse = {
   latestArticles?: unknown[];
 };
-
-const apiUrl = API_BASE_URL;
-
-const fallbackArticles: DashboardArticle[] = [
-  {
-    id: "fallback-1",
-    title: "Nueva reforma económica aprobada",
-    status: "published",
-    createdAt: "2026-04-13T12:00:00.000Z",
-    authorName: "Juan Pérez",
-  },
-  {
-    id: "fallback-2",
-    title: "Descubren nueva especie marina",
-    status: "published",
-    createdAt: "2026-04-12T12:00:00.000Z",
-    authorName: "María González",
-  },
-  {
-    id: "fallback-3",
-    title: "Festival de música anuncia lineup",
-    status: "draft",
-    createdAt: "2026-04-12T12:00:00.000Z",
-    authorName: "Carlos Ruiz",
-  },
-];
 
 const normalizeArticle = (
   item: unknown,
@@ -70,7 +46,7 @@ const normalizeArticle = (
       ? record.authorName
       : rawAuthor && typeof rawAuthor.name === "string"
         ? rawAuthor.name
-        : "Redacción";
+        : "Redaccion";
 
   return {
     id: idFromRecord,
@@ -125,6 +101,7 @@ const statusClass = (status: string): string => {
 };
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const [articles, setArticles] = useState<DashboardArticle[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -136,29 +113,19 @@ const Dashboard = () => {
       try {
         setLoading(true);
 
-        const res = await fetch(apiUrl + "/api/v1/dashboard/summary", {
-          method: "GET",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
+        const payload = await apiFetch<DashboardSummaryResponse>(
+          `${API_BASE_URL}/api/v1/dashboard/summary`,
+          {
+            method: "GET",
+            credentials: "include",
+            signal: controller.signal,
           },
-          signal: controller.signal,
-        });
-
-        const payload = (await res.json()) as DashboardSummaryResponse & {
-          message?: string;
-        };
-
-        if (!res.ok) {
-          setError(payload.message ?? "No se pudo cargar el dashboard");
-          window.location.href = "/adminlogin";
-          setArticles([]);
-          return;
-        }
+        );
 
         const latest = Array.isArray(payload.latestArticles)
           ? payload.latestArticles
           : [];
+
         const normalized = latest
           .map((item, index) => normalizeArticle(item, index))
           .filter((item): item is DashboardArticle => item !== null)
@@ -171,6 +138,11 @@ const Dashboard = () => {
           return;
         }
 
+        if (err instanceof ApiError && (err.status === 401 || err.status === 403)) {
+          navigate("/adminlogin", { replace: true });
+          return;
+        }
+
         setError(err instanceof Error ? err.message : "Error desconocido");
         setArticles([]);
       } finally {
@@ -178,18 +150,10 @@ const Dashboard = () => {
       }
     };
 
-    loadDashboardSummary();
+    void loadDashboardSummary();
 
     return () => controller.abort();
-  }, []);
-
-  const visibleArticles = useMemo(() => {
-    if (articles.length > 0) {
-      return articles;
-    }
-
-    return fallbackArticles;
-  }, [articles]);
+  }, [navigate]);
 
   return (
     <div className="layout dashboard-layout">
@@ -201,7 +165,7 @@ const Dashboard = () => {
         <header className="dashboard-header">
           <h1 className="dashboard-title">Dashboard</h1>
           <p className="dashboard-subtitle">
-            Bienvenido de vuelta. Aquí está el resumen de tu periódico.
+            Bienvenido de vuelta. Aqui esta el resumen de tu periodico.
           </p>
         </header>
 
@@ -209,20 +173,19 @@ const Dashboard = () => {
           <h2 className="dashboard-card-title">Publicaciones Recientes</h2>
 
           <div className="dashboard-list">
-            {loading && articles.length === 0 ? (
-              <p className="dashboard-info">
-                Cargando publicaciones recientes...
-              </p>
+            {loading ? (
+              <p className="dashboard-info">Cargando publicaciones recientes...</p>
             ) : null}
 
-            {!loading && error && articles.length === 0 ? (
-              <p className="dashboard-info error">
-                Mostrando vista de ejemplo: inicia sesión para cargar datos
-                reales.
-              </p>
+            {!loading && error ? (
+              <p className="dashboard-info error">{error}</p>
             ) : null}
 
-            {visibleArticles.map((article) => (
+            {!loading && !error && articles.length === 0 ? (
+              <p className="dashboard-info">No hay publicaciones para mostrar.</p>
+            ) : null}
+
+            {articles.map((article) => (
               <article key={article.id} className="dashboard-list-item">
                 <div>
                   <p className="dashboard-item-title">{article.title}</p>
@@ -231,9 +194,7 @@ const Dashboard = () => {
                   </p>
                 </div>
 
-                <span
-                  className={`dashboard-status ${statusClass(article.status)}`}
-                >
+                <span className={`dashboard-status ${statusClass(article.status)}`}>
                   {statusLabel(article.status)}
                 </span>
               </article>

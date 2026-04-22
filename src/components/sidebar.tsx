@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { API_BASE_URL } from "../libs/config.ts";
+import { getMe, logout } from "../libs/http.ts";
 import type { ProfileData } from "../libs/types.ts";
 
 type NavItem = {
@@ -22,11 +22,11 @@ type NavItem = {
 const PRIMARY_ITEMS: NavItem[] = [
   { label: "Dashboard", icon: "home", path: "/dashboard" },
   { label: "Mis Entradas", icon: "doc", path: "/allentries" },
-  { label: "Todas las Entradas", icon: "grid" },
-  { label: "Autores y Usuarios", icon: "users" },
-  { label: "Categorías", icon: "folder" },
-  { label: "Nueva Publicación", icon: "plus" },
-  { label: "Biblioteca de Imágenes", icon: "image" },
+  { label: "Todas las Entradas", icon: "grid", path: "/all-entries" },
+  { label: "Autores y Usuarios", icon: "users", path: "/authors-users" },
+  { label: "Categorías", icon: "folder", path: "/categories" },
+  { label: "Nueva Publicación", icon: "plus", path: "/new-publication" },
+  { label: "Biblioteca de Imágenes", icon: "image", path: "/image-library" },
   { label: "Entradas Borradas", icon: "trash" },
 ];
 
@@ -34,8 +34,6 @@ const FOOTER_ITEMS: NavItem[] = [
   { label: "Configuración", icon: "settings" },
   { label: "Cerrar Sesión", icon: "logout" },
 ];
-
-const apiUrl = API_BASE_URL;
 
 const Icon = ({ icon }: { icon: NavItem["icon"] }) => {
   if (icon === "home") {
@@ -232,30 +230,7 @@ export const Sidebar = () => {
       try {
         setLoading(true);
 
-        const res = await fetch(apiUrl + "/api/v1/auth/me", {
-          method: "GET",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          signal: controller.signal,
-        });
-
-        const data = (await res.json()) as {
-          user?: ProfileData;
-          message?: string;
-        };
-
-        console.log(res, data);
-
-        if (!res.ok) {
-          setError(data.message ?? "No fue posible cargar el perfil");
-          setProfile(null);
-          return;
-        }
-
-
-        const userData = data.user ?? (data as ProfileData);
+        const userData = await getMe(controller.signal);
         setProfile(userData);
         setError(null);
       } catch (err: unknown) {
@@ -270,25 +245,22 @@ export const Sidebar = () => {
       }
     };
 
-    loadProfile();
+    void loadProfile();
 
     return () => controller.abort();
   }, []);
 
   const handleLoginRedirect = () => {
-    window.location.href = "/adminlogin";
+    navigate("/adminlogin");
   };
 
   const handleLogout = async () => {
     try {
-      await fetch(apiUrl + "/api/v1/auth/logout", {
-        method: "POST",
-        credentials: "include",
-      });
+      await logout();
     } catch {
       // Even if logout request fails, force a local redirect to the login page.
     } finally {
-      window.location.href = "/adminlogin";
+      navigate("/adminlogin", { replace: true });
     }
   };
 
