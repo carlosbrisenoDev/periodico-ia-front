@@ -496,7 +496,7 @@ export const PublicationPreview = () => {
         {article ? (
           <section className="public-recommendations">
             <div className="public-recommendations-inner">
-              <h2 className="public-recommendations-title">MÁS DE {article.categoryName || "OPINIÓN"}</h2>
+              <h2 className="public-recommendations-title">{recommendationTitle}</h2>
               
               {recommendations.length > 0 ? (
                 <div className="public-recommendations-grid">
