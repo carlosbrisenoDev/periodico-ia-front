@@ -13,6 +13,25 @@ export type AuthMeResponse = {
   message?: string;
 };
 
+export type UpdateProfileInput = {
+  name?: string;
+  email?: string;
+};
+
+export type UpdateProfileResponse = {
+  message?: string;
+  user?: ProfileData;
+};
+
+export type ChangePasswordInput = {
+  currentPassword: string;
+  newPassword: string;
+};
+
+export type ChangePasswordResponse = {
+  message?: string;
+};
+
 export type PublicArticle = {
   id: string;
   title: string;

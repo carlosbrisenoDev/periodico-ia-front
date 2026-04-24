@@ -2,10 +2,12 @@ import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { Sidebar } from "../components/sidebar.tsx";
 import { API_BASE_URL } from "../libs/config.ts";
+import { parseContentBlocks } from "../libs/contentBlocks.ts";
 import { ApiError, apiFetch, getArticleRecommendations } from "../libs/http.ts";
 import type {
   ArticlePreviewData,
   ArticleRecommendation,
+  ArticlePreviewLocationState,
 } from "../libs/types.ts";
 
 type ArticleDetailResponse = {
@@ -38,9 +40,6 @@ type PublicationPreviewArticle = ArticlePreviewData & {
   authorRole?: string | null;
 };
 
-type ArticlePreviewLocationState = {
-  article: PublicationPreviewArticle;
-};
 
 const formatDate = (isoDate: string | null | undefined): string => {
   if (!isoDate) {
@@ -227,11 +226,17 @@ const buildArticleFromDetail = (
   };
 };
 
-const renderContentBlocks = (content: string): string[] =>
-  content
-    .split(/\n\s*\n/g)
-    .map((block) => block.trim())
-    .filter((block) => block.length > 0);
+const normalizeAssetUrl = (value: string | null | undefined): string | null => {
+  if (!value) {
+    return null;
+  }
+
+  if (value.startsWith("http://") || value.startsWith("https://")) {
+    return value;
+  }
+
+  return `${API_BASE_URL}${value.startsWith("/") ? value : `/${value}`}`;
+};
 
 export const PublicationPreview = () => {
   const navigate = useNavigate();
@@ -331,7 +336,7 @@ export const PublicationPreview = () => {
   }, [id, locationState, navigate]);
 
   const publishedAt = article?.publishedAt ?? new Date().toISOString();
-  const contentBlocks = useMemo(() => renderContentBlocks(article?.content ?? ""), [article?.content]);
+  const contentBlocks = useMemo(() => parseContentBlocks(article?.content ?? ""), [article?.content]);
 
   return (
     <div className="layout dashboard-layout">
@@ -416,9 +421,9 @@ export const PublicationPreview = () => {
 
               <div className="article-preview-image-wrap">
                 {article.featuredImageUrl ? (
-                  <img
+                    <img
                     className="article-preview-image"
-                    src={article.featuredImageUrl}
+                      src={normalizeAssetUrl(article.featuredImageUrl) ?? ""}
                     alt={article.title}
                   />
                 ) : (
@@ -429,11 +434,38 @@ export const PublicationPreview = () => {
               </div>
 
               <div className="article-preview-body">
-                {contentBlocks.map((block, index) => (
-                  <p key={`${block.slice(0, 24)}-${index}`} className="article-preview-paragraph">
-                    {block}
-                  </p>
-                ))}
+                {contentBlocks.map((block, index) => {
+                  if (block.type === "subtitle") {
+                    return (
+                      <h3 key={`${block.text.slice(0, 24)}-${index}`} className="article-preview-subtitle-block">
+                        {block.text}
+                      </h3>
+                    );
+                  }
+
+                  if (block.type === "image") {
+                    const imageUrl = normalizeAssetUrl(block.url);
+                    if (!imageUrl) {
+                      return null;
+                    }
+
+                    return (
+                      <figure key={`${block.url.slice(0, 24)}-${index}`} className="article-preview-inline-image-wrap">
+                        <img
+                          className="article-preview-inline-image"
+                          src={imageUrl}
+                          alt="Imagen del contenido"
+                        />
+                      </figure>
+                    );
+                  }
+
+                  return (
+                    <p key={`${block.text.slice(0, 24)}-${index}`} className="article-preview-paragraph">
+                      {block.text}
+                    </p>
+                  );
+                })}
               </div>
 
               <section className="article-preview-tags-section">

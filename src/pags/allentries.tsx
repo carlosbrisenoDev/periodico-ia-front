@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Sidebar } from "../components/sidebar.tsx";
 import { API_BASE_URL } from "../libs/config.ts";
@@ -13,7 +13,10 @@ type ArticleEntry = {
   authorName: string;
   categoryName: string;
   isFeatured: boolean;
+  featuredType: FeaturedType;
 };
+
+type FeaturedType = "none" | "hero" | "headline" | "breaking";
 
 type EntryPageVariant = "mine" | "all";
 
@@ -29,6 +32,33 @@ type ArticleListResponse = {
 type DeleteArticleResponse = {
   message?: string;
 };
+
+const FEATURED_MENU_OPTIONS: Array<{
+  value: FeaturedType;
+  label: string;
+  description: string;
+}> = [
+  {
+    value: "breaking",
+    label: "Subdestacada en Categorías",
+    description: "Resalta en el contexto de la categoría.",
+  },
+  {
+    value: "headline",
+    label: "Subdestacada en Home",
+    description: "Aparece como bloque secundario en portada.",
+  },
+  {
+    value: "hero",
+    label: "Destacada en Primera Plana",
+    description: "Se muestra como principal en portada y categoría.",
+  },
+  {
+    value: "none",
+    label: "Sin destacar",
+    description: "No aparece como bloque destacado.",
+  },
+];
 
 const normalizeEntry = (item: unknown, index: number): ArticleEntry | null => {
   if (!item || typeof item !== "object") {
@@ -57,6 +87,13 @@ const normalizeEntry = (item: unknown, index: number): ArticleEntry | null => {
     categories.length > 0 && categories[0] && typeof categories[0] === "object"
       ? (categories[0] as Record<string, unknown>)
       : null;
+
+  const featuredTypeRaw = typeof record.featuredType === "string" ? record.featuredType : null;
+  const featuredType: FeaturedType =
+    featuredTypeRaw === "hero" || featuredTypeRaw === "headline" || featuredTypeRaw === "breaking"
+      ? featuredTypeRaw
+      : "none";
+  const isFeatured = typeof record.isFeatured === "boolean" ? record.isFeatured : featuredType !== "none";
 
   return {
     id:
@@ -88,8 +125,22 @@ const normalizeEntry = (item: unknown, index: number): ArticleEntry | null => {
           : firstCategory && typeof firstCategory.name === "string"
             ? firstCategory.name
             : "General",
-    isFeatured: typeof record.isFeatured === "boolean" ? record.isFeatured : false,
+    isFeatured,
+    featuredType: isFeatured ? (featuredType === "none" ? "hero" : featuredType) : "none",
   };
+};
+
+const featuredTypeLabel = (value: FeaturedType): string => {
+  if (value === "hero") {
+    return "Destacada en Primera Plana";
+  }
+  if (value === "headline") {
+    return "Subdestacada en Home";
+  }
+  if (value === "breaking") {
+    return "Subdestacada en Categorías";
+  }
+  return "Sin destacar";
 };
 
 const statusLabel = (status: string): string => {
@@ -172,6 +223,40 @@ export const AllEntries = ({ variant = "mine" }: AllEntriesProps) => {
     {},
   );
   const [deletingById, setDeletingById] = useState<Record<string, boolean>>({});
+  const [openFeaturedMenuId, setOpenFeaturedMenuId] = useState<string | null>(null);
+  const featuredMenuRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+  useEffect(() => {
+    if (!openFeaturedMenuId) {
+      return;
+    }
+
+    const handlePointerDown = (event: MouseEvent) => {
+      const currentMenu = featuredMenuRefs.current[openFeaturedMenuId];
+      if (!currentMenu) {
+        setOpenFeaturedMenuId(null);
+        return;
+      }
+
+      if (event.target instanceof Node && !currentMenu.contains(event.target)) {
+        setOpenFeaturedMenuId(null);
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setOpenFeaturedMenuId(null);
+      }
+    };
+
+    window.addEventListener("pointerdown", handlePointerDown);
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("pointerdown", handlePointerDown);
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [openFeaturedMenuId]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -313,19 +398,26 @@ export const AllEntries = ({ variant = "mine" }: AllEntriesProps) => {
     });
   }, [entries, statusFilter, authorFilter]);
 
-  const toggleFeatured = async (entryId: string, currentValue: boolean) => {
-    const nextValue = !currentValue;
+  const updateFeaturedType = async (
+    entryId: string,
+    currentType: FeaturedType,
+    nextType: FeaturedType,
+  ) => {
+    const nextIsFeatured = nextType !== "none";
+    const previousIsFeatured = currentType !== "none";
 
     setActionError(null);
     setTogglingFeaturedById((prev) => ({ ...prev, [entryId]: true }));
     setEntries((prev) =>
       prev.map((entry) =>
-        entry.id === entryId ? { ...entry, isFeatured: nextValue } : entry,
+        entry.id === entryId
+          ? { ...entry, featuredType: nextType, isFeatured: nextIsFeatured }
+          : entry,
       ),
     );
 
     try {
-      const payload = await apiFetch<{ isFeatured?: boolean }>(
+      const payload = await apiFetch<{ isFeatured?: boolean; featuredType?: string }>(
         `${API_BASE_URL}/api/v1/article/${entryId}/feature`,
         {
           method: "PATCH",
@@ -334,21 +426,32 @@ export const AllEntries = ({ variant = "mine" }: AllEntriesProps) => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            isFeatured: nextValue,
+            isFeatured: nextIsFeatured,
+            featuredType: nextType,
           }),
         },
       );
 
-      if (typeof payload.isFeatured === "boolean") {
-        const resolvedIsFeatured = payload.isFeatured;
-        setEntries((prev) =>
-          prev.map((entry) =>
-            entry.id === entryId
-              ? { ...entry, isFeatured: resolvedIsFeatured }
-              : entry,
-          ),
-        );
-      }
+      const payloadType =
+        payload.featuredType === "hero" ||
+        payload.featuredType === "headline" ||
+        payload.featuredType === "breaking" ||
+        payload.featuredType === "none"
+          ? payload.featuredType
+          : null;
+      const resolvedType: FeaturedType = payloadType ?? (payload.isFeatured ? nextType : "none");
+
+      setEntries((prev) =>
+        prev.map((entry) =>
+          entry.id === entryId
+            ? {
+                ...entry,
+                featuredType: resolvedType,
+                isFeatured: resolvedType !== "none",
+              }
+            : entry,
+        ),
+      );
     } catch (err: unknown) {
       if (err instanceof ApiError && (err.status === 401 || err.status === 403)) {
         navigate("/adminlogin", { replace: true });
@@ -357,13 +460,15 @@ export const AllEntries = ({ variant = "mine" }: AllEntriesProps) => {
 
       setEntries((prev) =>
         prev.map((entry) =>
-          entry.id === entryId ? { ...entry, isFeatured: currentValue } : entry,
+          entry.id === entryId
+            ? { ...entry, featuredType: currentType, isFeatured: previousIsFeatured }
+            : entry,
         ),
       );
       setActionError(
         err instanceof Error
           ? err.message
-          : "No se pudo actualizar el destacado de la publicacion.",
+          : "No se pudo actualizar el tipo de destacado.",
       );
     } finally {
       setTogglingFeaturedById((prev) => {
@@ -375,7 +480,7 @@ export const AllEntries = ({ variant = "mine" }: AllEntriesProps) => {
   };
 
   const deleteEntry = async (entryId: string, title: string) => {
-    const confirmed = window.confirm(`Eliminar la publicacion \"${title}\"?`);
+    const confirmed = window.confirm(`Mover la publicacion \"${title}\" a la papelera?`);
     if (!confirmed) {
       return;
     }
@@ -397,7 +502,7 @@ export const AllEntries = ({ variant = "mine" }: AllEntriesProps) => {
       }
 
       setActionError(
-        err instanceof Error ? err.message : "No se pudo eliminar la publicacion.",
+        err instanceof Error ? err.message : "No se pudo enviar la publicacion a la papelera.",
       );
     } finally {
       setDeletingById((prev) => {
@@ -499,7 +604,7 @@ export const AllEntries = ({ variant = "mine" }: AllEntriesProps) => {
 
                 {visibleEntries.map((entry) => {
                   const dateTime = formatDateTime(entry.createdAt);
-                  const isTogglingFeatured = Boolean(togglingFeaturedById[entry.id]);
+                  const isUpdatingFeatured = Boolean(togglingFeaturedById[entry.id]);
 
                   return (
                     <tr key={entry.id}>
@@ -585,8 +690,8 @@ export const AllEntries = ({ variant = "mine" }: AllEntriesProps) => {
                           <button
                             type="button"
                             className="entries-action-button delete"
-                            title="Eliminar"
-                            aria-label="Eliminar publicación"
+                            title="Mover a papelera"
+                            aria-label="Mover publicación a la papelera"
                             onClick={() => {
                               void deleteEntry(entry.id, entry.title);
                             }}
@@ -609,35 +714,73 @@ export const AllEntries = ({ variant = "mine" }: AllEntriesProps) => {
                             </svg>
                           </button>
 
-                          <button
-                            type="button"
-                            className={`entries-action-button star${
-                              entry.isFeatured ? " active" : ""
-                            }`}
-                            title={entry.isFeatured ? "Quitar destacado" : "Destacar"}
-                            aria-label={
-                              entry.isFeatured
-                                ? "Quitar destacado de la publicacion"
-                                : "Destacar publicacion"
-                            }
-                            aria-pressed={entry.isFeatured}
-                            disabled={isTogglingFeatured || Boolean(deletingById[entry.id])}
-                            onClick={() => {
-                              void toggleFeatured(entry.id, entry.isFeatured);
+                          <div
+                            className="entries-featured-menu-wrap"
+                            ref={(node) => {
+                              featuredMenuRefs.current[entry.id] = node;
                             }}
                           >
-                            <svg
-                              viewBox="0 0 24 24"
-                              fill={entry.isFeatured ? "currentColor" : "none"}
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              aria-hidden="true"
+                            <button
+                              type="button"
+                              className={[
+                                "entries-action-button",
+                                "star",
+                                `featured-${entry.featuredType}`,
+                                entry.featuredType !== "none" ? "active" : "",
+                                openFeaturedMenuId === entry.id ? "open" : "",
+                              ]
+                                .filter(Boolean)
+                                .join(" ")}
+                              title={`Destacado: ${featuredTypeLabel(entry.featuredType)}`}
+                              aria-label={`Abrir opciones de destacado para ${entry.title}`}
+                              aria-pressed={entry.featuredType !== "none"}
+                              aria-expanded={openFeaturedMenuId === entry.id}
+                              disabled={isUpdatingFeatured || Boolean(deletingById[entry.id])}
+                              onClick={() => {
+                                setOpenFeaturedMenuId((current) =>
+                                  current === entry.id ? null : entry.id,
+                                );
+                              }}
                             >
-                              <path d="m12 3 2.9 5.9 6.6 1-4.8 4.7 1.1 6.6-5.8-3.1-5.8 3.1 1.1-6.6L2.5 9.9l6.6-1z" />
-                            </svg>
-                          </button>
+                              <svg
+                                viewBox="0 0 24 24"
+                                fill={entry.featuredType !== "none" ? "currentColor" : "none"}
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                aria-hidden="true"
+                              >
+                                <path d="m12 3 2.9 5.9 6.6 1-4.8 4.7 1.1 6.6-5.8-3.1-5.8 3.1 1.1-6.6L2.5 9.9l6.6-1z" />
+                              </svg>
+                            </button>
+
+                            {openFeaturedMenuId === entry.id ? (
+                              <div className="entries-featured-menu" role="menu" aria-label="Opciones de destacado">
+                                {FEATURED_MENU_OPTIONS.map((option) => {
+                                  const isSelected = entry.featuredType === option.value;
+
+                                  return (
+                                    <button
+                                      key={option.value}
+                                      type="button"
+                                      className={`entries-featured-menu-item${isSelected ? " selected" : ""}`}
+                                      role="menuitemradio"
+                                      aria-checked={isSelected}
+                                      disabled={isUpdatingFeatured || Boolean(deletingById[entry.id])}
+                                      onClick={() => {
+                                        setOpenFeaturedMenuId(null);
+                                        void updateFeaturedType(entry.id, entry.featuredType, option.value);
+                                      }}
+                                    >
+                                      <strong>{option.label}</strong>
+                                      <span>{option.description}</span>
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            ) : null}
+                          </div>
                         </div>
                       </td>
                     </tr>

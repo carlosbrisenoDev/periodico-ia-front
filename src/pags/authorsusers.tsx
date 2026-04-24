@@ -46,6 +46,12 @@ type NewAuthorForm = {
   role: NewAuthorRole;
 };
 
+type EditAuthorForm = {
+  id: string;
+  name: string;
+  bio: string;
+};
+
 type AuthorCard = {
   id: string;
   authorId: string;
@@ -159,8 +165,12 @@ const AuthorsUsers = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState<boolean>(false);
+  const [editForm, setEditForm] = useState<EditAuthorForm | null>(null);
   const [createError, setCreateError] = useState<string | null>(null);
+  const [editError, setEditError] = useState<string | null>(null);
   const [creating, setCreating] = useState<boolean>(false);
+  const [savingEdit, setSavingEdit] = useState<boolean>(false);
+  const [deletingById, setDeletingById] = useState<Record<string, boolean>>({});
   const [form, setForm] = useState<NewAuthorForm>(INITIAL_FORM);
 
   useEffect(() => {
@@ -222,7 +232,7 @@ const AuthorsUsers = () => {
 
     return authors.map((author) => {
       const linkedUser = author.userId ? usersById.get(author.userId) ?? null : null;
-      const cardName = linkedUser?.name ?? author.name;
+      const cardName = author.name || linkedUser?.name || "Autor sin nombre";
 
       return {
         id: author.id,
@@ -357,6 +367,111 @@ const AuthorsUsers = () => {
     }
   };
 
+  const openEditModal = (author: AuthorRecord) => {
+    setEditForm({
+      id: author.id,
+      name: author.name,
+      bio: author.bio,
+    });
+    setEditError(null);
+  };
+
+  const closeEditModal = () => {
+    if (savingEdit) {
+      return;
+    }
+
+    setEditForm(null);
+    setEditError(null);
+  };
+
+  const submitEditAuthor = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!editForm) {
+      return;
+    }
+
+    const name = editForm.name.trim();
+    const bio = editForm.bio.trim();
+
+    if (name.length < 2) {
+      setEditError("El nombre debe tener al menos 2 caracteres.");
+      return;
+    }
+
+    try {
+      setSavingEdit(true);
+      setEditError(null);
+
+      const payload = await apiFetch<CreateAuthorResponse>(
+        `${API_BASE_URL}/api/v1/author/${editForm.id}`,
+        {
+          method: "PATCH",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name,
+            bio,
+          }),
+        },
+      );
+
+      const resolvedName = typeof payload.name === "string" ? payload.name : name;
+      const resolvedBio = typeof payload.bio === "string" ? payload.bio : bio;
+
+      setAuthors((prev) =>
+        prev.map((author) =>
+          author.id === editForm.id ? { ...author, name: resolvedName, bio: resolvedBio } : author,
+        ),
+      );
+      setEditForm(null);
+    } catch (err: unknown) {
+      if (err instanceof ApiError && (err.status === 401 || err.status === 403)) {
+        navigate("/adminlogin", { replace: true });
+        return;
+      }
+
+      setEditError(err instanceof Error ? err.message : "No se pudo actualizar el autor.");
+    } finally {
+      setSavingEdit(false);
+    }
+  };
+
+  const deleteAuthor = async (author: AuthorCard) => {
+    const confirmed = window.confirm(`Eliminar al autor \"${author.name}\"?`);
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      setCreateError(null);
+      setDeletingById((prev) => ({ ...prev, [author.authorId]: true }));
+
+      await apiFetch<{ message?: string }>(`${API_BASE_URL}/api/v1/author/${author.authorId}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+
+      setAuthors((prev) => prev.filter((item) => item.id !== author.authorId));
+    } catch (err: unknown) {
+      if (err instanceof ApiError && (err.status === 401 || err.status === 403)) {
+        navigate("/adminlogin", { replace: true });
+        return;
+      }
+
+      setCreateError(err instanceof Error ? err.message : "No se pudo eliminar el autor.");
+    } finally {
+      setDeletingById((prev) => {
+        const next = { ...prev };
+        delete next[author.authorId];
+        return next;
+      });
+    }
+  };
+
   return (
     <div className="layout dashboard-layout">
       <aside className="sidebar">
@@ -425,6 +540,13 @@ const AuthorsUsers = () => {
                   className="author-card-edit-button"
                   title="Editar autor"
                   aria-label="Editar autor"
+                  onClick={() => {
+                    const source = authors.find((author) => author.id === card.authorId);
+                    if (source) {
+                      openEditModal(source);
+                    }
+                  }}
+                  disabled={Boolean(deletingById[card.authorId])}
                 >
                   Editar
                 </button>
@@ -434,6 +556,10 @@ const AuthorsUsers = () => {
                   className="author-card-delete-button"
                   title="Eliminar autor"
                   aria-label="Eliminar autor"
+                  onClick={() => {
+                    void deleteAuthor(card);
+                  }}
+                  disabled={Boolean(deletingById[card.authorId])}
                 >
                   <svg
                     viewBox="0 0 24 24"
@@ -563,6 +689,55 @@ const AuthorsUsers = () => {
                   </button>
                   <button type="submit" className="primary" disabled={creating}>
                     {creating ? "Creando..." : "Crear Autor"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        ) : null}
+
+        {editForm ? (
+          <div className="authors-users-modal-overlay" onClick={closeEditModal} aria-hidden="true">
+            <div
+              className="authors-users-modal"
+              onClick={(event) => event.stopPropagation()}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="edit-author-title"
+            >
+              <h2 id="edit-author-title" className="authors-users-modal-title">
+                Editar Autor
+              </h2>
+
+              <form className="authors-users-form" onSubmit={submitEditAuthor}>
+                <label htmlFor="edit-author-name">Nombre completo</label>
+                <input
+                  id="edit-author-name"
+                  type="text"
+                  value={editForm.name}
+                  onChange={(event) =>
+                    setEditForm((prev) => (prev ? { ...prev, name: event.target.value } : prev))
+                  }
+                />
+
+                <label htmlFor="edit-author-bio">Cargo / Biografia</label>
+                <input
+                  id="edit-author-bio"
+                  type="text"
+                  value={editForm.bio}
+                  onChange={(event) =>
+                    setEditForm((prev) => (prev ? { ...prev, bio: event.target.value } : prev))
+                  }
+                />
+
+                {editError ? <p className="authors-users-modal-error">{editError}</p> : null}
+
+                <div className="authors-users-modal-actions">
+                  <button type="button" onClick={closeEditModal} disabled={savingEdit}>
+                    Cancelar
+                  </button>
+                  <button type="submit" className="primary" disabled={savingEdit}>
+                    {savingEdit ? "Guardando..." : "Guardar cambios"}
                   </button>
                 </div>
               </form>

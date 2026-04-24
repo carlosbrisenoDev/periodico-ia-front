@@ -2,6 +2,7 @@ import { type ChangeEvent, type FormEvent, useEffect, useMemo, useRef, useState 
 import { useNavigate } from "react-router-dom";
 import { Sidebar } from "../components/sidebar.tsx";
 import { API_BASE_URL } from "../libs/config.ts";
+import { insertBlockTemplate } from "../libs/contentBlocks.ts";
 import { ApiError, apiFetch, getMe } from "../libs/http.ts";
 
 type PublicationStatus = "draft" | "scheduled" | "published";
@@ -87,8 +88,10 @@ const parseTagsInput = (value: string): string[] => {
 const NewPublication = () => {
   const navigate = useNavigate();
   const [form, setForm] = useState<PublicationForm>(INITIAL_FORM);
+
   const [authors, setAuthors] = useState<AuthorOption[]>([]);
   const [categories, setCategories] = useState<CategoryOption[]>([]);
+
   const [loadingOptions, setLoadingOptions] = useState<boolean>(true);
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [showImageModal, setShowImageModal] = useState<boolean>(false);
@@ -100,6 +103,7 @@ const NewPublication = () => {
   const [message, setMessage] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const editorRef = useRef<HTMLTextAreaElement | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -109,7 +113,7 @@ const NewPublication = () => {
         setLoadingOptions(true);
         setError(null);
 
-        const [profile, authorsPayload, categoriesPayload] = await Promise.all([
+        const [profileResult, authorsResult, categoriesResult] = await Promise.allSettled([
           getMe(controller.signal),
           apiFetch<unknown[]>(`${API_BASE_URL}/api/v1/author`, {
             method: "GET",
@@ -122,6 +126,18 @@ const NewPublication = () => {
             signal: controller.signal,
           }),
         ]);
+
+        if (profileResult.status === "rejected") {
+          const err = profileResult.reason;
+          if (err instanceof ApiError && (err.status === 401 || err.status === 403)) {
+            navigate("/adminlogin", { replace: true });
+            return;
+          }
+        }
+
+        const profile = profileResult.status === "fulfilled" ? profileResult.value : null;
+        const authorsPayload = authorsResult.status === "fulfilled" ? authorsResult.value : [];
+        const categoriesPayload = categoriesResult.status === "fulfilled" ? categoriesResult.value : [];
 
         const authorOptions = (Array.isArray(authorsPayload) ? authorsPayload : [])
           .map((item): AuthorOption | null => {
@@ -165,7 +181,9 @@ const NewPublication = () => {
         setAuthors(authorOptions);
         setCategories(categoryOptions);
 
-        const authorLinkedToSession = authorOptions.find((author) => author.userId === profile.id);
+        const authorLinkedToSession = profile
+          ? authorOptions.find((author) => author.userId === profile.id)
+          : null;
         const fallbackAuthor = authorOptions[0] ?? null;
         const selectedAuthorId = authorLinkedToSession?.id ?? fallbackAuthor?.id ?? "";
 
@@ -348,6 +366,29 @@ const NewPublication = () => {
     });
   };
 
+  const insertEditorBlock = (template: string) => {
+    const textarea = editorRef.current;
+
+    if (!textarea) {
+      updateField("content", `${form.content}${form.content ? "\n\n" : ""}${template}`);
+      return;
+    }
+
+    const { value, caretPosition } = insertBlockTemplate(
+      form.content,
+      template,
+      textarea.selectionStart,
+      textarea.selectionEnd,
+    );
+
+    updateField("content", value);
+
+    requestAnimationFrame(() => {
+      textarea.focus();
+      textarea.setSelectionRange(caretPosition, caretPosition);
+    });
+  };
+
   const loadImageLibrary = async () => {
     setLoadingImages(true);
     setImageError(null);
@@ -428,7 +469,8 @@ const NewPublication = () => {
 
       const uploadedUrl = typeof uploaded.url === "string" ? normalizeImageUrl(uploaded.url) : "";
       if (!uploadedUrl) {
-        throw new Error("No se recibio la URL de la imagen subida.");
+        setImageError("No se recibio la URL de la imagen subida.");
+        return;
       }
 
       updateField("featuredImageUrl", uploadedUrl);
@@ -540,6 +582,7 @@ const NewPublication = () => {
 
               <div className="new-publication-editor-wrap">
                 <textarea
+                  ref={editorRef}
                   id="new-publication-content"
                   className="new-publication-editor"
                   rows={10}
@@ -548,10 +591,28 @@ const NewPublication = () => {
                   onChange={(event) => updateField("content", event.target.value)}
                 />
 
-                <div className="new-publication-editor-toolbar" aria-hidden="true">
-                  <span className="new-publication-chip">Texto</span>
-                  <span className="new-publication-chip">Imagenes</span>
-                  <span className="new-publication-chip">Subtitulo</span>
+                <div className="new-publication-editor-toolbar">
+                  <button
+                    type="button"
+                    className="new-publication-chip"
+                    onClick={() => insertEditorBlock("Nuevo parrafo...")}
+                  >
+                    Texto
+                  </button>
+                  <button
+                    type="button"
+                    className="new-publication-chip"
+                    onClick={() => insertEditorBlock("[[subtitle: Nuevo subtitulo]]")}
+                  >
+                    Subtitulo
+                  </button>
+                  <button
+                    type="button"
+                    className="new-publication-chip"
+                    onClick={() => insertEditorBlock("[[image: https://]]")}
+                  >
+                    Imagen
+                  </button>
                 </div>
               </div>
             </article>

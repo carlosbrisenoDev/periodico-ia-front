@@ -18,6 +18,9 @@ import Categories from "./pags/categories.tsx";
 import NewPublication from "./pags/newpublication.tsx";
 import EditPublication from "./pags/editpublication.tsx";
 import ImageLibrary from "./pags/imagelibrary.tsx";
+import SubscriptionPage from "./pags/subscription.tsx";
+import DeletedEntries from "./pags/deletedentries.tsx";
+import SettingsPage from "./pags/settings.tsx";
 import { PublicationPreview } from "./pags/publicationpreview.tsx";
 import {
   getLatestPublications,
@@ -102,8 +105,11 @@ const HomePage = () => {
         </div>
 
         <div className="public-home-actions">
-          <Link className="public-home-link" to="/adminlogin">
-            Entrar al panel
+          <Link className="public-home-link secondary" to="/adminlogin">
+            Panel admin
+          </Link>
+          <Link className="public-home-link primary" to="/suscripcion">
+            Suscribirme
           </Link>
         </div>
       </header>
@@ -133,6 +139,16 @@ const HomePage = () => {
             </article>
           ))}
         </div>
+
+        <article className="public-home-subscribe-cta">
+          <div>
+            <h3>Quieres recibir las noticias por correo?</h3>
+            <p>Crea tu suscripcion y mantente al dia con las publicaciones mas relevantes.</p>
+          </div>
+          <Link className="public-home-link primary" to="/suscripcion">
+            Crear suscripcion
+          </Link>
+        </article>
       </section>
     </main>
   );
@@ -182,6 +198,7 @@ const App = () => {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<HomePage />} />
+        <Route path="/suscripcion" element={<SubscriptionPage />} />
         <Route path="/adminlogin" element={<AdminLoginPage />} />
 
         <Route element={<AdminRoute />}>
@@ -195,6 +212,8 @@ const App = () => {
           <Route path="/publication/:id/edit" element={<EditPublication />} />
           <Route path="/authors-users" element={<AuthorsUsers />} />
           <Route path="/categories" element={<Categories />} />
+          <Route path="/deleted-entries" element={<DeletedEntries />} />
+          <Route path="/settings" element={<SettingsPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

@@ -1,0 +1,14 @@
+.gap-10 {
+    display: flex;
+    gap: 10px;
+}
+
+.row {
+    display: flex;
+    flex-direction: row;
+}
+
+.space-between {
+    display: flex;
+    justify-content: space-between;
+}

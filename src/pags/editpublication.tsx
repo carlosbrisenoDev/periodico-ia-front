@@ -1,7 +1,8 @@
-import { type FormEvent, useEffect, useMemo, useState } from "react";
+import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Sidebar } from "../components/sidebar.tsx";
 import { API_BASE_URL } from "../libs/config.ts";
+import { insertBlockTemplate } from "../libs/contentBlocks.ts";
 import { ApiError, apiFetch } from "../libs/http.ts";
 
 type PublicationStatus = "draft" | "scheduled" | "published";
@@ -108,6 +109,7 @@ const EditPublication = () => {
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [message, setMessage] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
+  const editorRef = useRef<HTMLTextAreaElement | null>(null);
 
   useEffect(() => {
     if (!id) {
@@ -356,6 +358,29 @@ const EditPublication = () => {
     });
   };
 
+  const insertEditorBlock = (template: string) => {
+    const textarea = editorRef.current;
+
+    if (!textarea) {
+      updateField("content", `${form.content}${form.content ? "\n\n" : ""}${template}`);
+      return;
+    }
+
+    const { value, caretPosition } = insertBlockTemplate(
+      form.content,
+      template,
+      textarea.selectionStart,
+      textarea.selectionEnd,
+    );
+
+    updateField("content", value);
+
+    requestAnimationFrame(() => {
+      textarea.focus();
+      textarea.setSelectionRange(caretPosition, caretPosition);
+    });
+  };
+
   return (
     <div className="layout dashboard-layout">
       <aside className="sidebar">
@@ -444,6 +469,7 @@ const EditPublication = () => {
 
               <div className="new-publication-editor-wrap">
                 <textarea
+                  ref={editorRef}
                   id="edit-publication-content"
                   className="new-publication-editor"
                   rows={10}
@@ -453,10 +479,31 @@ const EditPublication = () => {
                   disabled={loading}
                 />
 
-                <div className="new-publication-editor-toolbar" aria-hidden="true">
-                  <span className="new-publication-chip">Texto</span>
-                  <span className="new-publication-chip">Imagenes</span>
-                  <span className="new-publication-chip">Subtitulo</span>
+                <div className="new-publication-editor-toolbar">
+                  <button
+                    type="button"
+                    className="new-publication-chip"
+                    onClick={() => insertEditorBlock("Nuevo parrafo...")}
+                    disabled={loading}
+                  >
+                    Texto
+                  </button>
+                  <button
+                    type="button"
+                    className="new-publication-chip"
+                    onClick={() => insertEditorBlock("[[subtitle: Nuevo subtitulo]]")}
+                    disabled={loading}
+                  >
+                    Subtitulo
+                  </button>
+                  <button
+                    type="button"
+                    className="new-publication-chip"
+                    onClick={() => insertEditorBlock("[[image: https://]]")}
+                    disabled={loading}
+                  >
+                    Imagen
+                  </button>
                 </div>
               </div>
             </article>

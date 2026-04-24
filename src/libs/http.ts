@@ -1,5 +1,15 @@
 import { API_BASE_URL } from "./config.ts";
-import type { ArticleRecommendation, ProfileData } from "./types.ts";
+import type {
+  AuthMeResponse,
+  ArticleRecommendation,
+  ChangePasswordInput,
+  ChangePasswordResponse,
+  ProfileData,
+  PublicArticle,
+  PublicHomeResponse,
+  UpdateProfileInput,
+  UpdateProfileResponse,
+} from "./types.ts";
 
 export class ApiError extends Error {
   readonly status: number;
@@ -13,33 +23,25 @@ export class ApiError extends Error {
   }
 }
 
-type AuthMeResponse = {
-  user?: ProfileData;
-  message?: string;
-};
-
-type PublicArticle = {
-  id: string;
-  title: string;
-  slug: string;
-  excerpt: string;
-  featuredImageUrl?: string;
-  createdAt: string;
-  authorName: string;
-  categoryName: string;
-};
-
-type PublicHomeResponse = {
-  recent?: unknown[];
-  latest?: unknown[];
-};
-
 type RecommendationsResponse = {
   items?: unknown[];
 };
 
+type RegisterSubscriberResponse = {
+  message?: string;
+  subscriber?: {
+    id?: string;
+    username?: string;
+    email?: string;
+    role?: string;
+    status?: string;
+    active?: boolean;
+  };
+};
+
 const AUTH_PREFIX = `${API_BASE_URL}/api/v1/auth`;
 const PUBLIC_PREFIX = `${API_BASE_URL}/api/v1/public`;
+const SUBSCRIBERS_PREFIX = `${API_BASE_URL}/api/v1/subscribers`;
 const SESSION_CACHE_TTL_MS = 30_000;
 
 let cachedProfile: ProfileData | null = null;
@@ -119,6 +121,12 @@ const hasFreshSessionCache = (): boolean => {
 export const invalidateSessionCache = (): void => {
   cachedProfile = null;
   profileCachedAt = 0;
+};
+
+export const updateSessionCache = (profile: ProfileData): ProfileData => {
+  cachedProfile = profile;
+  profileCachedAt = Date.now();
+  return profile;
 };
 
 export const getMe = async (
@@ -217,6 +225,66 @@ export const logout = async (): Promise<void> => {
   } finally {
     invalidateSessionCache();
   }
+};
+
+export const updateAuthProfile = async (
+  input: UpdateProfileInput,
+): Promise<ProfileData> => {
+  const payload = await apiFetch<UpdateProfileResponse>(`${AUTH_PREFIX}/me`, {
+    method: "PATCH",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(input),
+  });
+
+  if (!payload.user) {
+    throw new Error("No se pudo actualizar el perfil.");
+  }
+
+  const normalized = normalizeProfile(payload.user);
+
+  if (!normalized) {
+    throw new Error("Respuesta de perfil invalida");
+  }
+
+  updateSessionCache(normalized);
+  return normalized;
+};
+
+export const changeAuthPassword = async (
+  input: ChangePasswordInput,
+): Promise<string> => {
+  const payload = await apiFetch<ChangePasswordResponse>(`${AUTH_PREFIX}/change-password`, {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(input),
+  });
+
+  return payload.message ?? "Password updated successfully";
+};
+
+export const registerSubscriber = async (input: {
+  username: string;
+  email: string;
+  password: string;
+}): Promise<{ message: string }> => {
+  const payload = await apiFetch<RegisterSubscriberResponse>(`${SUBSCRIBERS_PREFIX}/register`, {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(input),
+  });
+
+  return {
+    message: payload.message ?? "Suscripcion creada correctamente.",
+  };
 };
 
 export const isAdmin = (profile: ProfileData | null): boolean => {
