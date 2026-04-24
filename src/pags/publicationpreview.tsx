@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { Sidebar } from "../components/sidebar.tsx";
+
 import { API_BASE_URL } from "../libs/config.ts";
 import { parseContentBlocks } from "../libs/contentBlocks.ts";
 import { ApiError, apiFetch, getArticleRecommendations } from "../libs/http.ts";
@@ -339,197 +339,246 @@ export const PublicationPreview = () => {
   const contentBlocks = useMemo(() => parseContentBlocks(article?.content ?? ""), [article?.content]);
 
   return (
-    <div className="layout dashboard-layout">
-      <aside className="sidebar">
-        <Sidebar />
-      </aside>
-
-      <main className="content article-preview-content">
-        <header className="article-preview-header">
-          <button
-            type="button"
-            className="article-preview-back"
-            onClick={() => {
-              if (window.history.length > 1) {
-                navigate(-1);
-                return;
-              }
-
-              navigate(id ? `/publication/${id}/edit` : "/allentries");
-            }}
-          >
-            <span aria-hidden="true">←</span>
-            Volver
-          </button>
-
-          <div className="article-preview-header-copy">
-            <h1>El Periodico</h1>
-            <p>Vista de Articulo</p>
+    <div className="public-layout">
+      <nav className="public-nav-container">
+        <div className="public-nav-inner">
+          <div className="public-nav-top">
+            <button className="public-nav-mobile-btn" style={{ display: "none" }}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"></line><line x1="4" x2="20" y1="6" y2="6"></line><line x1="4" x2="20" y1="18" y2="18"></line></svg>
+            </button>
+            <a className="public-nav-logo-link" href="#" onClick={(e) => { e.preventDefault(); navigate("/allentries"); }}>
+              <span className="public-nav-logo-fallback">IF INFORMACIÓN DE ALTURA</span>
+            </a>
+            <div className="public-nav-actions">
+              <div className="public-nav-date">
+                <span>Miércoles, 15 de abril de 2026</span>
+              </div>
+              <button type="button" className="public-nav-subscribe" onClick={(e) => e.preventDefault()}>
+                Suscribirse
+              </button>
+            </div>
           </div>
+          <div className="public-nav-bottom">
+            <div className="public-nav-links">
+              <a className="public-nav-link" href="#" onClick={(e) => e.preventDefault()}>Noticias</a>
+              <a className="public-nav-link" href="#" onClick={(e) => e.preventDefault()}>Seguridad</a>
+              <a className="public-nav-link" href="#" onClick={(e) => e.preventDefault()}>Deportes</a>
+              <a className="public-nav-link" href="#" onClick={(e) => e.preventDefault()}>Cultura</a>
+              <a className="public-nav-link" href="#" onClick={(e) => e.preventDefault()}>Comunidad</a>
+              <a className="public-nav-link" href="#" onClick={(e) => e.preventDefault()}>Opinión</a>
+              <a className="public-nav-link active" href="#" onClick={(e) => e.preventDefault()}>Recientes</a>
+            </div>
+            <form className="public-nav-search" onSubmit={(e) => e.preventDefault()}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="public-nav-search-icon"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
+              <input type="search" className="public-nav-search-input" placeholder="Buscar noticias..." />
+            </form>
+          </div>
+        </div>
+      </nav>
 
-          <div className="article-preview-header-spacer" />
-        </header>
+      <main className="public-main">
+        <div className="public-back-bar">
+          <div className="public-back-inner">
+            <button
+              className="public-back-link"
+              onClick={() => {
+                if (window.history.length > 1) {
+                  navigate(-1);
+                  return;
+                }
+                navigate(id ? `/publication/${id}/edit` : "/allentries");
+              }}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-left w-4 h-4" style={{width: 16, height: 16}}><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg>
+              Volver a Edición
+            </button>
+          </div>
+        </div>
 
-        <section className="article-preview-shell">
-          {loading ? <p className="article-preview-state">Cargando vista previa...</p> : null}
-          {!loading && error ? <p className="article-preview-state error">{error}</p> : null}
+        {loading ? (
+          <div className="public-article" style={{ textAlign: "center" }}>Cargando vista previa...</div>
+        ) : null}
+        
+        {!loading && error ? (
+          <div className="public-article" style={{ textAlign: "center", color: "#8b1f1f" }}>{error}</div>
+        ) : null}
 
-          {!loading && article ? (
-            <article className="article-preview-article">
-              {article.categoryName ? <span className="article-preview-category">{article.categoryName}</span> : null}
-
-              <h2 className="article-preview-title">{article.title}</h2>
-              <p className="article-preview-excerpt">{article.excerpt}</p>
-
-              <div className="article-preview-meta">
-                <div className="article-preview-author-block">
-                  <div className="article-preview-avatar">
-                    {article.authorAvatarUrl ? (
-                      <img
-                        className="article-preview-avatar-image"
-                        src={article.authorAvatarUrl}
-                        alt={article.authorName}
-                      />
-                    ) : (
-                      <span>
-                        {article.authorName
-                          .split(" ")
-                          .slice(0, 2)
-                          .map((part) => part.charAt(0).toUpperCase())
-                          .join("") || "EP"}
-                      </span>
-                    )}
-                  </div>
-                  <div>
-                    <p className="article-preview-author">Por {article.authorName}</p>
-                    <p className="article-preview-role">{article.authorRole ?? "Editor en Jefe"}</p>
-                  </div>
-                </div>
-
-                <div className="article-preview-dates">
-                  <span className="article-preview-date-item">
-                    <CalendarIcon />
-                    <span>{formatDate(publishedAt)}</span>
-                  </span>
-                  <span>•</span>
-                  <span className="article-preview-date-item">
-                    <ClockIcon />
-                    <span>{formatTime(publishedAt)}</span>
-                  </span>
-                </div>
+        {!loading && article ? (
+          <article className="public-article">
+            {article.categoryName ? (
+              <div style={{ marginBottom: 24 }}>
+                <span className="public-article-category">{article.categoryName}</span>
               </div>
+            ) : null}
 
-              <div className="article-preview-image-wrap">
-                {article.featuredImageUrl ? (
-                    <img
-                    className="article-preview-image"
-                      src={normalizeAssetUrl(article.featuredImageUrl) ?? ""}
-                    alt={article.title}
-                  />
-                ) : (
-                  <div className="article-preview-image placeholder">
-                    <span>Imagen destacada pendiente</span>
-                  </div>
-                )}
+            <h1 className="public-article-title">{article.title}</h1>
+            <p className="public-article-excerpt">{article.excerpt}</p>
+
+            <div className="public-article-meta">
+              <div className="public-meta-item">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="public-meta-icon"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                <span className="public-meta-author">{article.authorName}</span>
               </div>
+              <div className="public-meta-item">
+                <CalendarIcon />
+                <span>{formatDate(publishedAt)}</span>
+              </div>
+              <div className="public-meta-item">
+                <ClockIcon />
+                <span>{formatTime(publishedAt)}</span>
+              </div>
+            </div>
 
-              <div className="article-preview-body">
-                {contentBlocks.map((block, index) => {
-                  if (block.type === "subtitle") {
-                    return (
-                      <h3 key={`${block.text.slice(0, 24)}-${index}`} className="article-preview-subtitle-block">
-                        {block.text}
-                      </h3>
-                    );
-                  }
+            <div className="public-article-hero">
+              {article.featuredImageUrl ? (
+                <img
+                  src={normalizeAssetUrl(article.featuredImageUrl) ?? ""}
+                  alt={article.title}
+                />
+              ) : (
+                <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: "#5a7a94" }}>
+                  <span>Imagen destacada pendiente</span>
+                </div>
+              )}
+            </div>
 
-                  if (block.type === "image") {
-                    const imageUrl = normalizeAssetUrl(block.url);
-                    if (!imageUrl) {
-                      return null;
-                    }
+            <div className="public-article-prose">
+              {contentBlocks.map((block, index) => {
+                if (block.type === "subtitle") {
+                  return (
+                    <h3 key={`${block.text.slice(0, 24)}-${index}`}>
+                      {block.text}
+                    </h3>
+                  );
+                }
 
-                    return (
-                      <figure key={`${block.url.slice(0, 24)}-${index}`} className="article-preview-inline-image-wrap">
-                        <img
-                          className="article-preview-inline-image"
-                          src={imageUrl}
-                          alt="Imagen del contenido"
-                        />
-                      </figure>
-                    );
-                  }
+                if (block.type === "image") {
+                  const imageUrl = normalizeAssetUrl(block.url);
+                  if (!imageUrl) return null;
 
                   return (
-                    <p key={`${block.text.slice(0, 24)}-${index}`} className="article-preview-paragraph">
-                      {block.text}
-                    </p>
+                    <figure key={`${block.url.slice(0, 24)}-${index}`}>
+                      <div className="public-article-inline-image-wrapper">
+                        <img src={imageUrl} alt="Imagen del contenido" />
+                      </div>
+                    </figure>
                   );
-                })}
-              </div>
+                }
 
-              <section className="article-preview-tags-section">
-                <h3>Etiquetas</h3>
-                <div className="article-preview-tags">
-                  {article.tags.length > 0 ? (
-                    article.tags.map((tag) => (
-                      <span key={tag} className="article-preview-tag">
-                        #{tag}
-                      </span>
-                    ))
-                  ) : (
-                    <span className="article-preview-empty-tag">Sin etiquetas</span>
-                  )}
-                </div>
-              </section>
-
-              <section className="article-preview-recommendations">
-                <div className="article-preview-recommendations-head">
-                  <h3>{recommendationTitle}</h3>
-                  <p>Articulos publicados en la ultima semana con etiquetas similares.</p>
-                </div>
-
-                {recommendations.length > 0 ? (
-                  <div className="article-preview-recommendations-grid">
-                    {recommendations.map((item) => (
-                      <article key={item.id} className="article-preview-recommendation-card">
-                        <div className="article-preview-recommendation-image-wrap">
-                          {item.featuredImageUrl ? (
-                            <img
-                              className="article-preview-recommendation-image"
-                              src={item.featuredImageUrl}
-                              alt={item.title}
-                            />
-                          ) : (
-                            <div className="article-preview-recommendation-image placeholder" />
-                          )}
-                        </div>
-
-                        <div className="article-preview-recommendation-body">
-                          {item.categoryName ? (
-                            <span className="article-preview-recommendation-category">{item.categoryName}</span>
-                          ) : null}
-                          <h4>{item.title}</h4>
-                          <p>{item.excerpt}</p>
-                          <div className="article-preview-recommendation-meta">
-                            <span>{formatDate(item.publishedAt)}</span>
-                            <span>•</span>
-                            <span>{item.matchedTags.slice(0, 3).map((tag) => `#${tag}`).join(" ")}</span>
-                          </div>
-                        </div>
-                      </article>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="article-preview-empty-recommendations">
-                    Todavia no hay recomendaciones para este articulo.
+                return (
+                  <p key={`${block.text.slice(0, 24)}-${index}`}>
+                    {block.text}
                   </p>
-                )}
-              </section>
-            </article>
-          ) : null}
-        </section>
+                );
+              })}
+            </div>
+
+            <div className="public-share-section">
+              <h3 className="public-share-title">COMPARTIR:</h3>
+              <div className="public-share-buttons">
+                <button className="public-share-button" aria-label="Facebook">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
+                </button>
+                <button className="public-share-button" aria-label="Twitter">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"></path></svg>
+                </button>
+                <button className="public-share-button" aria-label="LinkedIn">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect width="4" height="12" x="2" y="9"></rect><circle cx="4" cy="4" r="2"></circle></svg>
+                </button>
+                <button className="public-share-button" aria-label="Share">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"></line><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"></line></svg>
+                </button>
+              </div>
+            </div>
+          </article>
+        ) : null}
+
+        {article ? (
+          <section className="public-recommendations">
+            <div className="public-recommendations-inner">
+              <h2 className="public-recommendations-title">MÁS DE {article.categoryName || "OPINIÓN"}</h2>
+              
+              {recommendations.length > 0 ? (
+                <div className="public-recommendations-grid">
+                  {recommendations.map((item) => (
+                    <a key={item.id} href="#" onClick={(e) => e.preventDefault()} className="public-card">
+                      <div className="public-card-image-wrap">
+                        {item.featuredImageUrl ? (
+                          <img src={item.featuredImageUrl} alt={item.title} />
+                        ) : (
+                          <div style={{ width: "100%", height: "100%", backgroundColor: "#e5e7eb" }} />
+                        )}
+                      </div>
+                      <div className="public-card-content">
+                        {item.categoryName ? (
+                          <div className="public-card-category">{item.categoryName}</div>
+                        ) : null}
+                        <h3 className="public-card-title">{item.title}</h3>
+                        <div className="public-card-meta">
+                          <span>{formatDate(item.publishedAt)}</span>
+                          <span>•</span>
+                          <span>{formatTime(item.publishedAt)}</span>
+                        </div>
+                      </div>
+                    </a>
+                  ))}
+                </div>
+              ) : (
+                <p style={{ color: "#4b5563" }}>Todavia no hay recomendaciones para este articulo.</p>
+              )}
+            </div>
+          </section>
+        ) : null}
       </main>
+
+      <footer className="public-footer">
+        <div className="public-footer-inner">
+          <div className="public-footer-grid">
+            <div className="public-footer-brand">
+              <div className="public-nav-logo-fallback" style={{ marginBottom: 16 }}>IF INFORMACIÓN DE ALTURA</div>
+              <p>Periodismo independiente para el mundo moderno.</p>
+              <div className="public-footer-phone">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                <span>+34 900 123 456</span>
+              </div>
+            </div>
+            
+            <div>
+              <h4 className="public-footer-title">Secciones</h4>
+              <ul className="public-footer-links">
+                <li><a href="#" className="public-footer-link" onClick={(e) => e.preventDefault()}>Noticias</a></li>
+                <li><a href="#" className="public-footer-link" onClick={(e) => e.preventDefault()}>Seguridad</a></li>
+                <li><a href="#" className="public-footer-link" onClick={(e) => e.preventDefault()}>Deportes</a></li>
+                <li><a href="#" className="public-footer-link" onClick={(e) => e.preventDefault()}>Cultura</a></li>
+                <li><a href="#" className="public-footer-link" onClick={(e) => e.preventDefault()}>Comunidad</a></li>
+                <li><a href="#" className="public-footer-link" onClick={(e) => e.preventDefault()}>Opinión</a></li>
+              </ul>
+            </div>
+            
+            <div>
+              <h4 className="public-footer-title">Redes Sociales</h4>
+              <div className="public-footer-social">
+                <a href="#" className="public-social-button" aria-label="Facebook">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
+                </a>
+                <a href="#" className="public-social-button" aria-label="Twitter">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"></path></svg>
+                </a>
+                <a href="#" className="public-social-button" aria-label="Instagram">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"></line></svg>
+                </a>
+                <a href="#" className="public-social-button" aria-label="LinkedIn">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect width="4" height="12" x="2" y="9"></rect><circle cx="4" cy="4" r="2"></circle></svg>
+                </a>
+              </div>
+            </div>
+          </div>
+          
+          <div className="public-footer-bottom">
+            © 2026 El Diario. Todos los derechos reservados.
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };

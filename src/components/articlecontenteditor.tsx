@@ -382,11 +382,13 @@ export const ArticleContentEditor = ({
                       <span>Sin imágenes</span>
                     </div>
                   ) : (
-                    <img
-                      className="editor-image-preview"
-                      src={normalizeImageUrl(block.url)}
-                      alt="Imagen del contenido"
-                    />
+                    <div className="editor-image-preview-wrapper">
+                      <img
+                        className="editor-image-preview"
+                        src={normalizeImageUrl(block.url)}
+                        alt="Imagen del contenido"
+                      />
+                    </div>
                   )}
 
                   <div className="editor-block-footer">
