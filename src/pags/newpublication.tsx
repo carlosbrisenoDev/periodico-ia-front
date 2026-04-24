@@ -1,8 +1,8 @@
 import { type ChangeEvent, type FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { ArticleContentEditor } from "../components/articlecontenteditor.tsx";
 import { Sidebar } from "../components/sidebar.tsx";
 import { API_BASE_URL } from "../libs/config.ts";
-import { insertBlockTemplate } from "../libs/contentBlocks.ts";
 import { ApiError, apiFetch, getMe } from "../libs/http.ts";
 
 type PublicationStatus = "draft" | "scheduled" | "published";
@@ -103,7 +103,6 @@ const NewPublication = () => {
   const [message, setMessage] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const editorRef = useRef<HTMLTextAreaElement | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -366,29 +365,6 @@ const NewPublication = () => {
     });
   };
 
-  const insertEditorBlock = (template: string) => {
-    const textarea = editorRef.current;
-
-    if (!textarea) {
-      updateField("content", `${form.content}${form.content ? "\n\n" : ""}${template}`);
-      return;
-    }
-
-    const { value, caretPosition } = insertBlockTemplate(
-      form.content,
-      template,
-      textarea.selectionStart,
-      textarea.selectionEnd,
-    );
-
-    updateField("content", value);
-
-    requestAnimationFrame(() => {
-      textarea.focus();
-      textarea.setSelectionRange(caretPosition, caretPosition);
-    });
-  };
-
   const loadImageLibrary = async () => {
     setLoadingImages(true);
     setImageError(null);
@@ -576,45 +552,15 @@ const NewPublication = () => {
             </article>
 
             <article className="new-publication-card">
-              <label className="new-publication-label" htmlFor="new-publication-content">
+              <p className="new-publication-label">
                 Contenido del articulo
-              </label>
-
-              <div className="new-publication-editor-wrap">
-                <textarea
-                  ref={editorRef}
-                  id="new-publication-content"
-                  className="new-publication-editor"
-                  rows={10}
-                  placeholder="Escribe un parrafo..."
-                  value={form.content}
-                  onChange={(event) => updateField("content", event.target.value)}
-                />
-
-                <div className="new-publication-editor-toolbar">
-                  <button
-                    type="button"
-                    className="new-publication-chip"
-                    onClick={() => insertEditorBlock("Nuevo parrafo...")}
-                  >
-                    Texto
-                  </button>
-                  <button
-                    type="button"
-                    className="new-publication-chip"
-                    onClick={() => insertEditorBlock("[[subtitle: Nuevo subtitulo]]")}
-                  >
-                    Subtitulo
-                  </button>
-                  <button
-                    type="button"
-                    className="new-publication-chip"
-                    onClick={() => insertEditorBlock("[[image: https://]]")}
-                  >
-                    Imagen
-                  </button>
-                </div>
-              </div>
+              </p>
+              <ArticleContentEditor
+                value={form.content}
+                onChange={(content) => updateField("content", content)}
+                disabled={submitting || loadingOptions}
+                onUnauthorized={() => navigate("/adminlogin", { replace: true })}
+              />
             </article>
           </section>
 
@@ -854,4 +800,3 @@ const NewPublication = () => {
 };
 
 export default NewPublication;
-

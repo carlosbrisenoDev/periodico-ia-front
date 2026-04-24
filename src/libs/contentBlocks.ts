@@ -63,6 +63,25 @@ export const parseContentBlocks = (content: string): ContentBlock[] => {
   return blocks;
 };
 
+export const serializeContentBlocks = (blocks: ContentBlock[]): string => {
+  return blocks
+    .flatMap((block) => {
+      if (block.type === "paragraph") {
+        const text = block.text.trim();
+        return text ? [text] : [];
+      }
+
+      if (block.type === "subtitle") {
+        const text = block.text.trim();
+        return text ? [`[[subtitle: ${text}]]`] : [];
+      }
+
+      const url = block.url.trim();
+      return url ? [`[[image: ${url}]]`] : [];
+    })
+    .join("\n\n");
+};
+
 export const insertBlockTemplate = (
   currentValue: string,
   template: string,
@@ -83,4 +102,3 @@ export const insertBlockTemplate = (
     caretPosition: before.length + insertion.length,
   };
 };
-
