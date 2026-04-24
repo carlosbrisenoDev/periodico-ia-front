@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-
+import logoSrc from "../assets/logo.png";
 import { API_BASE_URL } from "../libs/config.ts";
 import { parseContentBlocks } from "../libs/contentBlocks.ts";
 import { ApiError, apiFetch, getArticleRecommendations } from "../libs/http.ts";
@@ -347,7 +347,7 @@ export const PublicationPreview = () => {
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"></line><line x1="4" x2="20" y1="6" y2="6"></line><line x1="4" x2="20" y1="18" y2="18"></line></svg>
             </button>
             <a className="public-nav-logo-link" href="#" onClick={(e) => { e.preventDefault(); navigate("/allentries"); }}>
-              <span className="public-nav-logo-fallback">IF INFORMACIÓN DE ALTURA</span>
+              <img src={logoSrc} alt="IF Información de Altura" className="public-nav-logo" />
             </a>
             <div className="public-nav-actions">
               <div className="public-nav-date">
@@ -535,7 +535,7 @@ export const PublicationPreview = () => {
         <div className="public-footer-inner">
           <div className="public-footer-grid">
             <div className="public-footer-brand">
-              <div className="public-nav-logo-fallback" style={{ marginBottom: 16 }}>IF INFORMACIÓN DE ALTURA</div>
+              <img src={logoSrc} alt="IF Información de Altura" className="public-nav-logo" style={{ marginBottom: 16 }} />
               <p>Periodismo independiente para el mundo moderno.</p>
               <div className="public-footer-phone">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
