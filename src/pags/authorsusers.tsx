@@ -316,22 +316,6 @@ const AuthorsUsers = () => {
         throw new Error("No se pudo crear el usuario del autor.");
       }
 
-      const authorPayload = await apiFetch<CreateAuthorResponse>(
-        `${API_BASE_URL}/api/v1/author`,
-        {
-          method: "POST",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            name,
-            bio,
-            userId: createdUserId,
-          }),
-        },
-      );
-
       const newUser: AdminUserRecord = {
         id: createdUserId,
         name,
@@ -340,21 +324,47 @@ const AuthorsUsers = () => {
         active: true,
       };
 
-      const newAuthor: AuthorRecord = {
-        id: typeof authorPayload.id === "string" ? authorPayload.id : `author-${Date.now()}`,
-        name: typeof authorPayload.name === "string" ? authorPayload.name : name,
-        bio: typeof authorPayload.bio === "string" ? authorPayload.bio : bio,
-        avatarUrl: typeof authorPayload.avatarUrl === "string" ? authorPayload.avatarUrl : null,
-        userId:
-          typeof authorPayload.userId === "string"
-            ? authorPayload.userId
-            : createdUserId,
-      };
-
       setUsers((prev) => [newUser, ...prev]);
-      setAuthors((prev) => [newAuthor, ...prev]);
-      setShowCreateModal(false);
-      setForm(INITIAL_FORM);
+
+      try {
+        const authorBody: Record<string, string> = {
+          name,
+          userId: createdUserId,
+        };
+        
+        if (bio) {
+          authorBody.bio = bio;
+        }
+
+        const authorPayload = await apiFetch<CreateAuthorResponse>(
+          `${API_BASE_URL}/api/v1/author`,
+          {
+            method: "POST",
+            credentials: "include",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(authorBody),
+          },
+        );
+
+        const newAuthor: AuthorRecord = {
+          id: typeof authorPayload.id === "string" ? authorPayload.id : `author-${Date.now()}`,
+          name: typeof authorPayload.name === "string" ? authorPayload.name : name,
+          bio: typeof authorPayload.bio === "string" ? authorPayload.bio : bio,
+          avatarUrl: typeof authorPayload.avatarUrl === "string" ? authorPayload.avatarUrl : null,
+          userId:
+            typeof authorPayload.userId === "string"
+              ? authorPayload.userId
+              : createdUserId,
+        };
+
+        setAuthors((prev) => [newAuthor, ...prev]);
+        setShowCreateModal(false);
+        setForm(INITIAL_FORM);
+      } catch (authorErr: unknown) {
+        setCreateError(authorErr instanceof Error ? `El usuario se creó, pero falló el autor: ${authorErr.message}` : "El usuario se creó, pero no se pudo generar el autor.");
+      }
     } catch (err: unknown) {
       if (err instanceof ApiError && (err.status === 401 || err.status === 403)) {
         navigate("/adminlogin", { replace: true });
