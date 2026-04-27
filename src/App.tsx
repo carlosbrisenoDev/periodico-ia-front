@@ -25,7 +25,6 @@ import HomePage from "./pags/homepage.tsx";
 import CategoryPage from "./pags/categorypage.tsx";
 import {
   getOptionalMe,
-  isAdmin,
 } from "./libs/http.ts";
 import type { ProfileData } from "./libs/types.ts";
 
@@ -85,17 +84,17 @@ const App = () => {
 
         <Route path="/admin" element={<Navigate to="/adminlogin" replace />} />
 
-        {/* <Route element={<ProtectedRoute />}> */}
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/allentries" element={<AllEntries />} />
-        <Route path="/new-publication" element={<NewPublication />} />
-        <Route path="/image-library" element={<ImageLibrary />} />
-        <Route path="/publication/preview" element={<PublicationPreview />} />
-        <Route path="/publication/:id/preview" element={<PublicationPreview />} />
-        <Route path="/publication/:id/edit" element={<EditPublication />} />
-        <Route path="/authors-users" element={<AuthorsUsers />} />
-        <Route path="/categories" element={<Categories />} />
-        {/* </Route> */}
+        <Route element={<ProtectedRoute />}>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/allentries" element={<AllEntries />} />
+          <Route path="/new-publication" element={<NewPublication />} />
+          <Route path="/image-library" element={<ImageLibrary />} />
+          <Route path="/publication/preview" element={<PublicationPreview />} />
+          <Route path="/publication/:id/preview" element={<PublicationPreview />} />
+          <Route path="/publication/:id/edit" element={<EditPublication />} />
+          <Route path="/authors-users" element={<AuthorsUsers />} />
+          <Route path="/categories" element={<Categories />} />
+        </Route>
 
         <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
           <Route path="/all-entries" element={<AllEntriesAdmin />} />

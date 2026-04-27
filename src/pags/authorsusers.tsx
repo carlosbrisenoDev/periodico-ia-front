@@ -126,18 +126,6 @@ const roleClass = (role: string): string => {
   return "authors-users-role-editor";
 };
 
-const inferSubtitle = (author: AuthorRecord, user: AdminUserRecord | null): string => {
-  if (author.bio.trim().length > 0) {
-    return author.bio;
-  }
-
-  if (user?.role === "admin") {
-    return "Equipo Administrativo";
-  }
-
-  return "Equipo Editorial";
-};
-
 const initialsFromName = (name: string): string => {
   const tokens = name
     .trim()
@@ -569,7 +557,7 @@ const AuthorsUsers = () => {
         name: typeof authorPayload.name === "string" ? authorPayload.name : name,
         bio: typeof authorPayload.bio === "string" ? authorPayload.bio : bio,
         avatarUrl: typeof authorPayload.avatarUrl === "string" ? authorPayload.avatarUrl : null,
-        userId: typeof authorPayload.userId === "string" ? authorPayload.userId : selectedUserId,
+        userId: typeof authorPayload.userId === "string" ? authorPayload.userId : selectedUserId ?? null,
       };
 
       setAuthors((prev) => [newAuthor, ...prev]);
@@ -586,22 +574,22 @@ const AuthorsUsers = () => {
     }
   };
 
-  const deleteAuthor = async (author: AuthorCard) => {
-    const confirmed = window.confirm(`Eliminar al autor \"${author.name}\"?`);
+  const deleteAuthor = async (author: AuthorRecord) => {
+    const confirmed = window.confirm(`Eliminar al autor "${author.name}"?`);
     if (!confirmed) {
       return;
     }
 
     try {
       setCreateError(null);
-      setDeletingById((prev) => ({ ...prev, [author.authorId]: true }));
+      setDeletingById((prev) => ({ ...prev, [author.id]: true }));
 
-      await apiFetch<{ message?: string }>(`${API_BASE_URL}/api/v1/author/${author.authorId}`, {
+      await apiFetch<{ message?: string }>(`${API_BASE_URL}/api/v1/author/${author.id}`, {
         method: "DELETE",
         credentials: "include",
       });
 
-      setAuthors((prev) => prev.filter((item) => item.id !== author.authorId));
+      setAuthors((prev) => prev.filter((item) => item.id !== author.id));
     } catch (err: unknown) {
       if (err instanceof ApiError && (err.status === 401 || err.status === 403)) {
         navigate("/adminlogin", { replace: true });
@@ -612,7 +600,7 @@ const AuthorsUsers = () => {
     } finally {
       setDeletingById((prev) => {
         const next = { ...prev };
-        delete next[author.authorId];
+        delete next[author.id];
         return next;
       });
     }
@@ -746,7 +734,7 @@ const AuthorsUsers = () => {
                           </button>
                           <button
                             type="button"
-                            onClick={() => deleteAuthor({ id: author.id, authorId: author.id, name: author.name, subtitle: "", role: "", active: true, avatarUrl: author.avatarUrl })}
+                            onClick={() => deleteAuthor(author)}
                             style={{ padding: "4px 8px", fontSize: "12px", borderRadius: "4px", backgroundColor: "#fee2e2", color: "#ef4444", border: "none", cursor: "pointer" }}
                             disabled={Boolean(deletingById[author.id])}
                           >
