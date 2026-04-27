@@ -67,6 +67,12 @@ export const apiFetch = async <T>(
   init?: RequestInit,
 ): Promise<T> => {
   const response = await fetch(input, init);
+  
+  const contentType = response.headers.get("content-type");
+  if (contentType && contentType.includes("text/html")) {
+    throw new ApiError("Error de enrutamiento: El servidor respondió con un documento HTML en lugar de JSON. Verifica la configuración de VITE_API_URL o el proxy inverso (Nginx).", response.status, await response.text());
+  }
+
   const payload = await parseJsonSafely(response);
 
   if (!response.ok) {
