@@ -244,7 +244,21 @@ export const PublicationPreview = () => {
   const location = useLocation();
   const locationState = location.state as ArticlePreviewLocationState | null;
 
-  const [article, setArticle] = useState<PublicationPreviewArticle | null>(locationState?.article ?? null);
+  const localPreviewData = useMemo(() => {
+    try {
+      const stored = localStorage.getItem("periodico_preview_draft");
+      if (stored) {
+        return JSON.parse(stored) as ArticlePreviewLocationState;
+      }
+    } catch {
+      // Ignore errors
+    }
+    return null;
+  }, []);
+
+  const [article, setArticle] = useState<PublicationPreviewArticle | null>(
+    locationState?.article ?? localPreviewData?.article ?? null
+  );
   const [recommendations, setRecommendations] = useState<ArticleRecommendation[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -265,7 +279,7 @@ export const PublicationPreview = () => {
         setLoading(true);
         setError(null);
 
-        let nextArticle = locationState?.article ?? null;
+        let nextArticle = locationState?.article ?? localPreviewData?.article ?? null;
 
         if (id) {
           const [detail, authorsPayload, categoriesPayload] = await Promise.all([
@@ -333,7 +347,7 @@ export const PublicationPreview = () => {
     void loadPreview();
 
     return () => controller.abort();
-  }, [id, locationState, navigate]);
+  }, [id, locationState?.article, localPreviewData?.article, navigate]);
 
   const publishedAt = article?.publishedAt ?? new Date().toISOString();
   const contentBlocks = useMemo(() => parseContentBlocks(article?.content ?? ""), [article?.content]);

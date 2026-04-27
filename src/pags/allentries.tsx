@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Sidebar } from "../components/sidebar.tsx";
 import { API_BASE_URL } from "../libs/config.ts";
@@ -11,12 +11,13 @@ type ArticleEntry = {
   createdAt: string;
   authorId: string;
   authorName: string;
+  categoryIds: string[];
   categoryName: string;
   isFeatured: boolean;
   featuredType: FeaturedType;
 };
 
-type FeaturedType = "none" | "hero" | "headline" | "breaking";
+type FeaturedType = "none" | "hero" | "headline" | "category_hero" | "breaking";
 
 type EntryPageVariant = "mine" | "all";
 
@@ -39,24 +40,24 @@ const FEATURED_MENU_OPTIONS: Array<{
   description: string;
 }> = [
   {
-    value: "breaking",
-    label: "Subdestacada en Categorías",
-    description: "Resalta en el contexto de la categoría.",
+    value: "hero",
+    label: "Destacada en Primera Plana",
+    description: " ",
   },
   {
     value: "headline",
-    label: "Subdestacada en Home",
-    description: "Aparece como bloque secundario en portada.",
+    label: "Subdestacada en Primera Plana",
+    description: " ",
   },
   {
-    value: "hero",
-    label: "Destacada en Primera Plana",
-    description: "Se muestra como principal en portada y categoría.",
+    value: "category_hero",
+    label: "Destacada en Categoría",
+    description: " ",
   },
   {
-    value: "none",
-    label: "Sin destacar",
-    description: "No aparece como bloque destacado.",
+    value: "breaking",
+    label: "Subdestacada en Categoría",
+    description: " ",
   },
 ];
 
@@ -90,7 +91,7 @@ const normalizeEntry = (item: unknown, index: number): ArticleEntry | null => {
 
   const featuredTypeRaw = typeof record.featuredType === "string" ? record.featuredType : null;
   const featuredType: FeaturedType =
-    featuredTypeRaw === "hero" || featuredTypeRaw === "headline" || featuredTypeRaw === "breaking"
+    featuredTypeRaw === "hero" || featuredTypeRaw === "headline" || featuredTypeRaw === "category_hero" || featuredTypeRaw === "breaking"
       ? featuredTypeRaw
       : "none";
   const isFeatured = typeof record.isFeatured === "boolean" ? record.isFeatured : featuredType !== "none";
@@ -125,6 +126,9 @@ const normalizeEntry = (item: unknown, index: number): ArticleEntry | null => {
           : firstCategory && typeof firstCategory.name === "string"
             ? firstCategory.name
             : "General",
+    categoryIds: Array.isArray(record.categoryIds) 
+      ? record.categoryIds.map(String) 
+      : [],
     isFeatured,
     featuredType: isFeatured ? (featuredType === "none" ? "hero" : featuredType) : "none",
   };
@@ -135,10 +139,13 @@ const featuredTypeLabel = (value: FeaturedType): string => {
     return "Destacada en Primera Plana";
   }
   if (value === "headline") {
-    return "Subdestacada en Home";
+    return "Subdestacada en Primera Plana";
+  }
+  if (value === "category_hero") {
+    return "Destacada en Categoría";
   }
   if (value === "breaking") {
-    return "Subdestacada en Categorías";
+    return "Subdestacada en Categoría";
   }
   return "Sin destacar";
 };
@@ -213,6 +220,8 @@ export const AllEntries = ({ variant = "mine" }: AllEntriesProps) => {
   const navigate = useNavigate();
   const [entries, setEntries] = useState<ArticleEntry[]>([]);
   const [authors, setAuthors] = useState<string[]>([]);
+  const [authorMap, setAuthorMap] = useState<Record<string, string>>({});
+  const [categoryMap, setCategoryMap] = useState<Record<string, string>>({});
   const [myAuthorIds, setMyAuthorIds] = useState<string[]>([]);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [authorFilter, setAuthorFilter] = useState<string>("all");
@@ -261,18 +270,23 @@ export const AllEntries = ({ variant = "mine" }: AllEntriesProps) => {
   useEffect(() => {
     const controller = new AbortController();
 
-    const loadAuthors = async () => {
+    const loadDependencies = async () => {
       try {
-        const [profile, payload] = await Promise.all([
+        const [profile, authorsPayload, categoriesPayload] = await Promise.all([
           getMe(controller.signal),
           apiFetch<unknown[]>(`${API_BASE_URL}/api/v1/author`, {
             method: "GET",
             credentials: "include",
             signal: controller.signal,
           }),
+          apiFetch<unknown[]>(`${API_BASE_URL}/api/v1/category`, {
+            method: "GET",
+            credentials: "include",
+            signal: controller.signal,
+          }),
         ]);
 
-        const authorRecords = payload
+        const authorRecords = authorsPayload
           .map((item): { id: string; name: string; userId: string | null } | null => {
             if (!item || typeof item !== "object") {
               return null;
@@ -298,9 +312,34 @@ export const AllEntries = ({ variant = "mine" }: AllEntriesProps) => {
           .filter((author) => author.userId === profile.id)
           .map((author) => author.id);
 
+        console.log("DEBUG_MY_ENTRIES", {
+          profileId: profile.id,
+          authorRecords: authorRecords.map(a => ({ id: a.id, userId: a.userId })),
+          linkedAuthorIds
+        });
+
+        const newAuthorMap: Record<string, string> = {};
+        for (const author of authorRecords) {
+          newAuthorMap[author.id] = author.name;
+        }
+
+        const newCategoryMap: Record<string, string> = {};
+        if (Array.isArray(categoriesPayload)) {
+          for (const item of categoriesPayload) {
+            if (item && typeof item === "object") {
+              const cat = item as Record<string, unknown>;
+              if (typeof cat.id === "string" && typeof cat.name === "string") {
+                newCategoryMap[cat.id] = cat.name;
+              }
+            }
+          }
+        }
+
         setAuthors(
           Array.from(new Set(names)).sort((a, b) => a.localeCompare(b, "es")),
         );
+        setAuthorMap(newAuthorMap);
+        setCategoryMap(newCategoryMap);
         setMyAuthorIds(linkedAuthorIds);
       } catch (err: unknown) {
         if (err instanceof Error && err.name === "AbortError") {
@@ -317,7 +356,7 @@ export const AllEntries = ({ variant = "mine" }: AllEntriesProps) => {
       }
     };
 
-    void loadAuthors();
+    void loadDependencies();
 
     return () => controller.abort();
   }, [navigate]);
@@ -381,14 +420,21 @@ export const AllEntries = ({ variant = "mine" }: AllEntriesProps) => {
   }, [myAuthorIds, navigate, statusFilter, variant]);
 
   const authorOptions = useMemo(() => {
-    const namesFromEntries = entries.map((entry) => entry.authorName);
+    const namesFromEntries = entries.map((entry) => authorMap[entry.authorId] || entry.authorName);
     return Array.from(new Set([...authors, ...namesFromEntries])).sort((a, b) =>
       a.localeCompare(b, "es"),
     );
-  }, [authors, entries]);
+  }, [authors, entries, authorMap]);
 
   const visibleEntries = useMemo(() => {
-    return entries.filter((entry) => {
+    return entries.map(entry => {
+      const categoryId = entry.categoryIds && entry.categoryIds[0];
+      return {
+        ...entry,
+        authorName: authorMap[entry.authorId] || entry.authorName,
+        categoryName: (categoryId && categoryMap[categoryId]) || entry.categoryName
+      };
+    }).filter((entry) => {
       const matchStatus =
         statusFilter === "all" ? true : entry.status === statusFilter;
       const matchAuthor =
@@ -396,7 +442,7 @@ export const AllEntries = ({ variant = "mine" }: AllEntriesProps) => {
 
       return matchStatus && matchAuthor;
     });
-  }, [entries, statusFilter, authorFilter]);
+  }, [entries, statusFilter, authorFilter, authorMap]);
 
   const updateFeaturedType = async (
     entryId: string,
@@ -434,9 +480,10 @@ export const AllEntries = ({ variant = "mine" }: AllEntriesProps) => {
 
       const payloadType =
         payload.featuredType === "hero" ||
-        payload.featuredType === "headline" ||
-        payload.featuredType === "breaking" ||
-        payload.featuredType === "none"
+          payload.featuredType === "headline" ||
+          payload.featuredType === "category_hero" ||
+          payload.featuredType === "breaking" ||
+          payload.featuredType === "none"
           ? payload.featuredType
           : null;
       const resolvedType: FeaturedType = payloadType ?? (payload.isFeatured ? nextType : "none");
@@ -445,10 +492,10 @@ export const AllEntries = ({ variant = "mine" }: AllEntriesProps) => {
         prev.map((entry) =>
           entry.id === entryId
             ? {
-                ...entry,
-                featuredType: resolvedType,
-                isFeatured: resolvedType !== "none",
-              }
+              ...entry,
+              featuredType: resolvedType,
+              isFeatured: resolvedType !== "none",
+            }
             : entry,
         ),
       );
@@ -597,7 +644,9 @@ export const AllEntries = ({ variant = "mine" }: AllEntriesProps) => {
                 {visibleEntries.length === 0 ? (
                   <tr>
                     <td colSpan={variant === "all" ? 6 : 5} className="entries-empty-row">
-                      No se encontraron publicaciones con estos filtros.
+                      {variant === "mine" && myAuthorIds.length === 0
+                        ? "No tienes un perfil de Autor vinculado a tu cuenta. Ve a Autores y Usuarios para crear uno y poder publicar a tu nombre."
+                        : "No se encontraron publicaciones con estos filtros."}
                     </td>
                   </tr>
                 ) : null}
@@ -608,7 +657,31 @@ export const AllEntries = ({ variant = "mine" }: AllEntriesProps) => {
 
                   return (
                     <tr key={entry.id}>
-                      <td className="entries-title-cell">{entry.title}</td>
+                      <td className="entries-title-cell">
+                        <div className="entries-title-text">{entry.title}</div>
+                        {entry.featuredType !== "none" ? (
+                          <div className="entries-featured-tags">
+                            {(entry.featuredType === "hero" || entry.featuredType === "category_hero") && (
+                              <span className="entries-badge badge-blue">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m12 3 2.9 5.9 6.6 1-4.8 4.7 1.1 6.6-5.8-3.1-5.8 3.1 1.1-6.6L2.5 9.9l6.6-1z"/></svg>
+                                Destacada Cat.
+                              </span>
+                            )}
+                            {entry.featuredType === "breaking" && (
+                              <span className="entries-badge badge-blue">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m12 3 2.9 5.9 6.6 1-4.8 4.7 1.1 6.6-5.8-3.1-5.8 3.1 1.1-6.6L2.5 9.9l6.6-1z"/></svg>
+                                Subdestacada Cat.
+                              </span>
+                            )}
+                            {(entry.featuredType === "hero" || entry.featuredType === "headline") && (
+                              <span className="entries-badge badge-orange">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m12 3 2.9 5.9 6.6 1-4.8 4.7 1.1 6.6-5.8-3.1-5.8 3.1 1.1-6.6L2.5 9.9l6.6-1z"/></svg>
+                                {entry.featuredType === "hero" ? "Destacada Home" : "Subdestacada Home"}
+                              </span>
+                            )}
+                          </div>
+                        ) : null}
+                      </td>
                       {variant === "all" ? <td>{entry.authorName}</td> : null}
                       <td>
                         <span className="entries-category-chip">
@@ -757,25 +830,29 @@ export const AllEntries = ({ variant = "mine" }: AllEntriesProps) => {
 
                             {openFeaturedMenuId === entry.id ? (
                               <div className="entries-featured-menu" role="menu" aria-label="Opciones de destacado">
-                                {FEATURED_MENU_OPTIONS.map((option) => {
+                                <div className="entries-featured-menu-header">Destacados</div>
+                                <hr className="entries-featured-menu-separator" />
+                                {FEATURED_MENU_OPTIONS.map((option, index) => {
                                   const isSelected = entry.featuredType === option.value;
-
+                                  
                                   return (
-                                    <button
-                                      key={option.value}
-                                      type="button"
-                                      className={`entries-featured-menu-item${isSelected ? " selected" : ""}`}
-                                      role="menuitemradio"
-                                      aria-checked={isSelected}
-                                      disabled={isUpdatingFeatured || Boolean(deletingById[entry.id])}
-                                      onClick={() => {
-                                        setOpenFeaturedMenuId(null);
-                                        void updateFeaturedType(entry.id, entry.featuredType, option.value);
-                                      }}
-                                    >
-                                      <strong>{option.label}</strong>
-                                      <span>{option.description}</span>
-                                    </button>
+                                    <React.Fragment key={option.value}>
+                                      {index === 2 && <hr className="entries-featured-menu-separator" />}
+                                      <button
+                                        type="button"
+                                        className={`entries-featured-menu-item${isSelected ? " selected" : ""}`}
+                                        role="menuitemradio"
+                                        aria-checked={isSelected}
+                                        disabled={isUpdatingFeatured || Boolean(deletingById[entry.id])}
+                                        onClick={() => {
+                                          setOpenFeaturedMenuId(null);
+                                          const nextType = isSelected ? "none" : option.value;
+                                          void updateFeaturedType(entry.id, entry.featuredType, nextType);
+                                        }}
+                                      >
+                                        <strong>{option.label}</strong>
+                                      </button>
+                                    </React.Fragment>
                                   );
                                 })}
                               </div>

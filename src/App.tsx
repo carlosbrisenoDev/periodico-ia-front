@@ -31,7 +31,7 @@ import type { ProfileData } from "./libs/types.ts";
 
 
 
-const AdminRoute = () => {
+const ProtectedRoute = ({ allowedRoles }: { allowedRoles?: string[] }) => {
   const location = useLocation();
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<ProfileData | null>(null);
@@ -57,7 +57,7 @@ const AdminRoute = () => {
     return <p className="route-guard-loading">Validando sesion...</p>;
   }
 
-  if (!profile || !isAdmin(profile)) {
+  if (!profile) {
     return (
       <Navigate
         to="/adminlogin"
@@ -65,6 +65,10 @@ const AdminRoute = () => {
         state={{ redirectTo: location.pathname + location.search }}
       />
     );
+  }
+
+  if (allowedRoles && !allowedRoles.includes(profile.role)) {
+    return <Navigate to="/dashboard" replace />;
   }
 
   return <Outlet />;
@@ -79,17 +83,22 @@ const App = () => {
         <Route path="/suscripcion" element={<SubscriptionPage />} />
         <Route path="/adminlogin" element={<AdminLoginPage />} />
 
-        <Route element={<AdminRoute />}>
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/allentries" element={<AllEntries />} />
+        <Route path="/admin" element={<Navigate to="/adminlogin" replace />} />
+
+        {/* <Route element={<ProtectedRoute />}> */}
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/allentries" element={<AllEntries />} />
+        <Route path="/new-publication" element={<NewPublication />} />
+        <Route path="/image-library" element={<ImageLibrary />} />
+        <Route path="/publication/preview" element={<PublicationPreview />} />
+        <Route path="/publication/:id/preview" element={<PublicationPreview />} />
+        <Route path="/publication/:id/edit" element={<EditPublication />} />
+        <Route path="/authors-users" element={<AuthorsUsers />} />
+        <Route path="/categories" element={<Categories />} />
+        {/* </Route> */}
+
+        <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
           <Route path="/all-entries" element={<AllEntriesAdmin />} />
-          <Route path="/new-publication" element={<NewPublication />} />
-          <Route path="/image-library" element={<ImageLibrary />} />
-          <Route path="/publication/preview" element={<PublicationPreview />} />
-          <Route path="/publication/:id/preview" element={<PublicationPreview />} />
-          <Route path="/publication/:id/edit" element={<EditPublication />} />
-          <Route path="/authors-users" element={<AuthorsUsers />} />
-          <Route path="/categories" element={<Categories />} />
           <Route path="/deleted-entries" element={<DeletedEntries />} />
           <Route path="/settings" element={<SettingsPage />} />
         </Route>

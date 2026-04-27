@@ -336,7 +336,19 @@ export const Sidebar = () => {
                 </div>
 
                 <nav className="sidebar-nav" aria-label="Navegación principal">
-                    {PRIMARY_ITEMS.map((item) => {
+                    {PRIMARY_ITEMS.filter(item => {
+                        if (profile?.role === "admin") return true;
+                        // Editors can only see these paths:
+                        const editorAllowedPaths = [
+                            "/dashboard",
+                            "/allentries",
+                            "/new-publication",
+                            "/image-library",
+                            "/authors-users",
+                            "/categories" // if they need to select categories, maybe they can view them
+                        ];
+                        return editorAllowedPaths.includes(item.path as string);
+                    }).map((item) => {
                         const isActive = item.path ? location.pathname === item.path : false;
 
                         return (<button
@@ -356,7 +368,11 @@ export const Sidebar = () => {
             </div>
 
             <div className="sidebar-footer">
-                {FOOTER_ITEMS.map((item) => (<button
+                {FOOTER_ITEMS.filter(item => {
+                    if (profile?.role === "admin") return true;
+                    // Editors can only logout, cannot see settings
+                    return item.icon === "logout";
+                }).map((item) => (<button
                     key={item.label}
                     type="button"
                     onClick={item.icon === "logout" ? handleLogout : item.path ? () => handleNavigate(item.path as string) : undefined}

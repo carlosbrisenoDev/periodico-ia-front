@@ -191,10 +191,6 @@ const NewPublication = () => {
           authorId: prev.authorId || selectedAuthorId,
           categoryId: prev.categoryId || categoryOptions[0]?.id || "",
         }));
-
-        if (!selectedAuthorId) {
-          setError("No hay autores disponibles. Crea un autor antes de publicar.");
-        }
       } catch (err: unknown) {
         if (err instanceof Error && err.name === "AbortError") {
           return;
@@ -348,21 +344,22 @@ const NewPublication = () => {
   };
 
   const handlePreview = () => {
-    navigate("/publication/preview", {
-      state: {
-        article: {
-          title: form.title.trim() || "Vista previa sin titulo",
-          excerpt: form.excerpt.trim() || "Aun no has escrito una descripcion.",
-          content: form.content.trim() || "El contenido del articulo se mostrara aqui.",
-          featuredImageUrl: form.featuredImageUrl.trim() || null,
-          tags: parseTagsInput(form.tags),
-          authorName: selectedAuthorName,
-            authorAvatarUrl: selectedAuthor?.avatarUrl,
-            authorRole: selectedAuthor?.bio,
-          categoryName: selectedCategoryName,
-        },
+    const previewData = {
+      article: {
+        title: form.title.trim() || "Vista previa sin titulo",
+        excerpt: form.excerpt.trim() || "Aun no has escrito una descripcion.",
+        content: form.content.trim() || "El contenido del articulo se mostrara aqui.",
+        featuredImageUrl: form.featuredImageUrl.trim() || null,
+        tags: parseTagsInput(form.tags),
+        authorName: selectedAuthorName,
+        authorAvatarUrl: selectedAuthor?.avatarUrl,
+        authorRole: selectedAuthor?.bio,
+        categoryName: selectedCategoryName,
       },
-    });
+    };
+    
+    localStorage.setItem("periodico_preview_draft", JSON.stringify(previewData));
+    window.open("/publication/preview", "_blank");
   };
 
   const loadImageLibrary = async () => {
@@ -514,6 +511,9 @@ const NewPublication = () => {
         </header>
 
         {error ? <p className="new-publication-message error">{error}</p> : null}
+        {!error && authors.length === 0 && !loadingOptions ? (
+          <p className="new-publication-message error">No hay autores disponibles. Crea un autor antes de publicar.</p>
+        ) : null}
         {!error && message ? <p className="new-publication-message success">{message}</p> : null}
         {loadingOptions ? <p className="new-publication-message">Cargando autores y categorias...</p> : null}
 

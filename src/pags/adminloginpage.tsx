@@ -26,7 +26,7 @@ const AdminLoginPage = () => {
       try {
         const me = await getOptionalMe(controller.signal);
 
-        if (me && isAdmin(me)) {
+        if (me && (isAdmin(me) || me.role === 'editor')) {
           navigate(redirectTo, { replace: true });
         }
       } catch {
@@ -47,9 +47,9 @@ const AdminLoginPage = () => {
     try {
       const profile = await login({ email: email.trim(), password });
 
-      if (!isAdmin(profile)) {
+      if (!profile || (profile.role !== "admin" && profile.role !== "editor")) {
         await logout().catch(() => undefined);
-        setError("Tu cuenta no tiene permisos de administrador.");
+        setError("Tu cuenta no tiene permisos para acceder.");
         return;
       }
 

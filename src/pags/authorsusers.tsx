@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { Sidebar } from "../components/sidebar.tsx";
 import { API_BASE_URL } from "../libs/config.ts";
-import { ApiError, apiFetch } from "../libs/http.ts";
+import { ApiError, apiFetch, getMe } from "../libs/http.ts";
+import type { ProfileData } from "../libs/types.ts";
 
 type AuthorRecord = {
   id: string;
@@ -52,14 +53,19 @@ type EditAuthorForm = {
   bio: string;
 };
 
-type AuthorCard = {
-  id: string;
-  authorId: string;
+type CreateAuthorOnlyForm = {
   name: string;
-  subtitle: string;
+  bio: string;
+  userId: string;
+};
+
+type UserCard = {
+  id: string;
+  name: string;
+  email: string;
   role: string;
   active: boolean;
-  avatarUrl: string | null;
+  authors: AuthorRecord[];
 };
 
 const INITIAL_FORM: NewAuthorForm = {
@@ -162,6 +168,7 @@ const AuthorsUsers = () => {
   const navigate = useNavigate();
   const [authors, setAuthors] = useState<AuthorRecord[]>([]);
   const [users, setUsers] = useState<AdminUserRecord[]>([]);
+  const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState<boolean>(false);
@@ -173,6 +180,19 @@ const AuthorsUsers = () => {
   const [deletingById, setDeletingById] = useState<Record<string, boolean>>({});
   const [form, setForm] = useState<NewAuthorForm>(INITIAL_FORM);
 
+  const [showCreateAuthorOnlyModal, setShowCreateAuthorOnlyModal] = useState<boolean>(false);
+  const [authorOnlyForm, setAuthorOnlyForm] = useState<CreateAuthorOnlyForm>({ name: "", bio: "", userId: "" });
+  const [createAuthorOnlyError, setCreateAuthorOnlyError] = useState<string | null>(null);
+  const [creatingAuthorOnly, setCreatingAuthorOnly] = useState<boolean>(false);
+  const [expandedUserIds, setExpandedUserIds] = useState<Record<string, boolean>>({});
+
+  const toggleUserExpanded = (userId: string) => {
+    setExpandedUserIds(prev => ({
+      ...prev,
+      [userId]: !prev[userId]
+    }));
+  };
+
   useEffect(() => {
     const controller = new AbortController();
 
@@ -180,7 +200,7 @@ const AuthorsUsers = () => {
       try {
         setLoading(true);
 
-        const [authorsPayload, usersPayload] = await Promise.all([
+        const [authorsPayload, usersPayload, profilePayload] = await Promise.all([
           apiFetch<unknown[]>(`${API_BASE_URL}/api/v1/author`, {
             method: "GET",
             credentials: "include",
@@ -190,7 +210,8 @@ const AuthorsUsers = () => {
             method: "GET",
             credentials: "include",
             signal: controller.signal,
-          }),
+          }).catch(() => ({ users: [] })),
+          getMe(controller.signal).catch(() => null),
         ]);
 
         const normalizedAuthors = (Array.isArray(authorsPayload) ? authorsPayload : [])
@@ -201,8 +222,20 @@ const AuthorsUsers = () => {
           .map((item, index) => normalizeAdminUser(item, index))
           .filter((item): item is AdminUserRecord => item !== null);
 
+        // Ensure current profile is always in the users list
+        if (profilePayload && !normalizedUsers.some(u => u.id === profilePayload.id)) {
+          normalizedUsers.push({
+            id: profilePayload.id,
+            name: profilePayload.name,
+            email: profilePayload.email,
+            role: profilePayload.role,
+            active: true
+          });
+        }
+
         setAuthors(normalizedAuthors);
         setUsers(normalizedUsers);
+        setProfile(profilePayload);
         setError(null);
       } catch (err: unknown) {
         if (err instanceof Error && err.name === "AbortError") {
@@ -227,23 +260,44 @@ const AuthorsUsers = () => {
     return () => controller.abort();
   }, [navigate]);
 
-  const cards = useMemo<AuthorCard[]>(() => {
-    const usersById = new Map<string, AdminUserRecord>(users.map((user) => [user.id, user]));
+  const cards = useMemo<UserCard[]>(() => {
+    const authorsByUserId = new Map<string, AuthorRecord[]>();
+    const unlinkedAuthors: AuthorRecord[] = [];
 
-    return authors.map((author) => {
-      const linkedUser = author.userId ? usersById.get(author.userId) ?? null : null;
-      const cardName = author.name || linkedUser?.name || "Autor sin nombre";
+    for (const author of authors) {
+      if (author.userId) {
+        if (!authorsByUserId.has(author.userId)) {
+          authorsByUserId.set(author.userId, []);
+        }
+        authorsByUserId.get(author.userId)!.push(author);
+      } else {
+        unlinkedAuthors.push(author);
+      }
+    }
 
-      return {
-        id: author.id,
-        authorId: author.id,
-        name: cardName,
-        subtitle: inferSubtitle(author, linkedUser),
-        role: linkedUser?.role ?? "editor",
-        active: linkedUser?.active ?? true,
-        avatarUrl: author.avatarUrl,
-      };
-    });
+    const userCards = users
+      .filter(user => profile?.role === "admin" || user.id === profile?.id)
+      .map((user): UserCard => ({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      active: user.active,
+      authors: authorsByUserId.get(user.id) || [],
+    }));
+
+    if (unlinkedAuthors.length > 0 && profile?.role === "admin") {
+      userCards.push({
+        id: "unlinked",
+        name: "Autores sin usuario",
+        email: "Perfiles no vinculados",
+        role: "none",
+        active: true,
+        authors: unlinkedAuthors,
+      });
+    }
+
+    return userCards;
   }, [authors, users]);
 
   const openCreateModal = () => {
@@ -259,6 +313,21 @@ const AuthorsUsers = () => {
 
     setShowCreateModal(false);
     setCreateError(null);
+  };
+
+  const openCreateAuthorOnlyModal = () => {
+    setAuthorOnlyForm({ name: "", bio: "", userId: profile?.id ?? "" });
+    setCreateAuthorOnlyError(null);
+    setShowCreateAuthorOnlyModal(true);
+  };
+
+  const closeCreateAuthorOnlyModal = () => {
+    if (creatingAuthorOnly) {
+      return;
+    }
+
+    setShowCreateAuthorOnlyModal(false);
+    setCreateAuthorOnlyError(null);
   };
 
   const updateFormField = <K extends keyof NewAuthorForm>(
@@ -450,6 +519,73 @@ const AuthorsUsers = () => {
     }
   };
 
+  const submitCreateAuthorOnly = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const name = authorOnlyForm.name.trim();
+    const bio = authorOnlyForm.bio.trim();
+    const selectedUserId = profile?.role === "admin" ? authorOnlyForm.userId : profile?.id;
+
+    if (!name) {
+      setCreateAuthorOnlyError("El nombre del autor es obligatorio.");
+      return;
+    }
+
+    if (!selectedUserId && profile?.role !== "admin") {
+      setCreateAuthorOnlyError("Debes seleccionar un usuario para vincularlo.");
+      return;
+    }
+
+    try {
+      setCreatingAuthorOnly(true);
+      setCreateAuthorOnlyError(null);
+
+      const authorBody: Record<string, string> = {
+        name,
+      };
+
+      if (selectedUserId) {
+        authorBody.userId = selectedUserId;
+      }
+
+      if (bio) {
+        authorBody.bio = bio;
+      }
+
+      const authorPayload = await apiFetch<CreateAuthorResponse>(
+        `${API_BASE_URL}/api/v1/author`,
+        {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(authorBody),
+        },
+      );
+
+      const newAuthor: AuthorRecord = {
+        id: typeof authorPayload.id === "string" ? authorPayload.id : `author-${Date.now()}`,
+        name: typeof authorPayload.name === "string" ? authorPayload.name : name,
+        bio: typeof authorPayload.bio === "string" ? authorPayload.bio : bio,
+        avatarUrl: typeof authorPayload.avatarUrl === "string" ? authorPayload.avatarUrl : null,
+        userId: typeof authorPayload.userId === "string" ? authorPayload.userId : selectedUserId,
+      };
+
+      setAuthors((prev) => [newAuthor, ...prev]);
+      setShowCreateAuthorOnlyModal(false);
+    } catch (err: unknown) {
+      if (err instanceof ApiError && (err.status === 401 || err.status === 403)) {
+        navigate("/adminlogin", { replace: true });
+        return;
+      }
+
+      setCreateAuthorOnlyError(err instanceof Error ? err.message : "No se pudo crear el autor.");
+    } finally {
+      setCreatingAuthorOnly(false);
+    }
+  };
+
   const deleteAuthor = async (author: AuthorCard) => {
     const confirmed = window.confirm(`Eliminar al autor \"${author.name}\"?`);
     if (!confirmed) {
@@ -497,13 +633,24 @@ const AuthorsUsers = () => {
             </p>
           </div>
 
-          <button
-            type="button"
-            className="entries-new-button"
-            onClick={openCreateModal}
-          >
-            + Nuevo Autor
-          </button>
+          <div className="authors-users-header-actions" style={{ display: "flex", gap: "8px" }}>
+            <button
+              type="button"
+              className="entries-new-button outline"
+              onClick={openCreateAuthorOnlyModal}
+            >
+              + Crear Autor
+            </button>
+            {profile?.role === "admin" ? (
+              <button
+                type="button"
+                className="entries-new-button"
+                onClick={openCreateModal}
+              >
+                + Nuevo Usuario
+              </button>
+            ) : null}
+          </div>
         </header>
 
         {loading ? <p className="authors-users-info">Cargando autores...</p> : null}
@@ -514,28 +661,26 @@ const AuthorsUsers = () => {
           <p className="authors-users-info">No hay autores para mostrar.</p>
         ) : null}
 
-        <section className="authors-users-grid" aria-label="Listado de autores">
+        <section className="authors-users-grid" aria-label="Listado de usuarios y autores">
           {cards.map((card) => (
             <article key={card.id} className="author-card">
               <div className="author-card-main">
                 <div className="author-card-avatar" aria-hidden="true">
-                  {card.avatarUrl ? (
-                    <img src={card.avatarUrl} alt="" />
-                  ) : (
-                    <span>{initialsFromName(card.name)}</span>
-                  )}
+                  <span>{initialsFromName(card.name)}</span>
                 </div>
 
                 <div>
                   <h2 className="author-card-name">{card.name}</h2>
-                  <p className="author-card-subtitle">{card.subtitle}</p>
+                  <p className="author-card-subtitle">{card.email}</p>
                 </div>
               </div>
 
               <div className="author-card-role-row">
-                <span className={`author-card-role ${roleClass(card.role)}`}>
-                  {roleLabel(card.role)}
-                </span>
+                {card.role !== "none" ? (
+                  <span className={`author-card-role ${roleClass(card.role)}`}>
+                    {roleLabel(card.role)}
+                  </span>
+                ) : null}
 
                 {card.active ? null : (
                   <span className="author-card-inactive" title="Usuario inactivo">
@@ -544,50 +689,75 @@ const AuthorsUsers = () => {
                 )}
               </div>
 
-              <div className="author-card-actions">
+              <div className="author-card-actions" style={{ gridTemplateColumns: "1fr 1fr" }}>
                 <button
                   type="button"
                   className="author-card-edit-button"
-                  title="Editar autor"
-                  aria-label="Editar autor"
+                  title="Editar usuario"
+                  aria-label="Editar usuario"
                   onClick={() => {
-                    const source = authors.find((author) => author.id === card.authorId);
-                    if (source) {
-                      openEditModal(source);
-                    }
+                    alert("La edición de usuarios aún no está disponible.");
                   }}
-                  disabled={Boolean(deletingById[card.authorId])}
+                  disabled={card.id === "unlinked"}
                 >
                   Editar
                 </button>
 
                 <button
                   type="button"
-                  className="author-card-delete-button"
-                  title="Eliminar autor"
-                  aria-label="Eliminar autor"
-                  onClick={() => {
-                    void deleteAuthor(card);
-                  }}
-                  disabled={Boolean(deletingById[card.authorId])}
+                  className="author-card-edit-button"
+                  title="Ver Autores"
+                  aria-label="Ver Autores"
+                  onClick={() => toggleUserExpanded(card.id)}
+                  style={{ backgroundColor: "var(--background)", color: "var(--text-color)", border: "1px solid var(--border-color)" }}
                 >
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M3 6h18" />
-                    <path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2" />
-                    <path d="M6 6v14a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V6" />
-                    <path d="M10 11v6" />
-                    <path d="M14 11v6" />
-                  </svg>
+                  {expandedUserIds[card.id] ? "Ocultar Autores" : `Autores (${card.authors.length})`}
                 </button>
               </div>
+
+              {expandedUserIds[card.id] ? (
+                <div style={{ marginTop: "16px", paddingTop: "16px", borderTop: "1px solid var(--border-color)", display: "flex", flexDirection: "column", gap: "12px" }}>
+                  {card.authors.length === 0 ? (
+                    <p style={{ fontSize: "14px", color: "var(--text-muted)" }}>Este usuario no tiene perfiles de autor vinculados.</p>
+                  ) : (
+                    card.authors.map(author => (
+                      <div key={author.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px", backgroundColor: "var(--background)", borderRadius: "6px" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                           {author.avatarUrl ? (
+                            <img src={author.avatarUrl} alt="" style={{ width: "24px", height: "24px", borderRadius: "50%", objectFit: "cover" }} />
+                          ) : (
+                            <div style={{ width: "24px", height: "24px", borderRadius: "50%", backgroundColor: "var(--primary-color)", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "10px", fontWeight: "bold" }}>
+                              {initialsFromName(author.name)}
+                            </div>
+                          )}
+                          <div>
+                            <p style={{ fontSize: "14px", fontWeight: "600", margin: 0 }}>{author.name}</p>
+                            <p style={{ fontSize: "12px", color: "var(--text-muted)", margin: 0 }}>{author.bio || "Sin biografía"}</p>
+                          </div>
+                        </div>
+                        <div style={{ display: "flex", gap: "4px" }}>
+                          <button
+                            type="button"
+                            onClick={() => openEditModal(author)}
+                            style={{ padding: "4px 8px", fontSize: "12px", borderRadius: "4px", backgroundColor: "transparent", border: "1px solid var(--border-color)", cursor: "pointer" }}
+                            disabled={Boolean(deletingById[author.id])}
+                          >
+                            Editar
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => deleteAuthor({ id: author.id, authorId: author.id, name: author.name, subtitle: "", role: "", active: true, avatarUrl: author.avatarUrl })}
+                            style={{ padding: "4px 8px", fontSize: "12px", borderRadius: "4px", backgroundColor: "#fee2e2", color: "#ef4444", border: "none", cursor: "pointer" }}
+                            disabled={Boolean(deletingById[author.id])}
+                          >
+                            Eliminar
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              ) : null}
             </article>
           ))}
         </section>
@@ -606,7 +776,7 @@ const AuthorsUsers = () => {
               aria-labelledby="new-author-title"
             >
               <h2 id="new-author-title" className="authors-users-modal-title">
-                Nuevo Autor
+                Nuevo Usuario
               </h2>
 
               <form className="authors-users-form" onSubmit={createAuthor}>
@@ -698,7 +868,7 @@ const AuthorsUsers = () => {
                     Cancelar
                   </button>
                   <button type="submit" className="primary" disabled={creating}>
-                    {creating ? "Creando..." : "Crear Autor"}
+                    {creating ? "Creando..." : "Crear Usuario"}
                   </button>
                 </div>
               </form>
@@ -748,6 +918,83 @@ const AuthorsUsers = () => {
                   </button>
                   <button type="submit" className="primary" disabled={savingEdit}>
                     {savingEdit ? "Guardando..." : "Guardar cambios"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        ) : null}
+        {showCreateAuthorOnlyModal ? (
+          <div className="authors-users-modal-overlay" onClick={closeCreateAuthorOnlyModal} aria-hidden="true">
+            <div
+              className="authors-users-modal"
+              onClick={(event) => event.stopPropagation()}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="create-author-only-title"
+            >
+              <h2 id="create-author-only-title" className="authors-users-modal-title">
+                Crear Perfil de Autor
+              </h2>
+
+              <form className="authors-users-form" onSubmit={submitCreateAuthorOnly}>
+                <label htmlFor="create-author-only-name">Nombre mostrado en artículos</label>
+                <input
+                  id="create-author-only-name"
+                  type="text"
+                  placeholder="Ej: Juan Perez"
+                  value={authorOnlyForm.name}
+                  onChange={(event) =>
+                    setAuthorOnlyForm((prev) => ({ ...prev, name: event.target.value }))
+                  }
+                />
+
+                <label htmlFor="create-author-only-bio">Cargo / Biografia</label>
+                <input
+                  id="create-author-only-bio"
+                  type="text"
+                  placeholder="Ej: Editor General"
+                  value={authorOnlyForm.bio}
+                  onChange={(event) =>
+                    setAuthorOnlyForm((prev) => ({ ...prev, bio: event.target.value }))
+                  }
+                />
+
+                {profile?.role === "admin" ? (
+                  <>
+                    <label htmlFor="create-author-only-user">Usuario vinculado</label>
+                    <select
+                      id="create-author-only-user"
+                      value={authorOnlyForm.userId}
+                      onChange={(event) =>
+                        setAuthorOnlyForm((prev) => ({ ...prev, userId: event.target.value }))
+                      }
+                      style={{
+                        padding: "10px 12px",
+                        border: "1px solid #dde2ea",
+                        borderRadius: "8px",
+                        marginBottom: "16px",
+                        width: "100%",
+                      }}
+                    >
+                      <option value="">Selecciona un usuario...</option>
+                      {users.map((user) => (
+                        <option key={user.id} value={user.id}>
+                          {user.name} ({user.email})
+                        </option>
+                      ))}
+                    </select>
+                  </>
+                ) : null}
+
+                {createAuthorOnlyError ? <p className="authors-users-modal-error">{createAuthorOnlyError}</p> : null}
+
+                <div className="authors-users-modal-actions">
+                  <button type="button" onClick={closeCreateAuthorOnlyModal} disabled={creatingAuthorOnly}>
+                    Cancelar
+                  </button>
+                  <button type="submit" className="primary" disabled={creatingAuthorOnly}>
+                    {creatingAuthorOnly ? "Creando..." : "Crear Autor"}
                   </button>
                 </div>
               </form>

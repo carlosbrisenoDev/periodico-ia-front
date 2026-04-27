@@ -338,23 +338,24 @@ const EditPublication = () => {
       return;
     }
 
-    navigate(`/publication/${id}/preview`, {
-      state: {
-        article: {
-          id,
-          title: form.title.trim() || "Vista previa sin titulo",
-          excerpt: form.excerpt.trim() || "Aun no has escrito una descripcion.",
-          content: form.content.trim() || "El contenido del articulo se mostrara aqui.",
-          featuredImageUrl: form.featuredImageUrl.trim() || null,
-          tags: parseTagsInput(form.tags),
-          authorName: selectedAuthorName,
-            authorAvatarUrl: selectedAuthor?.avatarUrl,
-            authorRole: selectedAuthor?.bio,
-          categoryName: selectedCategoryName,
-          publishedAt: form.status === "published" ? new Date().toISOString() : null,
-        },
+    const previewData = {
+      article: {
+        id,
+        title: form.title.trim() || "Vista previa sin titulo",
+        excerpt: form.excerpt.trim() || "Aun no has escrito una descripcion.",
+        content: form.content.trim() || "El contenido del articulo se mostrara aqui.",
+        featuredImageUrl: form.featuredImageUrl.trim() || null,
+        tags: parseTagsInput(form.tags),
+        authorName: selectedAuthorName,
+        authorAvatarUrl: selectedAuthor?.avatarUrl,
+        authorRole: selectedAuthor?.bio,
+        categoryName: selectedCategoryName,
+        publishedAt: form.status === "published" ? new Date().toISOString() : null,
       },
-    });
+    };
+    
+    localStorage.setItem("periodico_preview_draft", JSON.stringify(previewData));
+    window.open(`/publication/${id}/preview`, "_blank");
   };
 
   return (
