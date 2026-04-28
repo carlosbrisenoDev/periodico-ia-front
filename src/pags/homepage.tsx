@@ -1,19 +1,17 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { getRecentPublications, getLatestPublications } from "../libs/http.ts";
+import { apiFetch, getRecentPublications, getLatestPublications } from "../libs/http.ts";
+import { API_BASE_URL } from "../libs/config.ts";
 import type { PublicArticle } from "../libs/types.ts";
 import logoSrc from "../assets/logo.png";
 
 /* ── helpers ─────────────────────────────────────────── */
 
-const NAV_CATEGORIES = [
-  { label: "Noticias", href: "/categoria/noticias" },
-  { label: "Seguridad", href: "/categoria/seguridad" },
-  { label: "Deportes", href: "/categoria/deportes" },
-  { label: "Cultura", href: "/categoria/cultura" },
-  { label: "Comunidad", href: "/categoria/comunidad" },
-  { label: "Opinión", href: "/categoria/opinion" },
-];
+type Category = {
+  id: string;
+  name: string;
+  slug: string;
+};
 
 const SECTION_ORDER: {
   key: string;
@@ -285,12 +283,18 @@ const CategorySectionB = ({
 const PublicNavbar = ({
   mobileOpen,
   setMobileOpen,
+  categories,
 }: {
   mobileOpen: boolean;
   setMobileOpen: (v: boolean) => void;
-}) => (
-  <>
-    <nav className="public-nav-container">
+  categories: Category[];
+}) => {
+  const visibleCategories = categories.slice(0, 7);
+  const moreCategories = categories.slice(7);
+
+  return (
+    <>
+      <nav className="public-nav-container">
       <div className="public-nav-inner">
         <div className="public-nav-top">
           <button
@@ -312,11 +316,27 @@ const PublicNavbar = ({
         </div>
         <div className="public-nav-bottom">
           <div className="public-nav-links">
-            {NAV_CATEGORIES.map((c) => (
-              <a key={c.href} className="public-nav-link" href={c.href}>
-                {c.label}
+            {visibleCategories.map((c) => (
+              <a key={c.id} className="public-nav-link" href={`/categoria/${c.slug}`}>
+                {c.name}
               </a>
             ))}
+            
+            {moreCategories.length > 0 && (
+              <div className="public-nav-more-dropdown">
+                <button className="public-nav-link more-btn">
+                  Más categorías ▾
+                </button>
+                <div className="public-nav-more-menu">
+                  {moreCategories.map(c => (
+                    <a key={c.id} className="public-nav-more-link" href={`/categoria/${c.slug}`}>
+                      {c.name}
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <a className="public-nav-link active" href="/recientes">
               Recientes
             </a>
@@ -348,9 +368,9 @@ const PublicNavbar = ({
         </button>
       </div>
       <div className="ph-mobile-nav-links">
-        {NAV_CATEGORIES.map((c) => (
-          <a key={c.href} className="ph-mobile-nav-link" href={c.href}>
-            {c.label}
+        {categories.map((c) => (
+          <a key={c.id} className="ph-mobile-nav-link" href={`/categoria/${c.slug}`}>
+            {c.name}
           </a>
         ))}
         <a className="ph-mobile-nav-link active" href="/recientes">
@@ -365,11 +385,12 @@ const PublicNavbar = ({
       </div>
     </aside>
   </>
-);
+  );
+};
 
 /* ── Footer ──────────────────────────────────────────── */
 
-const PublicFooter = () => (
+const PublicFooter = ({ categories }: { categories: Category[] }) => (
   <footer className="public-footer">
     <div className="public-footer-inner">
       <div className="public-footer-grid">
@@ -386,10 +407,10 @@ const PublicFooter = () => (
         <div>
           <h4 className="public-footer-title">Secciones</h4>
           <ul className="public-footer-links">
-            {NAV_CATEGORIES.map((c) => (
-              <li key={c.href}>
-                <a className="public-footer-link" href={c.href}>
-                  {c.label}
+            {categories.slice(0, 10).map((c) => (
+              <li key={c.id}>
+                <a className="public-footer-link" href={`/categoria/${c.slug}`}>
+                  {c.name}
                 </a>
               </li>
             ))}
@@ -414,6 +435,7 @@ const PublicFooter = () => (
 
 const HomePage = () => {
   const [articles, setArticles] = useState<PublicArticle[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -424,7 +446,28 @@ const HomePage = () => {
     const load = async () => {
       try {
         setLoading(true);
-        const recent = await getRecentPublications(controller.signal);
+
+        const catsPromise = apiFetch<unknown[]>(`${API_BASE_URL}/api/v1/category`, {
+          method: "GET",
+          signal: controller.signal
+        }).then(res => 
+          (Array.isArray(res) ? res : []).map(item => {
+            const cat = item as Record<string, unknown>;
+            return {
+              id: typeof cat.id === 'string' ? cat.id : '',
+              name: typeof cat.name === 'string' ? cat.name : '',
+              slug: typeof cat.slug === 'string' ? cat.slug : '',
+            };
+          }).filter(c => c.id && c.name)
+        ).catch(() => [] as Category[]);
+
+        const [recent, fetchedCats] = await Promise.all([
+          getRecentPublications(controller.signal),
+          catsPromise
+        ]);
+        
+        setCategories(fetchedCats);
+
         if (recent.length > 0) {
           setArticles(recent);
           setError(null);
@@ -456,7 +499,7 @@ const HomePage = () => {
 
   return (
     <div className="ph-page">
-      <PublicNavbar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
+      <PublicNavbar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} categories={categories} />
 
       <main>
         {loading && (
@@ -546,7 +589,7 @@ const HomePage = () => {
         )}
       </main>
 
-      <PublicFooter />
+      <PublicFooter categories={categories} />
     </div>
   );
 };

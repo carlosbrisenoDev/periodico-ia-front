@@ -56,7 +56,7 @@ const AdminLoginPage = () => {
       navigate(redirectTo, { replace: true });
     } catch (err: unknown) {
       if (err instanceof ApiError) {
-        setError(err.message || "Credenciales invalidas o sesion no disponible.");
+        setError(err.message || "Credenciales inválidas o sesión no disponible.");
       } else {
         setError("Error al conectar con el servidor.");
       }
@@ -88,13 +88,13 @@ const AdminLoginPage = () => {
           </svg>
         </div>
 
-        <h1 className="login-title">Panel de Administracion</h1>
+        <h1 className="login-title">Panel de Administración</h1>
         <p className="text-muted login-subtitle">
           Ingresa tus credenciales para continuar.
         </p>
 
         <form className="login-form" onSubmit={onSubmit}>
-          <label htmlFor="email">Correo electronico</label>
+          <label htmlFor="email">Correo electrónico</label>
           <input
             id="email"
             name="email"
@@ -105,7 +105,7 @@ const AdminLoginPage = () => {
             onChange={(event) => setEmail(event.target.value)}
           />
 
-          <label htmlFor="password">Contrasena</label>
+          <label htmlFor="password">Contraseña</label>
           <input
             id="password"
             name="password"
@@ -119,7 +119,7 @@ const AdminLoginPage = () => {
           {error ? <p className="login-error">{error}</p> : null}
 
           <button className="login-button" type="submit" disabled={submitting}>
-            {submitting ? "Ingresando..." : "Iniciar Sesion"}
+            {submitting ? "Ingresando..." : "Iniciar Sesión"}
           </button>
         </form>
       </div>

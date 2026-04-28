@@ -53,6 +53,13 @@ type EditAuthorForm = {
   bio: string;
 };
 
+type EditUserForm = {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+};
+
 type CreateAuthorOnlyForm = {
   name: string;
   bio: string;
@@ -161,10 +168,13 @@ const AuthorsUsers = () => {
   const [error, setError] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState<boolean>(false);
   const [editForm, setEditForm] = useState<EditAuthorForm | null>(null);
+  const [editUserForm, setEditUserForm] = useState<EditUserForm | null>(null);
   const [createError, setCreateError] = useState<string | null>(null);
   const [editError, setEditError] = useState<string | null>(null);
+  const [editUserError, setEditUserError] = useState<string | null>(null);
   const [creating, setCreating] = useState<boolean>(false);
   const [savingEdit, setSavingEdit] = useState<boolean>(false);
+  const [savingUserEdit, setSavingUserEdit] = useState<boolean>(false);
   const [deletingById, setDeletingById] = useState<Record<string, boolean>>({});
   const [form, setForm] = useState<NewAuthorForm>(INITIAL_FORM);
 
@@ -334,7 +344,7 @@ const AuthorsUsers = () => {
     const password = form.password.trim();
 
     if (!name || !email || !password) {
-      setCreateError("Completa nombre, correo y contrasena.");
+      setCreateError("Completa nombre, correo y contraseña.");
       return;
     }
 
@@ -507,6 +517,85 @@ const AuthorsUsers = () => {
     }
   };
 
+  const openEditUserModal = (user: UserCard) => {
+    setEditUserForm({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+    });
+    setEditUserError(null);
+  };
+
+  const closeEditUserModal = () => {
+    if (savingUserEdit) {
+      return;
+    }
+
+    setEditUserForm(null);
+    setEditUserError(null);
+  };
+
+  const submitEditUser = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!editUserForm) {
+      return;
+    }
+
+    const name = editUserForm.name.trim();
+    const email = editUserForm.email.trim();
+
+    if (name.length < 2) {
+      setEditUserError("El nombre debe tener al menos 2 caracteres.");
+      return;
+    }
+
+    if (!email) {
+      setEditUserError("El correo es obligatorio.");
+      return;
+    }
+
+    try {
+      setSavingUserEdit(true);
+      setEditUserError(null);
+
+      const payload = await apiFetch<{ user?: AdminUserRecord }>(
+        `${API_BASE_URL}/api/v1/auth/users/${editUserForm.id}`,
+        {
+          method: "PATCH",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name,
+            email,
+            role: editUserForm.role,
+          }),
+        },
+      );
+
+      const resolvedUser = payload.user || { ...editUserForm, active: true };
+
+      setUsers((prev) =>
+        prev.map((u) =>
+          u.id === editUserForm.id ? { ...u, name: resolvedUser.name, email: resolvedUser.email, role: resolvedUser.role } : u,
+        ),
+      );
+      setEditUserForm(null);
+    } catch (err: unknown) {
+      if (err instanceof ApiError && (err.status === 401 || err.status === 403)) {
+        navigate("/adminlogin", { replace: true });
+        return;
+      }
+
+      setEditUserError(err instanceof Error ? err.message : "No se pudo actualizar el usuario.");
+    } finally {
+      setSavingUserEdit(false);
+    }
+  };
+
   const submitCreateAuthorOnly = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
@@ -617,7 +706,7 @@ const AuthorsUsers = () => {
           <div>
             <h1 className="authors-users-title">Autores y Usuarios</h1>
             <p className="authors-users-subtitle">
-              Gestiona los autores del periodico y sus permisos.
+              Gestiona los autores del periódico y sus permisos.
             </p>
           </div>
 
@@ -684,7 +773,7 @@ const AuthorsUsers = () => {
                   title="Editar usuario"
                   aria-label="Editar usuario"
                   onClick={() => {
-                    alert("La edición de usuarios aún no está disponible.");
+                    openEditUserModal(card);
                   }}
                   disabled={card.id === "unlinked"}
                 >
@@ -777,7 +866,7 @@ const AuthorsUsers = () => {
                   onChange={(event) => updateFormField("name", event.target.value)}
                 />
 
-                <label htmlFor="new-author-email">Correo electronico</label>
+                <label htmlFor="new-author-email">Correo electrónico</label>
                 <input
                   id="new-author-email"
                   type="email"
@@ -786,7 +875,7 @@ const AuthorsUsers = () => {
                   onChange={(event) => updateFormField("email", event.target.value)}
                 />
 
-                <label htmlFor="new-author-bio">Cargo / Biografia</label>
+                <label htmlFor="new-author-bio">Cargo / Biografía</label>
                 <input
                   id="new-author-bio"
                   type="text"
@@ -795,12 +884,12 @@ const AuthorsUsers = () => {
                   onChange={(event) => updateFormField("bio", event.target.value)}
                 />
 
-                <label htmlFor="new-author-password">Contrasena</label>
+                <label htmlFor="new-author-password">Contraseña</label>
                 <div className="authors-users-password-row">
                   <input
                     id="new-author-password"
                     type="text"
-                    placeholder="Genera una contrasena"
+                    placeholder="Genera una contraseña"
                     value={form.password}
                     onChange={(event) => updateFormField("password", event.target.value)}
                   />
@@ -888,7 +977,7 @@ const AuthorsUsers = () => {
                   }
                 />
 
-                <label htmlFor="edit-author-bio">Cargo / Biografia</label>
+                <label htmlFor="edit-author-bio">Cargo / Biografía</label>
                 <input
                   id="edit-author-bio"
                   type="text"
@@ -937,7 +1026,7 @@ const AuthorsUsers = () => {
                   }
                 />
 
-                <label htmlFor="create-author-only-bio">Cargo / Biografia</label>
+                <label htmlFor="create-author-only-bio">Cargo / Biografía</label>
                 <input
                   id="create-author-only-bio"
                   type="text"
@@ -983,6 +1072,83 @@ const AuthorsUsers = () => {
                   </button>
                   <button type="submit" className="primary" disabled={creatingAuthorOnly}>
                     {creatingAuthorOnly ? "Creando..." : "Crear Autor"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        ) : null}
+
+        {editUserForm ? (
+          <div className="authors-users-modal-overlay" onClick={closeEditUserModal} aria-hidden="true">
+            <div
+              className="authors-users-modal"
+              onClick={(event) => event.stopPropagation()}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="edit-user-title"
+            >
+              <h2 id="edit-user-title" className="authors-users-modal-title">
+                Editar Usuario
+              </h2>
+
+              <form className="authors-users-form" onSubmit={submitEditUser}>
+                <label htmlFor="edit-user-name">Nombre completo</label>
+                <input
+                  id="edit-user-name"
+                  type="text"
+                  placeholder="Ej: Juan Perez"
+                  value={editUserForm.name}
+                  onChange={(event) => setEditUserForm((prev) => prev ? { ...prev, name: event.target.value } : null)}
+                />
+
+                <label htmlFor="edit-user-email">Correo electrónico</label>
+                <input
+                  id="edit-user-email"
+                  type="email"
+                  placeholder="Ej: juan@periodico.com"
+                  value={editUserForm.email}
+                  onChange={(event) => setEditUserForm((prev) => prev ? { ...prev, email: event.target.value } : null)}
+                />
+
+                <fieldset className="authors-users-role-fieldset">
+                  <legend>Rol del usuario</legend>
+                  <label className="authors-users-role-option">
+                    <input
+                      type="radio"
+                      name="edit-user-role"
+                      value="editor"
+                      checked={editUserForm.role === "editor"}
+                      onChange={() => setEditUserForm((prev) => prev ? { ...prev, role: "editor" } : null)}
+                    />
+                    <div>
+                      <p><strong>Editor</strong></p>
+                      <p style={{ color: "var(--text-muted)", fontSize: "0.9rem", margin: 0 }}>Puede crear y editar artículos. No puede gestionar usuarios.</p>
+                    </div>
+                  </label>
+                  <label className="authors-users-role-option">
+                    <input
+                      type="radio"
+                      name="edit-user-role"
+                      value="admin"
+                      checked={editUserForm.role === "admin"}
+                      onChange={() => setEditUserForm((prev) => prev ? { ...prev, role: "admin" } : null)}
+                    />
+                    <div>
+                      <p><strong>Administrador</strong></p>
+                      <p style={{ color: "var(--text-muted)", fontSize: "0.9rem", margin: 0 }}>Acceso total. Puede gestionar usuarios y configuraciones.</p>
+                    </div>
+                  </label>
+                </fieldset>
+
+                {editUserError ? <p className="authors-users-modal-error">{editUserError}</p> : null}
+
+                <div className="authors-users-modal-actions">
+                  <button type="button" onClick={closeEditUserModal} disabled={savingUserEdit}>
+                    Cancelar
+                  </button>
+                  <button type="submit" className="primary" disabled={savingUserEdit}>
+                    {savingUserEdit ? "Guardando..." : "Guardar cambios"}
                   </button>
                 </div>
               </form>

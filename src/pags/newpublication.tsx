@@ -257,7 +257,7 @@ const NewPublication = () => {
     }
 
     if (excerpt.length < 3) {
-      setError("La descripcion debe tener al menos 3 caracteres.");
+      setError("La descripción debe tener al menos 3 caracteres.");
       return;
     }
 
@@ -310,9 +310,9 @@ const NewPublication = () => {
 
       const actionLabel =
         nextStatus === "published"
-          ? "Publicacion creada y publicada."
+          ? "Publicación creada y publicada."
           : nextStatus === "scheduled"
-            ? "Publicacion programada correctamente."
+            ? "Publicación programada correctamente."
             : "Borrador guardado correctamente.";
 
       setMessage(`${actionLabel}${created.id ? ` ID: ${created.id}` : ""}`);
@@ -328,7 +328,7 @@ const NewPublication = () => {
         return;
       }
 
-      setError(err instanceof Error ? err.message : "No se pudo guardar la publicacion.");
+      setError(err instanceof Error ? err.message : "No se pudo guardar la publicación.");
     } finally {
       setSubmitting(false);
     }
@@ -347,7 +347,7 @@ const NewPublication = () => {
     const previewData = {
       article: {
         title: form.title.trim() || "Vista previa sin titulo",
-        excerpt: form.excerpt.trim() || "Aun no has escrito una descripcion.",
+        excerpt: form.excerpt.trim() || "Aún no has escrito una descripción.",
         content: form.content.trim() || "El contenido del articulo se mostrara aqui.",
         featuredImageUrl: form.featuredImageUrl.trim() || null,
         tags: parseTagsInput(form.tags),
@@ -476,7 +476,7 @@ const NewPublication = () => {
       <main className="content new-publication-content">
         <header className="new-publication-header">
           <div>
-            <h1 className="new-publication-title">Nueva Publicacion</h1>
+            <h1 className="new-publication-title">Nueva Publicación</h1>
             <p className="new-publication-subtitle">Crea una nueva entrada para el periodico</p>
           </div>
 
@@ -535,14 +535,14 @@ const NewPublication = () => {
 
             <article className="new-publication-card">
               <label className="new-publication-label" htmlFor="new-publication-excerpt">
-                Descripcion general
+                Descripción general
               </label>
               <textarea
                 id="new-publication-excerpt"
                 className="new-publication-textarea"
                 rows={4}
                 maxLength={200}
-                placeholder="Escribe una breve descripcion del articulo..."
+                placeholder="Escribe una breve descripción del artículo..."
                 value={form.excerpt}
                 onChange={(event) => updateField("excerpt", event.target.value)}
               />
@@ -585,7 +585,7 @@ const NewPublication = () => {
               {form.status === "scheduled" ? (
                 <>
                   <label className="new-publication-label mt-12" htmlFor="new-publication-scheduled-at">
-                    Fecha de publicacion
+                    Fecha de publicación
                   </label>
                   <input
                     id="new-publication-scheduled-at"

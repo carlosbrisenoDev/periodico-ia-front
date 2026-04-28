@@ -112,7 +112,7 @@ const EditPublication = () => {
 
   useEffect(() => {
     if (!id) {
-      setError("No se encontro el ID de la publicacion.");
+      setError("No se encontró el ID de la publicación.");
       setLoading(false);
       return;
     }
@@ -217,9 +217,9 @@ const EditPublication = () => {
         }
 
         if (err instanceof ApiError && err.status === 404) {
-          setError("La publicacion no existe o fue eliminada.");
+          setError("La publicación no existe o fue eliminada.");
         } else {
-          setError(err instanceof Error ? err.message : "No se pudo cargar la publicacion.");
+          setError(err instanceof Error ? err.message : "No se pudo cargar la publicación.");
         }
       } finally {
         setLoading(false);
@@ -256,7 +256,7 @@ const EditPublication = () => {
     event.preventDefault();
 
     if (!id) {
-      setError("No se encontro el ID de la publicacion.");
+      setError("No se encontró el ID de la publicación.");
       return;
     }
 
@@ -270,7 +270,7 @@ const EditPublication = () => {
     }
 
     if (excerpt.length < 3) {
-      setError("La descripcion debe tener al menos 3 caracteres.");
+      setError("La descripción debe tener al menos 3 caracteres.");
       return;
     }
 
@@ -320,14 +320,14 @@ const EditPublication = () => {
         body: JSON.stringify(payload),
       });
 
-      setMessage("Publicacion actualizada correctamente.");
+      setMessage("Publicación actualizada correctamente.");
     } catch (err: unknown) {
       if (err instanceof ApiError && (err.status === 401 || err.status === 403)) {
         navigate("/adminlogin", { replace: true });
         return;
       }
 
-      setError(err instanceof Error ? err.message : "No se pudo actualizar la publicacion.");
+      setError(err instanceof Error ? err.message : "No se pudo actualizar la publicación.");
     } finally {
       setSubmitting(false);
     }
@@ -342,7 +342,7 @@ const EditPublication = () => {
       article: {
         id,
         title: form.title.trim() || "Vista previa sin titulo",
-        excerpt: form.excerpt.trim() || "Aun no has escrito una descripcion.",
+        excerpt: form.excerpt.trim() || "Aún no has escrito una descripción.",
         content: form.content.trim() || "El contenido del articulo se mostrara aqui.",
         featuredImageUrl: form.featuredImageUrl.trim() || null,
         tags: parseTagsInput(form.tags),
@@ -367,7 +367,7 @@ const EditPublication = () => {
       <main className="content new-publication-content">
         <header className="new-publication-header">
           <div>
-            <h1 className="new-publication-title">Editar Publicacion</h1>
+            <h1 className="new-publication-title">Editar Publicación</h1>
             <p className="new-publication-subtitle">Modifica la entrada y guarda los cambios</p>
           </div>
 
@@ -401,7 +401,7 @@ const EditPublication = () => {
 
         {error ? <p className="new-publication-message error">{error}</p> : null}
         {!error && message ? <p className="new-publication-message success">{message}</p> : null}
-        {loading ? <p className="new-publication-message">Cargando publicacion...</p> : null}
+        {loading ? <p className="new-publication-message">Cargando publicación...</p> : null}
 
         <form id="edit-publication-form" className="new-publication-grid" onSubmit={submitUpdate}>
           <section className="new-publication-main-column">
@@ -422,14 +422,14 @@ const EditPublication = () => {
 
             <article className="new-publication-card">
               <label className="new-publication-label" htmlFor="edit-publication-excerpt">
-                Descripcion general
+                Descripción general
               </label>
               <textarea
                 id="edit-publication-excerpt"
                 className="new-publication-textarea"
                 rows={4}
                 maxLength={200}
-                placeholder="Escribe una breve descripcion del articulo..."
+                placeholder="Escribe una breve descripción del artículo..."
                 value={form.excerpt}
                 onChange={(event) => updateField("excerpt", event.target.value)}
                 disabled={loading}
@@ -472,7 +472,7 @@ const EditPublication = () => {
               {form.status === "scheduled" ? (
                 <>
                   <label className="new-publication-label mt-12" htmlFor="edit-publication-scheduled-at">
-                    Fecha de publicacion
+                    Fecha de publicación
                   </label>
                   <input
                     id="edit-publication-scheduled-at"

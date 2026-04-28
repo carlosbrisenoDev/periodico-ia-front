@@ -337,7 +337,8 @@ export const Sidebar = () => {
 
                 <nav className="sidebar-nav" aria-label="Navegación principal">
                     {PRIMARY_ITEMS.filter(item => {
-                        if (profile?.role === "admin") return true;
+                        if (!profile) return false;
+                        if (profile.role === "admin") return true;
                         // Editors can only see these paths:
                         const editorAllowedPaths = [
                             "/dashboard",
@@ -369,7 +370,8 @@ export const Sidebar = () => {
 
             <div className="sidebar-footer">
                 {FOOTER_ITEMS.filter(item => {
-                    if (profile?.role === "admin") return true;
+                    if (!profile) return false;
+                    if (profile.role === "admin") return true;
                     // Editors can only logout, cannot see settings
                     return item.icon === "logout";
                 }).map((item) => (<button

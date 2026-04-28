@@ -68,7 +68,7 @@ const SettingsPage = () => {
           return;
         }
 
-        setPageError(error instanceof Error ? error.message : "No se pudo cargar la configuracion.");
+        setPageError(error instanceof Error ? error.message : "No se pudo cargar la configuración.");
       } finally {
         setLoading(false);
       }
@@ -105,7 +105,7 @@ const SettingsPage = () => {
     }
 
     if (!email.includes("@")) {
-      setProfileError("Ingresa un correo valido.");
+      setProfileError("Ingresa un correo válido.");
       return;
     }
 
@@ -139,12 +139,12 @@ const SettingsPage = () => {
     const confirmNewPassword = passwordForm.confirmNewPassword.trim();
 
     if (currentPassword.length < 8 || newPassword.length < 8) {
-      setPasswordError("Las contrasenas deben tener al menos 8 caracteres.");
+      setPasswordError("Las contraseñas deben tener al menos 8 caracteres.");
       return;
     }
 
     if (newPassword !== confirmNewPassword) {
-      setPasswordError("La nueva contrasena y su confirmacion no coinciden.");
+      setPasswordError("La nueva contraseña y su confirmación no coinciden.");
       return;
     }
 
@@ -162,7 +162,7 @@ const SettingsPage = () => {
         return;
       }
 
-      setPasswordError(error instanceof Error ? error.message : "No se pudo actualizar la contrasena.");
+      setPasswordError(error instanceof Error ? error.message : "No se pudo actualizar la contraseña.");
     } finally {
       setSavingPassword(false);
     }

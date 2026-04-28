@@ -527,7 +527,7 @@ export const AllEntries = ({ variant = "mine" }: AllEntriesProps) => {
   };
 
   const deleteEntry = async (entryId: string, title: string) => {
-    const confirmed = window.confirm(`Mover la publicacion \"${title}\" a la papelera?`);
+    const confirmed = window.confirm(`¿Mover la publicación "${title}" a la papelera?`);
     if (!confirmed) {
       return;
     }
@@ -549,7 +549,7 @@ export const AllEntries = ({ variant = "mine" }: AllEntriesProps) => {
       }
 
       setActionError(
-        err instanceof Error ? err.message : "No se pudo enviar la publicacion a la papelera.",
+        err instanceof Error ? err.message : "No se pudo enviar la publicación a la papelera.",
       );
     } finally {
       setDeletingById((prev) => {

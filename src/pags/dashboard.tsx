@@ -85,6 +85,10 @@ const statusLabel = (status: string): string => {
     return "Programado";
   }
 
+  if (status === "deleted") {
+    return "Eliminado";
+  }
+
   return "Borrador";
 };
 
@@ -95,6 +99,10 @@ const statusClass = (status: string): string => {
 
   if (status === "scheduled") {
     return "dashboard-status-scheduled";
+  }
+
+  if (status === "deleted") {
+    return "dashboard-status-deleted";
   }
 
   return "dashboard-status-draft";
