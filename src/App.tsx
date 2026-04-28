@@ -53,7 +53,7 @@ const ProtectedRoute = ({ allowedRoles }: { allowedRoles?: string[] }) => {
   }, []);
 
   if (loading) {
-    return <p className="route-guard-loading">Validando sesion...</p>;
+    return <p className="route-guard-loading">Validando sesión...</p>;
   }
 
   if (!profile) {

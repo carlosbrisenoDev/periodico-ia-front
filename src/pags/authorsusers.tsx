@@ -276,13 +276,13 @@ const AuthorsUsers = () => {
     const userCards = users
       .filter(user => profile?.role === "admin" || user.id === profile?.id)
       .map((user): UserCard => ({
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      active: user.active,
-      authors: authorsByUserId.get(user.id) || [],
-    }));
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        active: user.active,
+        authors: authorsByUserId.get(user.id) || [],
+      }));
 
     if (unlinkedAuthors.length > 0 && profile?.role === "admin") {
       userCards.push({
@@ -398,7 +398,7 @@ const AuthorsUsers = () => {
           name,
           userId: createdUserId,
         };
-        
+
         if (bio) {
           authorBody.bio = bio;
         }
@@ -592,6 +592,33 @@ const AuthorsUsers = () => {
 
       setEditUserError(err instanceof Error ? err.message : "No se pudo actualizar el usuario.");
     } finally {
+      setSavingUserEdit(false);
+    }
+  };
+
+  const submitDeleteUser = async () => {
+    if (!editUserForm) return;
+    const confirmed = window.confirm(`¿Eliminar al usuario "${editUserForm.name}"? Esta acción no se puede deshacer.`);
+    if (!confirmed) return;
+
+    try {
+      setSavingUserEdit(true);
+      setEditUserError(null);
+
+      await apiFetch<{ message?: string }>(`${API_BASE_URL}/api/v1/auth/users/${editUserForm.id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+
+      setUsers((prev) => prev.filter((item) => item.id !== editUserForm.id));
+      closeEditUserModal();
+    } catch (err: unknown) {
+      if (err instanceof ApiError && (err.status === 401 || err.status === 403)) {
+        navigate("/adminlogin", { replace: true });
+        return;
+      }
+
+      setEditUserError(err instanceof Error ? err.message : "No se pudo eliminar el usuario.");
       setSavingUserEdit(false);
     }
   };
@@ -800,7 +827,7 @@ const AuthorsUsers = () => {
                     card.authors.map(author => (
                       <div key={author.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px", backgroundColor: "var(--background)", borderRadius: "6px" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                           {author.avatarUrl ? (
+                          {author.avatarUrl ? (
                             <img src={author.avatarUrl} alt="" style={{ width: "24px", height: "24px", borderRadius: "50%", objectFit: "cover" }} />
                           ) : (
                             <div style={{ width: "24px", height: "24px", borderRadius: "50%", backgroundColor: "var(--primary-color)", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "10px", fontWeight: "bold" }}>
@@ -1143,13 +1170,25 @@ const AuthorsUsers = () => {
 
                 {editUserError ? <p className="authors-users-modal-error">{editUserError}</p> : null}
 
-                <div className="authors-users-modal-actions">
-                  <button type="button" onClick={closeEditUserModal} disabled={savingUserEdit}>
-                    Cancelar
+                <div className="authors-users-modal-actions" style={{ display: "flex", justifyContent: "space-center", width: "100%" }}>
+                  <button
+                    type="button"
+                    className="danger"
+                    onClick={submitDeleteUser}
+                    disabled={savingUserEdit || profile?.id === editUserForm.id}
+                    style={{ backgroundColor: profile?.id === editUserForm.id ? "#fca5a5" : "#ef4444", color: "white", border: "none", padding: "8px 16px", borderRadius: "8px", fontWeight: "600", cursor: profile?.id === editUserForm.id ? "not-allowed" : "pointer" }}
+                    title={profile?.id === editUserForm.id ? "No puedes eliminar tu propio usuario" : "Eliminar Usuario"}
+                  >
+                    Eliminar Usuario
                   </button>
-                  <button type="submit" className="primary" disabled={savingUserEdit}>
-                    {savingUserEdit ? "Guardando..." : "Guardar cambios"}
-                  </button>
+                  <div style={{ display: "flex", gap: "8px" }}>
+                    <button type="button" onClick={closeEditUserModal} disabled={savingUserEdit}>
+                      Cancelar
+                    </button>
+                    <button type="submit" className="primary" disabled={savingUserEdit}>
+                      {savingUserEdit ? "Guardando..." : "Guardar cambios"}
+                    </button>
+                  </div>
                 </div>
               </form>
             </div>

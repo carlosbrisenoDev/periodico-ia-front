@@ -483,7 +483,7 @@ export const ArticleContentEditor = ({
               disabled={uploadingImage}
             >
               <span className="new-publication-upload-title">Seleccionar de la biblioteca</span>
-              <span className="new-publication-upload-subtitle">Elige de tus imagenes guardadas</span>
+              <span className="new-publication-upload-subtitle">Elige de tus imágenes guardadas</span>
             </button>
           </div>
         </div>
@@ -493,19 +493,19 @@ export const ArticleContentEditor = ({
         <div className="new-publication-modal-overlay" role="dialog" aria-modal="true">
           <div className="new-publication-modal new-publication-library-modal">
             <div className="new-publication-modal-head">
-              <h2>Biblioteca de Imagenes</h2>
+              <h2>Biblioteca de Imágenes</h2>
               <button type="button" className="new-publication-modal-close" onClick={closeImageMenus}>
                 x
               </button>
             </div>
 
-            {loadingImages ? <p className="new-publication-message">Cargando imagenes...</p> : null}
+            {loadingImages ? <p className="new-publication-message">Cargando imágenes...</p> : null}
             {!loadingImages && imageError ? (
               <p className="new-publication-message error">{imageError}</p>
             ) : null}
 
             {!loadingImages && !imageError && images.length === 0 ? (
-              <p className="new-publication-message">Aun no hay imagenes guardadas.</p>
+              <p className="new-publication-message">Aún no hay imágenes guardadas.</p>
             ) : null}
 
             <div className="new-publication-library-grid">

@@ -252,7 +252,7 @@ const NewPublication = () => {
     const content = form.content.trim();
 
     if (title.length < 3) {
-      setError("El titulo debe tener al menos 3 caracteres.");
+      setError("El título debe tener al menos 3 caracteres.");
       return;
     }
 
@@ -267,7 +267,7 @@ const NewPublication = () => {
     }
 
     if (!form.authorId) {
-      setError("Debes seleccionar un autor valido.");
+      setError("Debes seleccionar un autor válido.");
       return;
     }
 
@@ -346,9 +346,9 @@ const NewPublication = () => {
   const handlePreview = () => {
     const previewData = {
       article: {
-        title: form.title.trim() || "Vista previa sin titulo",
+        title: form.title.trim() || "Vista previa sin título",
         excerpt: form.excerpt.trim() || "Aún no has escrito una descripción.",
-        content: form.content.trim() || "El contenido del articulo se mostrara aqui.",
+        content: form.content.trim() || "El contenido del artículo se mostrará aquí.",
         featuredImageUrl: form.featuredImageUrl.trim() || null,
         tags: parseTagsInput(form.tags),
         authorName: selectedAuthorName,
@@ -521,13 +521,13 @@ const NewPublication = () => {
           <section className="new-publication-main-column">
             <article className="new-publication-card">
               <label className="new-publication-label" htmlFor="new-publication-title">
-                Titulo
+                Título
               </label>
               <input
                 id="new-publication-title"
                 className="new-publication-input"
                 type="text"
-                placeholder="Escribe un titulo atractivo..."
+                placeholder="Escribe un título atractivo..."
                 value={form.title}
                 onChange={(event) => updateField("title", event.target.value)}
               />
@@ -553,7 +553,7 @@ const NewPublication = () => {
 
             <article className="new-publication-card">
               <p className="new-publication-label">
-                Contenido del articulo
+                Contenido del artículo
               </p>
               <ArticleContentEditor
                 value={form.content}
@@ -638,7 +638,7 @@ const NewPublication = () => {
                 disabled={submitting || loadingOptions}
               >
                 <span className="new-publication-upload-title">Seleccionar de la biblioteca</span>
-                <span className="new-publication-upload-subtitle">Elige de tus imagenes guardadas</span>
+                <span className="new-publication-upload-subtitle">Elige de tus imágenes guardadas</span>
               </button>
 
               <input
@@ -748,7 +748,7 @@ const NewPublication = () => {
                 disabled={uploadingImage}
               >
                 <span className="new-publication-upload-title">Seleccionar de la biblioteca</span>
-                <span className="new-publication-upload-subtitle">Elige de tus imagenes guardadas</span>
+                <span className="new-publication-upload-subtitle">Elige de tus imágenes guardadas</span>
               </button>
             </div>
           </div>
@@ -758,7 +758,7 @@ const NewPublication = () => {
           <div className="new-publication-modal-overlay" role="dialog" aria-modal="true">
             <div className="new-publication-modal new-publication-library-modal">
               <div className="new-publication-modal-head">
-                <h2>Biblioteca de Imagenes</h2>
+                <h2>Biblioteca de Imágenes</h2>
                 <button
                   type="button"
                   className="new-publication-modal-close"
@@ -771,11 +771,11 @@ const NewPublication = () => {
                 </button>
               </div>
 
-              {loadingImages ? <p className="new-publication-message">Cargando imagenes...</p> : null}
+              {loadingImages ? <p className="new-publication-message">Cargando imágenes...</p> : null}
               {!loadingImages && imageError ? <p className="new-publication-message error">{imageError}</p> : null}
 
               {!loadingImages && !imageError && images.length === 0 ? (
-                <p className="new-publication-message">Aun no hay imagenes guardadas.</p>
+                <p className="new-publication-message">Aún no hay imágenes guardadas.</p>
               ) : null}
 
               <div className="new-publication-library-grid">

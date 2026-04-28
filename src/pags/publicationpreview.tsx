@@ -538,7 +538,7 @@ export const PublicationPreview = () => {
                   ))}
                 </div>
               ) : (
-                <p style={{ color: "#4b5563" }}>Todavia no hay recomendaciones para este articulo.</p>
+                <p style={{ color: "#4b5563" }}>Todavía no hay recomendaciones para este artículo.</p>
               )}
             </div>
           </section>

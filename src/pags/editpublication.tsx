@@ -265,7 +265,7 @@ const EditPublication = () => {
     const content = form.content.trim();
 
     if (title.length < 3) {
-      setError("El titulo debe tener al menos 3 caracteres.");
+      setError("El título debe tener al menos 3 caracteres.");
       return;
     }
 
@@ -280,7 +280,7 @@ const EditPublication = () => {
     }
 
     if (!form.authorId) {
-      setError("Debes seleccionar un autor valido.");
+      setError("Debes seleccionar un autor válido.");
       return;
     }
 
@@ -341,9 +341,9 @@ const EditPublication = () => {
     const previewData = {
       article: {
         id,
-        title: form.title.trim() || "Vista previa sin titulo",
+        title: form.title.trim() || "Vista previa sin título",
         excerpt: form.excerpt.trim() || "Aún no has escrito una descripción.",
-        content: form.content.trim() || "El contenido del articulo se mostrara aqui.",
+        content: form.content.trim() || "El contenido del artículo se mostrará aquí.",
         featuredImageUrl: form.featuredImageUrl.trim() || null,
         tags: parseTagsInput(form.tags),
         authorName: selectedAuthorName,
@@ -407,13 +407,13 @@ const EditPublication = () => {
           <section className="new-publication-main-column">
             <article className="new-publication-card">
               <label className="new-publication-label" htmlFor="edit-publication-title">
-                Titulo
+                Título
               </label>
               <input
                 id="edit-publication-title"
                 className="new-publication-input"
                 type="text"
-                placeholder="Escribe un titulo atractivo..."
+                placeholder="Escribe un título atractivo..."
                 value={form.title}
                 onChange={(event) => updateField("title", event.target.value)}
                 disabled={loading}
@@ -441,7 +441,7 @@ const EditPublication = () => {
 
             <article className="new-publication-card">
               <p className="new-publication-label">
-                Contenido del articulo
+                Contenido del artículo
               </p>
               <ArticleContentEditor
                 value={form.content}
@@ -488,7 +488,7 @@ const EditPublication = () => {
 
             <article className="new-publication-card">
               <label className="new-publication-label" htmlFor="edit-publication-category">
-                Categoria
+                Categoría
               </label>
               <select
                 id="edit-publication-category"
@@ -497,7 +497,7 @@ const EditPublication = () => {
                 onChange={(event) => updateField("categoryId", event.target.value)}
                 disabled={loading}
               >
-                <option value="">Seleccionar categoria</option>
+                <option value="">Seleccionar categoría</option>
                 {categories.map((category) => (
                   <option key={category.id} value={category.id}>
                     {category.name}

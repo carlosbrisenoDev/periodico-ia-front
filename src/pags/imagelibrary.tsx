@@ -130,7 +130,7 @@ const ImageLibrary = () => {
                 return;
             }
 
-            setError(err instanceof Error ? err.message : "No se pudieron cargar las imagenes.");
+            setError(err instanceof Error ? err.message : "No se pudieron cargar las imágenes.");
             setImages([]);
         } finally {
             setLoading(false);
@@ -220,8 +220,8 @@ const ImageLibrary = () => {
             <main className="content image-library-content">
                 <header className="image-library-header">
                     <div>
-                        <h1 className="image-library-title">Biblioteca de Imagenes</h1>
-                        <p className="image-library-subtitle">Gestiona todas las imagenes de tus publicaciones</p>
+                        <h1 className="image-library-title">Biblioteca de Imágenes</h1>
+                        <p className="image-library-subtitle">Gestiona todas las imágenes de tus publicaciones</p>
                     </div>
 
                     <button
@@ -249,7 +249,7 @@ const ImageLibrary = () => {
 
                 {error ? <p className="image-library-info error">{error}</p> : null}
                 {!error && message ? <p className="image-library-info success">{message}</p> : null}
-                {loading ? <p className="image-library-info">Cargando imagenes...</p> : null}
+                {loading ? <p className="image-library-info">Cargando imágenes...</p> : null}
 
                 <div className="image-library-view-toggle" role="group" aria-label="Cambiar vista">
                     <button
@@ -282,7 +282,7 @@ const ImageLibrary = () => {
                 </div>
 
                 {!loading && !hasImages ? (
-                    <p className="image-library-info">Aun no hay imagenes en la biblioteca.</p>) : null}
+                    <p className="image-library-info">Aún no hay imágenes en la biblioteca.</p>) : null}
 
                 {!loading && hasImages && viewMode === "grid" ? (<div className="image-library-grid">
                         {sortedImages.map((image) => (<article key={image.id} className="image-library-card">

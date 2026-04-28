@@ -234,6 +234,8 @@ export const AllEntries = ({ variant = "mine" }: AllEntriesProps) => {
   const [deletingById, setDeletingById] = useState<Record<string, boolean>>({});
   const [openFeaturedMenuId, setOpenFeaturedMenuId] = useState<string | null>(null);
   const featuredMenuRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const [refreshKey, setRefreshKey] = useState(0);
+  const backgroundRefreshRef = useRef(false);
 
   useEffect(() => {
     if (!openFeaturedMenuId) {
@@ -366,7 +368,10 @@ export const AllEntries = ({ variant = "mine" }: AllEntriesProps) => {
 
     const loadEntries = async () => {
       try {
-        setLoading(true);
+        if (!backgroundRefreshRef.current) {
+          setLoading(true);
+        }
+        backgroundRefreshRef.current = false;
 
         const params = new URLSearchParams({
           page: "1",
@@ -417,7 +422,7 @@ export const AllEntries = ({ variant = "mine" }: AllEntriesProps) => {
     void loadEntries();
 
     return () => controller.abort();
-  }, [myAuthorIds, navigate, statusFilter, variant]);
+  }, [myAuthorIds, navigate, statusFilter, variant, refreshKey]);
 
   const authorOptions = useMemo(() => {
     const namesFromEntries = entries.map((entry) => authorMap[entry.authorId] || entry.authorName);
@@ -499,6 +504,9 @@ export const AllEntries = ({ variant = "mine" }: AllEntriesProps) => {
             : entry,
         ),
       );
+
+      backgroundRefreshRef.current = true;
+      setRefreshKey((prev) => prev + 1);
     } catch (err: unknown) {
       if (err instanceof ApiError && (err.status === 401 || err.status === 403)) {
         navigate("/adminlogin", { replace: true });

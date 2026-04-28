@@ -161,7 +161,7 @@ const Categories = () => {
         }
 
         if (!finalSlug) {
-            setCreateError("Ingresa un slug valido para la categoria.");
+            setCreateError("Ingresa un slug válido para la categoría.");
             return;
         }
 
@@ -194,7 +194,7 @@ const Categories = () => {
                 return;
             }
 
-            setCreateError(err instanceof Error ? err.message : "No se pudo crear la categoria.");
+            setCreateError(err instanceof Error ? err.message : "No se pudo crear la categoría.");
         } finally {
             setCreating(false);
         }
@@ -235,7 +235,7 @@ const Categories = () => {
         }
 
         if (!slug) {
-            setEditError("Ingresa un slug valido para la categoria.");
+            setEditError("Ingresa un slug válido para la categoría.");
             return;
         }
 
@@ -265,14 +265,14 @@ const Categories = () => {
                 return;
             }
 
-            setEditError(err instanceof Error ? err.message : "No se pudo actualizar la categoria.");
+            setEditError(err instanceof Error ? err.message : "No se pudo actualizar la categoría.");
         } finally {
             setSavingEdit(false);
         }
     };
 
     const deleteCategory = async (category: CategoryItem) => {
-        const confirmed = window.confirm(`Eliminar la categoria \"${category.name}\"?`);
+        const confirmed = window.confirm(`Eliminar la categoría \"${category.name}\"?`);
         if (!confirmed) {
             return;
         }
@@ -291,7 +291,7 @@ const Categories = () => {
                 return;
             }
 
-            setError(err instanceof Error ? err.message : "No se pudo eliminar la categoria.");
+            setError(err instanceof Error ? err.message : "No se pudo eliminar la categoría.");
         } finally {
             setDeletingById((prev) => {
                 const next = {...prev};
@@ -309,8 +309,8 @@ const Categories = () => {
         <main className="content categories-content">
             <header className="categories-header">
                 <div>
-                    <h1 className="categories-title">Categorias</h1>
-                    <p className="categories-subtitle">Organiza tus publicaciones por categorias.</p>
+                    <h1 className="categories-title">Categorías</h1>
+                    <p className="categories-subtitle">Organiza tus publicaciones por categorías.</p>
                 </div>
 
                 <button
@@ -318,16 +318,16 @@ const Categories = () => {
                     className="entries-new-button"
                     onClick={openCreateModal}
                 >
-                    + Nueva Categoria
+                    + Nueva Categoría
                 </button>
             </header>
 
-            {loading ? <p className="categories-info">Cargando categorias...</p> : null}
+            {loading ? <p className="categories-info">Cargando categorías...</p> : null}
             {!loading && error ? <p className="categories-info error">{error}</p> : null}
             {!loading && !error && categories.length === 0 ? (
-                <p className="categories-info">Aun no hay categorias creadas.</p>) : null}
+                <p className="categories-info">Aún no hay categorías creadas.</p>) : null}
 
-            <section className="categories-grid" aria-label="Listado de categorias">
+            <section className="categories-grid" aria-label="Listado de categorías">
                 {categories.map((category) => (<article key={category.id} className="category-card">
                     <div className="space-between row">
                         <span
@@ -398,7 +398,7 @@ const Categories = () => {
                     aria-labelledby="new-category-title"
                 >
                     <h2 id="new-category-title" className="categories-modal-title">
-                        Nueva Categoria
+                        Nueva Categoría
                     </h2>
 
                     <form className="categories-form" onSubmit={createCategory}>
@@ -406,7 +406,7 @@ const Categories = () => {
                         <input
                             id="new-category-name"
                             type="text"
-                            placeholder="Ej: Opinion"
+                            placeholder="Ej: Opinión"
                             value={form.name}
                             onChange={(event) => updateFormField("name", event.target.value)}
                         />
@@ -436,7 +436,7 @@ const Categories = () => {
                                 Cancelar
                             </button>
                             <button type="submit" className="primary" disabled={creating}>
-                                {creating ? "Creando..." : "Crear Categoria"}
+                                {creating ? "Creando..." : "Crear Categoría"}
                             </button>
                         </div>
                     </form>
@@ -452,7 +452,7 @@ const Categories = () => {
                     aria-labelledby="edit-category-title"
                 >
                     <h2 id="edit-category-title" className="categories-modal-title">
-                        Editar Categoria
+                        Editar Categoría
                     </h2>
 
                     <form className="categories-form" onSubmit={submitEditCategory}>

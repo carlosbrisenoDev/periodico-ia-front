@@ -157,7 +157,7 @@ export const getMe = async (
     const normalized = normalizeProfile(payload);
 
     if (!normalized) {
-      throw new Error("Respuesta de sesion invalida");
+      throw new Error("Respuesta de sesión inválida");
     }
 
     cachedProfile = normalized;
@@ -289,7 +289,7 @@ export const registerSubscriber = async (input: {
   });
 
   return {
-    message: payload.message ?? "Suscripcion creada correctamente.",
+    message: payload.message ?? "Suscripción creada correctamente.",
   };
 };
 
@@ -342,7 +342,7 @@ const normalizePublicArticle = (
         : typeof record.id === "string"
           ? record.id
           : `article-${index}`,
-    excerpt: typeof record.excerpt === "string" ? record.excerpt : "Sin descripcion.",
+    excerpt: typeof record.excerpt === "string" ? record.excerpt : "Sin descripción.",
     featuredImageUrl:
       typeof record.featuredImageUrl === "string" ? record.featuredImageUrl : undefined,
     createdAt:
@@ -424,7 +424,7 @@ const normalizeRecommendation = (item: unknown, index: number): ArticleRecommend
     id: typeof record.id === "string" ? record.id : `recommendation-${index}`,
     slug: record.slug,
     title: record.title,
-    excerpt: typeof record.excerpt === "string" ? record.excerpt : "Sin descripcion.",
+    excerpt: typeof record.excerpt === "string" ? record.excerpt : "Sin descripción.",
     featuredImageUrl:
       typeof record.featuredImageUrl === "string" ? record.featuredImageUrl : undefined,
     publishedAt:

@@ -305,7 +305,7 @@ export const Sidebar = () => {
             <button
                 type="button"
                 className="sidebar-mobile-toggle"
-                aria-label={isMobileMenuOpen ? "Cerrar menu" : "Abrir menu"}
+                aria-label={isMobileMenuOpen ? "Cerrar menú" : "Abrir menú"}
                 aria-expanded={isMobileMenuOpen}
                 onClick={() => setIsMobileMenuOpen((prev) => !prev)}
             >
@@ -319,7 +319,7 @@ export const Sidebar = () => {
         {isMobile && isMobileMenuOpen ? (<button
             type="button"
             className="sidebar-mobile-overlay"
-            aria-label="Cerrar menu"
+            aria-label="Cerrar menú"
             onClick={() => setIsMobileMenuOpen(false)}
         />) : null}
 
@@ -328,7 +328,7 @@ export const Sidebar = () => {
                 <div className="sidebar-brand-area">
                     {!logoFailed ? (<img
                         src={SIDEBAR_LOGO_PATH}
-                        alt="Logo del periodico"
+                        alt="Logo del periódico"
                         className="sidebar-brand-logo"
                         onError={() => setLogoFailed(true)}
                     />) : (<div className="sidebar-brand-placeholder" aria-hidden="true" />)}
