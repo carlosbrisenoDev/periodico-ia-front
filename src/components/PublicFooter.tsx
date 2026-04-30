@@ -44,6 +44,11 @@ const PublicFooter: React.FC<PublicFooterProps> = ({ categories = [], variant = 
           <div>
             <h4 className="public-footer-title">Secciones</h4>
             <ul className="public-footer-links">
+              <li>
+                <a className="public-footer-link" href="/recientes">
+                  Recientes
+                </a>
+              </li>
               {safeCategories.slice(0, 10).map((c) => (
                 <li key={c.id}>
                   <a className="public-footer-link" href={`/categoria/${c.slug || c.id}`}>

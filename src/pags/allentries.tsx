@@ -15,6 +15,8 @@ type ArticleEntry = {
   categoryName: string;
   isFeatured: boolean;
   featuredType: FeaturedType;
+  publishedAt?: string | null;
+  scheduledAt?: string | null;
 };
 
 type FeaturedType = "none" | "hero" | "headline" | "category_hero" | "breaking";
@@ -131,6 +133,8 @@ const normalizeEntry = (item: unknown, index: number): ArticleEntry | null => {
       : [],
     isFeatured,
     featuredType: isFeatured ? (featuredType === "none" ? "hero" : featuredType) : "none",
+    publishedAt: typeof record.publishedAt === "string" ? record.publishedAt : null,
+    scheduledAt: typeof record.scheduledAt === "string" ? record.scheduledAt : null,
   };
 };
 
@@ -660,7 +664,6 @@ export const AllEntries = ({ variant = "mine" }: AllEntriesProps) => {
                 ) : null}
 
                 {visibleEntries.map((entry) => {
-                  const dateTime = formatDateTime(entry.createdAt);
                   const isUpdatingFeatured = Boolean(togglingFeaturedById[entry.id]);
 
                   return (
@@ -704,23 +707,22 @@ export const AllEntries = ({ variant = "mine" }: AllEntriesProps) => {
                         </span>
                       </td>
                       <td className="entries-date-cell">
-                        <span>{dateTime.date}</span>
-                        <span className="entries-date-dot">•</span>
-                        <span className="entries-time-with-icon">
-                          <svg
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            aria-hidden="true"
-                          >
-                            <circle cx="12" cy="12" r="9" />
-                            <path d="M12 7v5l3 2" />
-                          </svg>
-                          {dateTime.time}
-                        </span>
+                        <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+                          <span style={{ fontSize: "11px", fontWeight: "bold", color: "var(--text-muted)", textTransform: "uppercase" }}>
+                            {entry.status === "published" ? "Publicado" : entry.status === "scheduled" ? "Programado" : "Creado"}
+                          </span>
+                          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                            <span>{formatDateTime(entry.status === "published" ? (entry.publishedAt || entry.createdAt) : entry.status === "scheduled" ? (entry.scheduledAt || entry.createdAt) : entry.createdAt).date}</span>
+                            <span className="entries-date-dot">•</span>
+                            <span className="entries-time-with-icon">
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ width: "12px", height: "12px" }}>
+                                <circle cx="12" cy="12" r="9" />
+                                <path d="M12 7v5l3 2" />
+                              </svg>
+                              {formatDateTime(entry.status === "published" ? (entry.publishedAt || entry.createdAt) : entry.status === "scheduled" ? (entry.scheduledAt || entry.createdAt) : entry.createdAt).time}
+                            </span>
+                          </div>
+                        </div>
                       </td>
                       <td>
                         <div className="entries-actions">

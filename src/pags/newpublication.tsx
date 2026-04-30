@@ -16,6 +16,7 @@ type PublicationForm = {
   tags: string;
   authorId: string;
   scheduledAt: string;
+  publishedAt: string;
   featuredImageUrl: string;
 };
 
@@ -59,6 +60,7 @@ const INITIAL_FORM: PublicationForm = {
   tags: "",
   authorId: "",
   scheduledAt: "",
+  publishedAt: "",
   featuredImageUrl: "",
 };
 
@@ -293,6 +295,7 @@ const NewPublication = () => {
         featuredImageUrl: form.featuredImageUrl.trim() || null,
         tags,
         isFeatured: false,
+        publishedAt: toScheduledIso(form.publishedAt),
       };
 
       if (nextStatus === "scheduled") {
@@ -585,7 +588,7 @@ const NewPublication = () => {
               {form.status === "scheduled" ? (
                 <>
                   <label className="new-publication-label mt-12" htmlFor="new-publication-scheduled-at">
-                    Fecha de publicación
+                    Fecha programada
                   </label>
                   <input
                     id="new-publication-scheduled-at"
@@ -594,6 +597,22 @@ const NewPublication = () => {
                     value={form.scheduledAt}
                     onChange={(event) => updateField("scheduledAt", event.target.value)}
                   />
+                </>
+              ) : form.status === "published" ? (
+                <>
+                  <label className="new-publication-label mt-12" htmlFor="new-publication-published-at">
+                    Fecha de publicación (Retroactiva)
+                  </label>
+                  <input
+                    id="new-publication-published-at"
+                    className="new-publication-input"
+                    type="datetime-local"
+                    value={form.publishedAt}
+                    onChange={(event) => updateField("publishedAt", event.target.value)}
+                  />
+                  <p className="new-publication-helper-text">
+                    Si dejas esto en blanco, se usará la fecha actual al guardar.
+                  </p>
                 </>
               ) : null}
             </article>

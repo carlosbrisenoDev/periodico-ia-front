@@ -773,9 +773,13 @@ const AuthorsUsers = () => {
                   <span>{initialsFromName(card.name)}</span>
                 </div>
 
-                <div>
+                <div style={{ minWidth: 0, flex: 1 }}>
                   <h2 className="author-card-name">{card.name}</h2>
-                  <p className="author-card-subtitle">{card.email}</p>
+                  <p className="author-card-subtitle">
+                    {card.authors.length > 0 && card.authors[0].bio 
+                      ? card.authors[0].bio 
+                      : card.email}
+                  </p>
                 </div>
               </div>
 

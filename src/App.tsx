@@ -24,6 +24,7 @@ import { PublicationPreview } from "./pags/publicationpreview.tsx";
 import HomePage from "./pags/homepage.tsx";
 import CategoryPage from "./pags/categorypage.tsx";
 import SearchPage from "./pags/searchpage.tsx";
+import RecentPage from "./pags/recentpage.tsx";
 import {
   getOptionalMe,
 } from "./libs/http.ts";
@@ -82,6 +83,7 @@ const App = () => {
         <Route path="/categoria/:id" element={<CategoryPage />} />
         <Route path="/articulo/:id" element={<PublicationPreview />} />
         <Route path="/buscar" element={<SearchPage />} />
+        <Route path="/recientes" element={<RecentPage />} />
         <Route path="/suscripcion" element={<SubscriptionPage />} />
         <Route path="/adminlogin" element={<AdminLoginPage />} />
 

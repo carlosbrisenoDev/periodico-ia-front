@@ -16,6 +16,7 @@ type PublicationForm = {
   tags: string;
   authorId: string;
   scheduledAt: string;
+  publishedAt: string;
   featuredImageUrl: string;
 };
 
@@ -41,6 +42,7 @@ type ArticleDetailResponse = {
   categoryIds?: unknown;
   tags?: unknown;
   scheduledAt?: string | null;
+  publishedAt?: string | null;
   featuredImageUrl?: string | null;
 };
 
@@ -65,6 +67,7 @@ const INITIAL_FORM: PublicationForm = {
   tags: "",
   authorId: "",
   scheduledAt: "",
+  publishedAt: "",
   featuredImageUrl: "",
 };
 
@@ -234,6 +237,7 @@ const EditPublication = () => {
             ? article.tags.filter((tag): tag is string => typeof tag === "string").join(", ")
             : "",
           scheduledAt: toDatetimeLocal(article.scheduledAt),
+          publishedAt: toDatetimeLocal(article.publishedAt),
           featuredImageUrl:
             typeof article.featuredImageUrl === "string" ? article.featuredImageUrl : "",
         });
@@ -336,6 +340,7 @@ const EditPublication = () => {
         categoryIds: form.categoryId ? [form.categoryId] : [],
         tags,
         featuredImageUrl: form.featuredImageUrl.trim() || null,
+        publishedAt: toScheduledIso(form.publishedAt),
       };
 
       if (form.status === "scheduled") {
@@ -608,7 +613,7 @@ const EditPublication = () => {
               {form.status === "scheduled" ? (
                 <>
                   <label className="new-publication-label mt-12" htmlFor="edit-publication-scheduled-at">
-                    Fecha de publicación
+                    Fecha programada
                   </label>
                   <input
                     id="edit-publication-scheduled-at"
@@ -618,6 +623,23 @@ const EditPublication = () => {
                     onChange={(event) => updateField("scheduledAt", event.target.value)}
                     disabled={loading}
                   />
+                </>
+              ) : form.status === "published" ? (
+                <>
+                  <label className="new-publication-label mt-12" htmlFor="edit-publication-published-at">
+                    Fecha de publicación (Retroactiva)
+                  </label>
+                  <input
+                    id="edit-publication-published-at"
+                    className="new-publication-input"
+                    type="datetime-local"
+                    value={form.publishedAt}
+                    onChange={(event) => updateField("publishedAt", event.target.value)}
+                    disabled={loading}
+                  />
+                  <p className="new-publication-helper-text">
+                    Si dejas esto en blanco, se usará la fecha actual al guardar.
+                  </p>
                 </>
               ) : null}
             </article>

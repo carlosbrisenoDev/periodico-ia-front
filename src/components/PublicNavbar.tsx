@@ -91,8 +91,8 @@ const PublicNavbar = ({ categories, activeCategorySlug }: Omit<PublicNavbarProps
                 </div>
               )}
 
-              <Link className={`public-nav-link ${!activeCategorySlug ? "active" : ""}`} to="/">
-                Noticias
+              <Link className={`public-nav-link ${activeCategorySlug === "recientes" ? "active" : ""}`} to="/recientes">
+                Recientes
               </Link>
             </div>
             <form className="public-nav-search" onSubmit={handleSearchSubmit}>
@@ -135,11 +135,11 @@ const PublicNavbar = ({ categories, activeCategorySlug }: Omit<PublicNavbarProps
             </Link>
           ))}
           <Link 
-            className={`ph-mobile-nav-link ${!activeCategorySlug ? "active" : ""}`} 
-            to="/"
+            className={`ph-mobile-nav-link ${activeCategorySlug === "recientes" ? "active" : ""}`} 
+            to="/recientes"
             onClick={() => setMobileOpen(false)}
           >
-            Noticias
+            Recientes
           </Link>
           {/* Subscribe link in mobile drawer */}
           <Link 
