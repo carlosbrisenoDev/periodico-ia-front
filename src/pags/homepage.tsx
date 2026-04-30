@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { apiFetch, getRecentPublications, getLatestPublications } from "../libs/http.ts";
+import { apiFetch, getHomeData, getLatestPublications } from "../libs/http.ts";
 import { API_BASE_URL } from "../libs/config.ts";
 import type { PublicArticle } from "../libs/types.ts";
 import PublicFooter from "../components/PublicFooter.tsx";
@@ -172,8 +172,12 @@ const CategorySectionA = ({
   grey: boolean;
 }) => {
   if (articles.length === 0) return null;
-  const featured = articles[0];
-  const sides = articles.slice(1, 3);
+  const featured = articles.find(a => a.featuredType === 'category_hero' || a.featuredType === 'hero') || articles[0];
+  const sides = (() => {
+    const breaking = articles.filter(a => (a.featuredType === 'breaking' || a.featuredType === 'headline') && a.id !== featured.id);
+    if (breaking.length >= 2) return breaking.slice(0, 2);
+    return articles.filter(a => a.id !== featured.id).slice(0, 2);
+  })();
 
 
   const content = (
@@ -210,8 +214,12 @@ const CategorySectionB = ({
   grey: boolean;
 }) => {
   if (articles.length === 0) return null;
-  const featured = articles[0];
-  const sides = articles.slice(1, 3);
+  const featured = articles.find(a => a.featuredType === 'category_hero' || a.featuredType === 'hero') || articles[0];
+  const sides = (() => {
+    const breaking = articles.filter(a => (a.featuredType === 'breaking' || a.featuredType === 'headline') && a.id !== featured.id);
+    if (breaking.length >= 2) return breaking.slice(0, 2);
+    return articles.filter(a => a.id !== featured.id).slice(0, 2);
+  })();
 
 
   const content = (
@@ -239,6 +247,7 @@ const CategorySectionB = ({
 
 const HomePage = () => {
   const [articles, setArticles] = useState<PublicArticle[]>([]);
+  const [featuredArticles, setFeaturedArticles] = useState<PublicArticle[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -264,18 +273,20 @@ const HomePage = () => {
           }).filter(c => c.id && c.name)
         ).catch(() => [] as Category[]);
 
-        const [recent, fetchedCats] = await Promise.all([
-          getRecentPublications(controller.signal),
+        const [homeData, fetchedCats] = await Promise.all([
+          getHomeData(controller.signal),
           catsPromise
         ]);
 
         setCategories(fetchedCats);
+        setFeaturedArticles(homeData.featured);
 
-        if (recent.length > 0) {
-          setArticles(recent);
+        if (homeData.recent.length > 0) {
+          setArticles(homeData.recent);
           setError(null);
           return;
         }
+
         const latest = await getLatestPublications(controller.signal);
         setArticles(latest);
         setError(null);
@@ -292,12 +303,26 @@ const HomePage = () => {
     return () => controller.abort();
   }, []);
 
-  // Group articles by category
-  const grouped = groupByCategory(articles);
+  // Combine all articles we have for grouping, ensuring featured articles are included in their categories
+  const featuredIds = new Set(featuredArticles.map(a => a.id));
+  const allKnownArticles = [...featuredArticles, ...articles.filter(a => !featuredIds.has(a.id))];
+  const grouped = groupByCategory(allKnownArticles);
 
-  // For the hero & "Últimas Noticias" we use all articles (first 3)
-  const heroMain = articles[0] ?? null;
-  const heroSide = articles.slice(1, 3);
+  // Hero Selection
+  const heroMain = featuredArticles.find(a => a.featuredType === 'hero') 
+    || featuredArticles[0] 
+    || articles[0] 
+    || null;
+
+  const heroSide = (() => {
+    const headlines = featuredArticles.filter(a => a.featuredType === 'headline' && a.id !== heroMain?.id);
+    if (headlines.length >= 2) return headlines.slice(0, 2);
+    
+    // Fallback: use any featured that isn't the main, then any recent
+    const pool = allKnownArticles.filter(a => a.id !== heroMain?.id);
+    return pool.slice(0, 2);
+  })();
+
   const latestThree = articles.slice(0, 3);
 
   return (

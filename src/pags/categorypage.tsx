@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { API_BASE_URL } from "../libs/config.ts";
 import { apiFetch } from "../libs/http.ts";
@@ -83,6 +83,14 @@ const normalizePublicArticle = (item: unknown, index: number): PublicArticle | n
         : firstCat && typeof firstCat.name === "string"
           ? firstCat.name
           : "General",
+    isFeatured: typeof r.isFeatured === "boolean" ? r.isFeatured : false,
+    featuredType:
+      r.featuredType === "hero" ||
+      r.featuredType === "headline" ||
+      r.featuredType === "category_hero" ||
+      r.featuredType === "breaking"
+        ? (r.featuredType as any)
+        : "none",
   };
 };
 
@@ -97,7 +105,9 @@ const fetchCategoryArticles = async (
       { method: "GET", signal },
     );
 
-    const raw = Array.isArray(home.recent) ? home.recent : [];
+    const rawFeatured = Array.isArray(home.featured) ? home.featured : [];
+    const rawRecent = Array.isArray(home.recent) ? home.recent : [];
+    const raw = [...rawFeatured, ...rawRecent];
     const seen = new Set<string>();
     const articles: PublicArticle[] = [];
 
@@ -241,9 +251,22 @@ const CategoryPage = () => {
     return () => controller.abort();
   }, [id]);
 
-  const featured = articles.slice(0, 1)[0] ?? null;
-  const sideCards = articles.slice(1, 3);
-  const allCards = articles.slice(3);
+  const featured = useMemo(() => {
+    return articles.find(a => a.featuredType === 'category_hero') || articles[0] || null;
+  }, [articles]);
+
+  const sideCards = useMemo(() => {
+    const fId = featured?.id;
+    const breaking = articles.filter(a => a.featuredType === 'breaking' && a.id !== fId);
+    if (breaking.length >= 2) return breaking.slice(0, 2);
+    return articles.filter(a => a.id !== fId).slice(0, 2);
+  }, [articles, featured]);
+
+  const allCards = useMemo(() => {
+    const fId = featured?.id;
+    const sIds = new Set(sideCards.map(s => s.id));
+    return articles.filter(a => a.id !== fId && !sIds.has(a.id));
+  }, [articles, featured, sideCards]);
 
 
 

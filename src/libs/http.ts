@@ -363,28 +363,48 @@ const normalizePublicArticle = (
           : firstCategory && typeof firstCategory.name === "string"
             ? firstCategory.name
             : "General",
+    isFeatured: typeof record.isFeatured === "boolean" ? record.isFeatured : false,
+    featuredType:
+      record.featuredType === "hero" ||
+      record.featuredType === "headline" ||
+      record.featuredType === "category_hero" ||
+      record.featuredType === "breaking"
+        ? record.featuredType
+        : "none",
+  };
+};
+
+export const getHomeData = async (
+  signal?: AbortSignal,
+): Promise<{ recent: PublicArticle[]; featured: PublicArticle[]; latest: PublicArticle[] }> => {
+  const home = await apiFetch<PublicHomeResponse>(`${PUBLIC_PREFIX}/home`, {
+    method: "GET",
+    signal,
+  });
+
+  return {
+    recent: (Array.isArray(home.recent) ? home.recent : [])
+      .map((item, index) => normalizePublicArticle(item, index))
+      .filter((item): item is PublicArticle => item !== null),
+    featured: (Array.isArray(home.featured) ? home.featured : [])
+      .map((item, index) => normalizePublicArticle(item, index))
+      .filter((item): item is PublicArticle => item !== null),
+    latest: (Array.isArray(home.latest) ? home.latest : [])
+      .map((item, index) => normalizePublicArticle(item, index))
+      .filter((item): item is PublicArticle => item !== null),
   };
 };
 
 export const getRecentPublications = async (
   signal?: AbortSignal,
 ): Promise<PublicArticle[]> => {
-  const home = await apiFetch<PublicHomeResponse>(`${PUBLIC_PREFIX}/home`, {
-    method: "GET",
-    signal,
-  });
-
-  const source =
-    Array.isArray(home.recent) && home.recent.length > 0
-      ? home.recent
-      : Array.isArray(home.latest)
-        ? home.latest
-        : [];
-
-  return source
-    .map((item, index) => normalizePublicArticle(item, index))
-    .filter((item): item is PublicArticle => item !== null)
-    .slice(0, 8);
+  const data = await getHomeData(signal);
+  
+  if (data.recent.length > 0) {
+    return data.recent.slice(0, 12);
+  }
+  
+  return data.latest.slice(0, 12);
 };
 
 export const getLatestPublications = async (
