@@ -729,7 +729,7 @@ export const AllEntries = ({ variant = "mine" }: AllEntriesProps) => {
                             className="entries-action-button"
                             title="Abrir"
                             aria-label="Abrir publicación"
-                            onClick={() => navigate(`/publication/${entry.id}/preview`)}
+                            onClick={() => window.open(`/publication/${entry.id}/preview`, "_blank")}
                             disabled={Boolean(deletingById[entry.id])}
                           >
                             <svg

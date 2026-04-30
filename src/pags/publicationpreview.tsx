@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import logoSrc from "../assets/logo.png";
 import { API_BASE_URL } from "../libs/config.ts";
 import { parseContentBlocks } from "../libs/contentBlocks.ts";
 import { ApiError, apiFetch, getArticleRecommendations } from "../libs/http.ts";
+import { CalendarIcon, ClockIcon } from "../components/Icons.tsx";
+import PublicNavbar from "../components/PublicNavbar.tsx";
+import PublicFooter from "../components/PublicFooter.tsx";
 import type {
   ArticlePreviewData,
   ArticleRecommendation,
@@ -11,33 +13,40 @@ import type {
 } from "../libs/types.ts";
 
 type ArticleDetailResponse = {
-  id?: string;
-  title?: string;
-  excerpt?: string;
-  content?: string;
-  featuredImageUrl?: string | null;
-  tags?: unknown;
-  authorId?: string;
-  categoryIds?: unknown;
-  publishedAt?: string | null;
-  createdAt?: string;
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string;
+  content: string;
+  featuredImageUrl: string | null;
+  author: {
+    id: string;
+    name: string;
+    bio?: string | null;
+    avatarUrl?: string | null;
+  } | null;
+  categories: {
+    id: string;
+    name: string;
+    slug: string;
+  }[];
+  publishedAt: string | null;
+  createdAt: string;
+  tags?: string[];
 };
 
-type SimpleUser = {
-  id: string;
-  name: string;
-  avatarUrl?: string | null;
-  bio?: string | null;
-};
+
 
 type SimpleCategory = {
   id: string;
   name: string;
+  slug?: string;
 };
 
 type PublicationPreviewArticle = ArticlePreviewData & {
   authorAvatarUrl?: string | null;
-  authorRole?: string | null;
+  categorySlug?: string | null;
+  categoryId?: string | null;
 };
 
 
@@ -76,94 +85,7 @@ const formatTime = (isoDate: string | null | undefined): string => {
   }).format(value);
 };
 
-const CalendarIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className="article-preview-meta-icon"
-    aria-hidden="true"
-  >
-    <path d="M8 2v4" />
-    <path d="M16 2v4" />
-    <rect width="18" height="18" x="3" y="4" rx="2" />
-    <path d="M3 10h18" />
-  </svg>
-);
 
-const ClockIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className="article-preview-meta-icon"
-    aria-hidden="true"
-  >
-    <circle cx="12" cy="12" r="10" />
-    <polyline points="12 6 12 12 16 14" />
-  </svg>
-);
-
-const normalizeTags = (value: unknown): string[] => {
-  if (!Array.isArray(value)) {
-    return [];
-  }
-
-  return Array.from(
-    new Set(
-      value
-        .map((tag) => (typeof tag === "string" ? tag.trim() : ""))
-        .filter((tag) => tag.length > 0),
-    ),
-  );
-};
-
-const normalizeAuthors = (payload: unknown[]): SimpleUser[] =>
-  (Array.isArray(payload) ? payload : [])
-    .map((item): SimpleUser | null => {
-      if (!item || typeof item !== "object") {
-        return null;
-      }
-
-      const record = item as Record<string, unknown>;
-      if (typeof record.id !== "string" || typeof record.name !== "string") {
-        return null;
-      }
-
-      return {
-        id: record.id,
-        name: record.name,
-        avatarUrl: typeof record.avatarUrl === "string" ? record.avatarUrl : null,
-        bio: typeof record.bio === "string" ? record.bio : null,
-      };
-    })
-    .filter((item): item is SimpleUser => item !== null);
-
-const resolveAuthorRole = (fallbackRole?: string | null, bio?: string | null): string => {
-  const trimmedFallback = fallbackRole?.trim();
-  if (trimmedFallback) {
-    return trimmedFallback;
-  }
-
-  const trimmedBio = bio?.trim();
-  if (trimmedBio) {
-    return trimmedBio;
-  }
-
-  return "Editor en Jefe";
-};
 
 const normalizeCategories = (payload: unknown[]): SimpleCategory[] =>
   (Array.isArray(payload) ? payload : [])
@@ -177,39 +99,28 @@ const normalizeCategories = (payload: unknown[]): SimpleCategory[] =>
         return null;
       }
 
-      return { id: record.id, name: record.name };
+      return {
+        id: record.id,
+        name: record.name,
+        slug: typeof record.slug === "string" ? record.slug : record.name.toLowerCase().replace(/\s+/g, "-")
+      };
     })
     .filter((item): item is SimpleCategory => item !== null);
 
-const buildArticleFromDetail = (
+const buildArticleFromPublicDetail = (
   detail: ArticleDetailResponse,
   fallback?: PublicationPreviewArticle | null,
-  authors: SimpleUser[] = [],
-  categories: SimpleCategory[] = [],
-): PublicationPreviewArticle | null => {
-  const title = fallback?.title?.trim() || (typeof detail.title === "string" ? detail.title : "");
-  const excerpt = fallback?.excerpt?.trim() || (typeof detail.excerpt === "string" ? detail.excerpt : "");
-  const content = fallback?.content?.trim() || (typeof detail.content === "string" ? detail.content : "");
+): PublicationPreviewArticle => {
+  const title = fallback?.title || detail.title || "Sin título";
+  const excerpt = fallback?.excerpt || detail.excerpt || "";
+  const content = fallback?.content || detail.content || "";
 
-  if (!title || !excerpt || !content) {
-    return null;
-  }
+  const author = detail.author;
+  const resolvedAuthorName = fallback?.authorName || author?.name || "Redacción";
 
-  const resolvedAuthor =
-    typeof detail.authorId === "string"
-      ? authors.find((author) => author.id === detail.authorId)
-      : undefined;
-
-  const resolvedAuthorName = fallback?.authorName || resolvedAuthor?.name || "Redaccion";
-
-  const firstCategoryId = Array.isArray(detail.categoryIds)
-    ? detail.categoryIds.find((value): value is string => typeof value === "string")
-    : null;
-
-  const resolvedCategoryName =
-    fallback?.categoryName ||
-    (firstCategoryId ? categories.find((category) => category.id === firstCategoryId)?.name : undefined) ||
-    "General";
+  const firstCategory = detail.categories?.[0];
+  const resolvedCategoryName = fallback?.categoryName || firstCategory?.name || "General";
+  const resolvedCategoryId = fallback?.categoryId || firstCategory?.id || null;
 
   return {
     id: fallback?.id ?? detail.id,
@@ -217,11 +128,12 @@ const buildArticleFromDetail = (
     excerpt,
     content,
     featuredImageUrl: fallback?.featuredImageUrl ?? detail.featuredImageUrl ?? null,
-    tags: fallback?.tags?.length ? fallback.tags : normalizeTags(detail.tags),
+    tags: fallback?.tags?.length ? fallback.tags : (Array.isArray(detail.tags) ? detail.tags : []),
     authorName: resolvedAuthorName,
-    authorAvatarUrl: fallback?.authorAvatarUrl ?? resolvedAuthor?.avatarUrl ?? null,
-    authorRole: resolveAuthorRole(fallback?.authorRole, resolvedAuthor?.bio),
+    authorAvatarUrl: fallback?.authorAvatarUrl ?? author?.avatarUrl ?? null,
+    authorRole: fallback?.authorRole ?? author?.bio ?? null,
     categoryName: resolvedCategoryName,
+    categoryId: resolvedCategoryId,
     publishedAt: fallback?.publishedAt ?? detail.publishedAt ?? detail.createdAt ?? null,
   };
 };
@@ -248,20 +160,50 @@ export const PublicationPreview = () => {
     try {
       const stored = localStorage.getItem("periodico_preview_draft");
       if (stored) {
-        return JSON.parse(stored) as ArticlePreviewLocationState;
+        const data = JSON.parse(stored) as ArticlePreviewLocationState;
+        // Only use local storage if the ID matches the current route ID
+        if (id && data.article?.id === id) {
+          return data;
+        }
+        // If we are on the generic preview route /publication/preview (no ID)
+        if (!id) {
+          return data;
+        }
       }
     } catch {
       // Ignore errors
     }
     return null;
-  }, []);
+  }, [id]);
 
   const [article, setArticle] = useState<PublicationPreviewArticle | null>(
     locationState?.article ?? localPreviewData?.article ?? null
   );
+  const [categories, setCategories] = useState<SimpleCategory[]>([]);
   const [recommendations, setRecommendations] = useState<ArticleRecommendation[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+
+  const handleShare = (network: string) => {
+    const currentUrl = window.location.href;
+    const title = article?.title || "Información de Altura";
+
+    if (network === "facebook") {
+      window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(currentUrl)}`, "_blank");
+    } else if (network === "twitter") {
+      window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(currentUrl)}&text=${encodeURIComponent(title)}`, "_blank");
+    } else if (network === "linkedin") {
+      window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(currentUrl)}`, "_blank");
+    } else if (network === "whatsapp") {
+      window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(title + " " + currentUrl)}`, "_blank");
+    } else if (network === "share") {
+      if (navigator.share) {
+        navigator.share({ title, url: currentUrl }).catch(console.error);
+      } else {
+        navigator.clipboard.writeText(currentUrl).then(() => alert("Enlace copiado al portapapeles"));
+      }
+    }
+  };
 
   const recommendationTitle = useMemo(() => {
     if (article?.categoryName) {
@@ -282,30 +224,21 @@ export const PublicationPreview = () => {
         let nextArticle = locationState?.article ?? localPreviewData?.article ?? null;
 
         if (id) {
-          const [detail, authorsPayload, categoriesPayload] = await Promise.all([
-            apiFetch<ArticleDetailResponse>(`${API_BASE_URL}/api/v1/article/${id}`, {
+          const [detail, categoriesPayload] = await Promise.all([
+            apiFetch<ArticleDetailResponse>(`${API_BASE_URL}/api/v1/public/article/id/${id}`, {
               method: "GET",
-              credentials: "include",
               signal: controller.signal,
             }),
-            apiFetch<unknown[]>(`${API_BASE_URL}/api/v1/author`, {
+            apiFetch<unknown[]>(`${API_BASE_URL}/api/v1/public/categories`, {
               method: "GET",
-              credentials: "include",
-              signal: controller.signal,
-            }),
-            apiFetch<unknown[]>(`${API_BASE_URL}/api/v1/category`, {
-              method: "GET",
-              credentials: "include",
               signal: controller.signal,
             }),
           ]);
 
-          nextArticle = buildArticleFromDetail(
-            detail,
-            nextArticle,
-            normalizeAuthors(authorsPayload),
-            normalizeCategories(categoriesPayload),
-          );
+          const normalizedCategories = normalizeCategories(categoriesPayload);
+          setCategories(normalizedCategories);
+
+          nextArticle = buildArticleFromPublicDetail(detail, nextArticle);
         }
 
         if (!nextArticle) {
@@ -321,7 +254,7 @@ export const PublicationPreview = () => {
           {
             tags: nextArticle.tags,
             excludeId: nextArticle.id,
-            limit: 3,
+            limit: 6,
           },
           controller.signal,
         );
@@ -352,43 +285,23 @@ export const PublicationPreview = () => {
   const publishedAt = article?.publishedAt ?? new Date().toISOString();
   const contentBlocks = useMemo(() => parseContentBlocks(article?.content ?? ""), [article?.content]);
 
+  function slugify(string: string) {
+    return string
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[̀-ͯ]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "");
+  }
+
+  console.log({ categories });
+
   return (
     <div className="public-layout">
-      <nav className="public-nav-container">
-        <div className="public-nav-inner">
-          <div className="public-nav-top">
-            <button className="public-nav-mobile-btn" style={{ display: "none" }}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"></line><line x1="4" x2="20" y1="6" y2="6"></line><line x1="4" x2="20" y1="18" y2="18"></line></svg>
-            </button>
-            <a className="public-nav-logo-link" href="#" onClick={(e) => { e.preventDefault(); navigate("/allentries"); }}>
-              <img src={logoSrc} alt="IF Información de Altura" className="public-nav-logo" />
-            </a>
-            <div className="public-nav-actions">
-              <div className="public-nav-date">
-                <span>Miércoles, 15 de abril de 2026</span>
-              </div>
-              <button type="button" className="public-nav-subscribe" onClick={(e) => e.preventDefault()}>
-                Suscribirse
-              </button>
-            </div>
-          </div>
-          <div className="public-nav-bottom">
-            <div className="public-nav-links">
-              <a className="public-nav-link" href="#" onClick={(e) => e.preventDefault()}>Noticias</a>
-              <a className="public-nav-link" href="#" onClick={(e) => e.preventDefault()}>Seguridad</a>
-              <a className="public-nav-link" href="#" onClick={(e) => e.preventDefault()}>Deportes</a>
-              <a className="public-nav-link" href="#" onClick={(e) => e.preventDefault()}>Cultura</a>
-              <a className="public-nav-link" href="#" onClick={(e) => e.preventDefault()}>Comunidad</a>
-              <a className="public-nav-link" href="#" onClick={(e) => e.preventDefault()}>Opinión</a>
-              <a className="public-nav-link active" href="#" onClick={(e) => e.preventDefault()}>Recientes</a>
-            </div>
-            <form className="public-nav-search" onSubmit={(e) => e.preventDefault()}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="public-nav-search-icon"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
-              <input type="search" className="public-nav-search-input" placeholder="Buscar noticias..." />
-            </form>
-          </div>
-        </div>
-      </nav>
+      <PublicNavbar 
+        categories={categories as any} 
+        activeCategorySlug={article?.categoryId ?? undefined} 
+      />
 
       <main className="public-main">
         <div className="public-back-bar">
@@ -396,15 +309,15 @@ export const PublicationPreview = () => {
             <button
               className="public-back-link"
               onClick={() => {
-                if (window.history.length > 1) {
-                  navigate(-1);
+                if (article?.categoryId) {
+                  navigate(`/categoria/${article.categoryId}`);
                   return;
                 }
-                navigate(id ? `/publication/${id}/edit` : "/allentries");
+                navigate("/");
               }}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-left w-4 h-4" style={{width: 16, height: 16}}><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg>
-              Volver a Edición
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-left w-4 h-4" style={{ width: 16, height: 16 }}><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg>
+              {article?.categoryName ? `Volver a ${article.categoryName}` : "Volver a Inicio"}
             </button>
           </div>
         </div>
@@ -412,7 +325,7 @@ export const PublicationPreview = () => {
         {loading ? (
           <div className="public-article" style={{ textAlign: "center" }}>Cargando vista previa...</div>
         ) : null}
-        
+
         {!loading && error ? (
           <div className="public-article" style={{ textAlign: "center", color: "#8b1f1f" }}>{error}</div>
         ) : null}
@@ -420,7 +333,7 @@ export const PublicationPreview = () => {
         {!loading && article ? (
           <article className="public-article">
             {article.categoryName ? (
-              <div style={{ marginBottom: 24 }}>
+              <div style={{ marginBottom: 24 }} onClick={() => navigate(`/categoria/${slugify(article.categoryName)}`)}>
                 <span className="public-article-category">{article.categoryName}</span>
               </div>
             ) : null}
@@ -490,16 +403,16 @@ export const PublicationPreview = () => {
             <div className="public-share-section">
               <h3 className="public-share-title">COMPARTIR:</h3>
               <div className="public-share-buttons">
-                <button className="public-share-button" aria-label="Facebook">
+                <button className="public-share-button facebook" aria-label="Facebook" onClick={() => handleShare('facebook')}>
                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
                 </button>
-                <button className="public-share-button" aria-label="Twitter">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"></path></svg>
+                <button className="public-share-button twitter" aria-label="X (Twitter)" onClick={() => handleShare('twitter')}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg>
                 </button>
-                <button className="public-share-button" aria-label="LinkedIn">
+                <button className="public-share-button linkedin" aria-label="LinkedIn" onClick={() => handleShare('linkedin')}>
                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect width="4" height="12" x="2" y="9"></rect><circle cx="4" cy="4" r="2"></circle></svg>
                 </button>
-                <button className="public-share-button" aria-label="Share">
+                <button className="public-share-button share" aria-label="Share" onClick={() => handleShare('share')}>
                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"></line><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"></line></svg>
                 </button>
               </div>
@@ -511,11 +424,11 @@ export const PublicationPreview = () => {
           <section className="public-recommendations">
             <div className="public-recommendations-inner">
               <h2 className="public-recommendations-title">{recommendationTitle}</h2>
-              
+
               {recommendations.length > 0 ? (
                 <div className="public-recommendations-grid">
                   {recommendations.map((item) => (
-                    <a key={item.id} href="#" onClick={(e) => e.preventDefault()} className="public-card">
+                    <a key={item.id} href={`/articulo/${item.id}`} className="public-card">
                       <div className="public-card-image-wrap">
                         {item.featuredImageUrl ? (
                           <img src={item.featuredImageUrl} alt={item.title} />
@@ -545,60 +458,9 @@ export const PublicationPreview = () => {
         ) : null}
       </main>
 
-      <footer className="public-footer">
-        <div className="public-footer-inner">
-          <div className="public-footer-grid">
-            <div className="public-footer-brand">
-              <img src={logoSrc} alt="IF Información de Altura" className="public-nav-logo" style={{ marginBottom: 16 }} />
-              <p>Periodismo independiente para el mundo moderno.</p>
-              <div className="public-footer-phone">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
-                <span>+34 900 123 456</span>
-              </div>
-            </div>
-            
-            <div>
-              <h4 className="public-footer-title">Secciones</h4>
-              <ul className="public-footer-links">
-                <li><a href="#" className="public-footer-link" onClick={(e) => e.preventDefault()}>Noticias</a></li>
-                <li><a href="#" className="public-footer-link" onClick={(e) => e.preventDefault()}>Seguridad</a></li>
-                <li><a href="#" className="public-footer-link" onClick={(e) => e.preventDefault()}>Deportes</a></li>
-                <li><a href="#" className="public-footer-link" onClick={(e) => e.preventDefault()}>Cultura</a></li>
-                <li><a href="#" className="public-footer-link" onClick={(e) => e.preventDefault()}>Comunidad</a></li>
-                <li><a href="#" className="public-footer-link" onClick={(e) => e.preventDefault()}>Opinión</a></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h4 className="public-footer-title">Redes Sociales</h4>
-              <div className="public-footer-social">
-                <a href="#" className="public-social-button" aria-label="Facebook">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
-                </a>
-                <a href="#" className="public-social-button" aria-label="Twitter">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"></path></svg>
-                </a>
-                <a href="#" className="public-social-button" aria-label="Instagram">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"></line></svg>
-                </a>
-                <a href="#" className="public-social-button" aria-label="LinkedIn">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect width="4" height="12" x="2" y="9"></rect><circle cx="4" cy="4" r="2"></circle></svg>
-                </a>
-              </div>
-            </div>
-          </div>
-          
-          <div className="public-footer-bottom">
-            © 2026 El Diario. Todos los derechos reservados.
-          </div>
-        </div>
-      </footer>
+      <PublicFooter categories={categories} />
     </div>
   );
 };
 
 export default PublicationPreview;
-
-
-
-

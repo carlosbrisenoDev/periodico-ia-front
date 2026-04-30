@@ -23,6 +23,7 @@ import SettingsPage from "./pags/settings.tsx";
 import { PublicationPreview } from "./pags/publicationpreview.tsx";
 import HomePage from "./pags/homepage.tsx";
 import CategoryPage from "./pags/categorypage.tsx";
+import SearchPage from "./pags/searchpage.tsx";
 import {
   getOptionalMe,
 } from "./libs/http.ts";
@@ -78,7 +79,9 @@ const App = () => {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<HomePage />} />
-        <Route path="/categoria/:slug" element={<CategoryPage />} />
+        <Route path="/categoria/:id" element={<CategoryPage />} />
+        <Route path="/articulo/:id" element={<PublicationPreview />} />
+        <Route path="/buscar" element={<SearchPage />} />
         <Route path="/suscripcion" element={<SubscriptionPage />} />
         <Route path="/adminlogin" element={<AdminLoginPage />} />
 

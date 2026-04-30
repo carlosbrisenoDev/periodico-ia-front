@@ -242,7 +242,7 @@ const ImageLibrary = () => {
                 <input
                     ref={fileInputRef}
                     type="file"
-                    accept="image/jpeg,image/png,image/webp"
+                    accept="image/jpeg,image/png"
                     className="image-library-file-input"
                     onChange={handleFileUpload}
                 />

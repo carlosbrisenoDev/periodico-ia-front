@@ -1,4 +1,4 @@
-import { type FormEvent, useEffect, useMemo, useState } from "react";
+import { type ChangeEvent, type FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArticleContentEditor } from "../components/articlecontenteditor.tsx";
 import { Sidebar } from "../components/sidebar.tsx";
@@ -44,6 +44,18 @@ type ArticleDetailResponse = {
   featuredImageUrl?: string | null;
 };
 
+type ImageAsset = {
+  id: string;
+  filename: string;
+  url: string;
+};
+
+type UploadImageResponse = {
+  id?: string;
+  filename?: string;
+  url?: string;
+};
+
 const INITIAL_FORM: PublicationForm = {
   title: "",
   excerpt: "",
@@ -73,6 +85,18 @@ const toDatetimeLocal = (isoValue: string | null | undefined): string => {
   const minutes = String(date.getMinutes()).padStart(2, "0");
 
   return `${year}-${month}-${day}T${hours}:${minutes}`;
+};
+
+const normalizeImageUrl = (value: string): string => {
+  if (!value) {
+    return "";
+  }
+
+  if (value.startsWith("http://") || value.startsWith("https://")) {
+    return value;
+  }
+
+  return `${API_BASE_URL}${value.startsWith("/") ? value : `/${value}`}`;
 };
 
 const toScheduledIso = (value: string): string | null => {
@@ -107,8 +131,15 @@ const EditPublication = () => {
   const [categories, setCategories] = useState<CategoryOption[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [submitting, setSubmitting] = useState<boolean>(false);
+  const [showImageModal, setShowImageModal] = useState<boolean>(false);
+  const [showLibraryModal, setShowLibraryModal] = useState<boolean>(false);
+  const [images, setImages] = useState<ImageAsset[]>([]);
+  const [loadingImages, setLoadingImages] = useState<boolean>(false);
+  const [uploadingImage, setUploadingImage] = useState<boolean>(false);
+  const [imageError, setImageError] = useState<string | null>(null);
   const [message, setMessage] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     if (!id) {
@@ -358,6 +389,111 @@ const EditPublication = () => {
     window.open(`/publication/${id}/preview`, "_blank");
   };
 
+  const loadImageLibrary = async () => {
+    setLoadingImages(true);
+    setImageError(null);
+
+    try {
+      const payload = await apiFetch<unknown[]>(`${API_BASE_URL}/api/v1/image?limit=24`, {
+        method: "GET",
+        credentials: "include",
+      });
+
+      const normalized = (Array.isArray(payload) ? payload : [])
+        .map((item): ImageAsset | null => {
+          if (!item || typeof item !== "object") {
+            return null;
+          }
+
+          const record = item as Record<string, unknown>;
+          if (
+            typeof record.id !== "string" ||
+            typeof record.filename !== "string" ||
+            typeof record.url !== "string"
+          ) {
+            return null;
+          }
+
+          return {
+            id: record.id,
+            filename: record.filename,
+            url: normalizeImageUrl(record.url),
+          };
+        })
+        .filter((item): item is ImageAsset => item !== null);
+
+      setImages(normalized);
+    } catch (err: unknown) {
+      if (err instanceof ApiError && (err.status === 401 || err.status === 403)) {
+        navigate("/adminlogin", { replace: true });
+        return;
+      }
+
+      setImageError(err instanceof Error ? err.message : "No se pudo cargar la biblioteca.");
+    } finally {
+      setLoadingImages(false);
+    }
+  };
+
+  const openImagePicker = () => {
+    setShowImageModal(true);
+    setImageError(null);
+  };
+
+  const openLibrary = async () => {
+    setShowImageModal(false);
+    setShowLibraryModal(true);
+    await loadImageLibrary();
+  };
+
+  const uploadFeaturedImage = async (event: ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = event.target.files?.[0];
+    event.target.value = "";
+
+    if (!selectedFile) {
+      return;
+    }
+
+    setUploadingImage(true);
+    setImageError(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("image", selectedFile);
+
+      const uploaded = await apiFetch<UploadImageResponse>(`${API_BASE_URL}/api/v1/image/upload`, {
+        method: "POST",
+        credentials: "include",
+        body: formData,
+      });
+
+      const uploadedUrl = typeof uploaded.url === "string" ? normalizeImageUrl(uploaded.url) : "";
+      if (!uploadedUrl) {
+        setImageError("No se recibio la URL de la imagen subida.");
+        return;
+      }
+
+      updateField("featuredImageUrl", uploadedUrl);
+      setShowImageModal(false);
+      setMessage("Imagen destacada cargada correctamente.");
+    } catch (err: unknown) {
+      if (err instanceof ApiError && (err.status === 401 || err.status === 403)) {
+        navigate("/adminlogin", { replace: true });
+        return;
+      }
+
+      setImageError(err instanceof Error ? err.message : "No se pudo subir la imagen.");
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  const selectLibraryImage = (url: string) => {
+    updateField("featuredImageUrl", normalizeImageUrl(url));
+    setShowLibraryModal(false);
+    setMessage("Imagen destacada seleccionada desde la biblioteca.");
+  };
+
   return (
     <div className="layout dashboard-layout">
       <aside className="sidebar">
@@ -507,24 +643,53 @@ const EditPublication = () => {
             </article>
 
             <article className="new-publication-card">
-              <label className="new-publication-label" htmlFor="edit-publication-image-url">
-                Imagen destacada (URL)
-              </label>
+              <p className="new-publication-label">Imagen destacada</p>
+              <button
+                type="button"
+                className="new-publication-upload-box"
+                onClick={openImagePicker}
+                disabled={submitting || loading}
+              >
+                <span className="new-publication-upload-title">Subir nueva imagen</span>
+                <span className="new-publication-upload-subtitle">PNG o JPG (max. 5MB)</span>
+              </button>
+              <span className="new-publication-upload-separator">o</span>
+              <button
+                type="button"
+                className="new-publication-upload-box"
+                onClick={() => {
+                  void openLibrary();
+                }}
+                disabled={submitting || loading}
+              >
+                <span className="new-publication-upload-title">Seleccionar de la biblioteca</span>
+                <span className="new-publication-upload-subtitle">Elige de tus imágenes guardadas</span>
+              </button>
+
               <input
-                id="edit-publication-image-url"
-                className="new-publication-input"
-                type="url"
-                placeholder="https://..."
-                value={form.featuredImageUrl}
-                onChange={(event) => updateField("featuredImageUrl", event.target.value)}
-                disabled={loading}
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png"
+                className="new-publication-file-input"
+                onChange={uploadFeaturedImage}
               />
+
               {form.featuredImageUrl ? (
-                <img
-                  src={form.featuredImageUrl}
-                  alt="Vista previa de imagen destacada"
-                  className="new-publication-image-preview"
-                />
+                <>
+                  <img
+                    src={form.featuredImageUrl}
+                    alt="Vista previa de imagen destacada"
+                    className="new-publication-image-preview"
+                  />
+                  <button
+                    type="button"
+                    className="new-publication-clear-image"
+                    onClick={() => updateField("featuredImageUrl", "")}
+                    disabled={submitting || loading}
+                  >
+                    Quitar imagen
+                  </button>
+                </>
               ) : null}
             </article>
 
@@ -567,6 +732,96 @@ const EditPublication = () => {
           </aside>
         </form>
       </main>
+
+      {showImageModal ? (
+        <div className="new-publication-modal-overlay" role="dialog" aria-modal="true">
+          <div className="new-publication-modal">
+            <div className="new-publication-modal-head">
+              <h2>Subir Imagen Destacada</h2>
+              <button
+                type="button"
+                className="new-publication-modal-close"
+                onClick={() => {
+                  setShowImageModal(false);
+                  setImageError(null);
+                }}
+              >
+                x
+              </button>
+            </div>
+
+            {imageError ? <p className="new-publication-message error">{imageError}</p> : null}
+
+            <button
+              type="button"
+              className="new-publication-modal-option"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploadingImage}
+            >
+              <span className="new-publication-upload-title">Haz clic para subir una imagen</span>
+              <span className="new-publication-upload-subtitle">PNG o JPG</span>
+              <span className="new-publication-modal-option-action">
+                {uploadingImage ? "Subiendo..." : "Seleccionar Archivo"}
+              </span>
+            </button>
+
+            <span className="new-publication-upload-separator">o</span>
+
+            <button
+              type="button"
+              className="new-publication-modal-option"
+              onClick={() => {
+                void openLibrary();
+              }}
+              disabled={uploadingImage}
+            >
+              <span className="new-publication-upload-title">Seleccionar de la biblioteca</span>
+              <span className="new-publication-upload-subtitle">Elige de tus imágenes guardadas</span>
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      {showLibraryModal ? (
+        <div className="new-publication-modal-overlay" role="dialog" aria-modal="true">
+          <div className="new-publication-modal new-publication-library-modal">
+            <div className="new-publication-modal-head">
+              <h2>Biblioteca de Imágenes</h2>
+              <button
+                type="button"
+                className="new-publication-modal-close"
+                onClick={() => {
+                  setShowLibraryModal(false);
+                  setImageError(null);
+                }}
+              >
+                x
+              </button>
+            </div>
+
+            {loadingImages ? <p className="new-publication-message">Cargando imágenes...</p> : null}
+            {!loadingImages && imageError ? <p className="new-publication-message error">{imageError}</p> : null}
+
+            {!loadingImages && !imageError && images.length === 0 ? (
+              <p className="new-publication-message">Aún no hay imágenes guardadas.</p>
+            ) : null}
+
+            <div className="new-publication-library-grid">
+              {images.map((image) => (
+                <button
+                  type="button"
+                  key={image.id}
+                  className="new-publication-library-item"
+                  onClick={() => selectLibraryImage(image.url)}
+                >
+                  <img src={image.url} alt={image.filename} />
+                  <span>{image.filename}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 };

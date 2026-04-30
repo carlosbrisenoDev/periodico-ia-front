@@ -626,7 +626,7 @@ const NewPublication = () => {
                 disabled={submitting || loadingOptions}
               >
                 <span className="new-publication-upload-title">Subir nueva imagen</span>
-                <span className="new-publication-upload-subtitle">PNG, JPG o WEBP (max. 5MB)</span>
+                <span className="new-publication-upload-subtitle">PNG o JPG (max. 5MB)</span>
               </button>
               <span className="new-publication-upload-separator">o</span>
               <button
@@ -644,7 +644,7 @@ const NewPublication = () => {
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/jpeg,image/png,image/webp"
+                accept="image/jpeg,image/png"
                 className="new-publication-file-input"
                 onChange={uploadFeaturedImage}
               />
@@ -731,7 +731,7 @@ const NewPublication = () => {
                 disabled={uploadingImage}
               >
                 <span className="new-publication-upload-title">Haz clic para subir una imagen</span>
-                <span className="new-publication-upload-subtitle">PNG, JPG o WEBP</span>
+                <span className="new-publication-upload-subtitle">PNG o JPG</span>
                 <span className="new-publication-modal-option-action">
                   {uploadingImage ? "Subiendo..." : "Seleccionar Archivo"}
                 </span>

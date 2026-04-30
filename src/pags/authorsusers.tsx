@@ -834,9 +834,9 @@ const AuthorsUsers = () => {
                               {initialsFromName(author.name)}
                             </div>
                           )}
-                          <div>
-                            <p style={{ fontSize: "14px", fontWeight: "600", margin: 0 }}>{author.name}</p>
-                            <p style={{ fontSize: "12px", color: "var(--text-muted)", margin: 0 }}>{author.bio || "Sin biografía"}</p>
+                          <div style={{ minWidth: 0, flex: 1 }}>
+                            <p style={{ fontSize: "14px", fontWeight: "600", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{author.name}</p>
+                            <p style={{ fontSize: "12px", color: "var(--text-muted)", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{author.bio || "Sin biografía"}</p>
                           </div>
                         </div>
                         <div style={{ display: "flex", gap: "4px" }}>
