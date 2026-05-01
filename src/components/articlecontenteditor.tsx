@@ -370,7 +370,7 @@ export const ArticleContentEditor = ({
                 {sideControls}
                 <div className={`editor-block-container ${!block.url ? "image-empty" : ""}`}>
                   <div className="editor-image-head">
-                    <span className="editor-image-label">Bloque de Imágenes ({index + 1}/{blocks.length})</span>
+                    <span className="editor-image-label">Bloque de Imágenes</span>
                     <button type="button" className="editor-trash-btn" onClick={() => removeBlock(block.id)} disabled={disabled}>
                       {iconTrash}
                     </button>

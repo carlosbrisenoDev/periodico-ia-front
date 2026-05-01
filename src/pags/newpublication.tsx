@@ -295,7 +295,7 @@ const NewPublication = () => {
         featuredImageUrl: form.featuredImageUrl.trim() || null,
         tags,
         isFeatured: false,
-        publishedAt: toScheduledIso(form.publishedAt),
+        publishedAt: nextStatus === "published" ? new Date().toISOString() : (nextStatus === "scheduled" ? scheduledAtIso : null),
       };
 
       if (nextStatus === "scheduled") {
@@ -358,9 +358,12 @@ const NewPublication = () => {
         authorAvatarUrl: selectedAuthor?.avatarUrl,
         authorRole: selectedAuthor?.bio,
         categoryName: selectedCategoryName,
+        publishedAt: form.status === "published" 
+          ? new Date().toISOString() 
+          : (form.status === "scheduled" ? toScheduledIso(form.scheduledAt) : null),
       },
     };
-    
+
     localStorage.setItem("periodico_preview_draft", JSON.stringify(previewData));
     window.open("/publication/preview", "_blank");
   };
@@ -597,22 +600,6 @@ const NewPublication = () => {
                     value={form.scheduledAt}
                     onChange={(event) => updateField("scheduledAt", event.target.value)}
                   />
-                </>
-              ) : form.status === "published" ? (
-                <>
-                  <label className="new-publication-label mt-12" htmlFor="new-publication-published-at">
-                    Fecha de publicación (Retroactiva)
-                  </label>
-                  <input
-                    id="new-publication-published-at"
-                    className="new-publication-input"
-                    type="datetime-local"
-                    value={form.publishedAt}
-                    onChange={(event) => updateField("publishedAt", event.target.value)}
-                  />
-                  <p className="new-publication-helper-text">
-                    Si dejas esto en blanco, se usará la fecha actual al guardar.
-                  </p>
                 </>
               ) : null}
             </article>

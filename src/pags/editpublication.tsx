@@ -227,8 +227,8 @@ const EditPublication = () => {
           content: typeof article.content === "string" ? article.content : "",
           status:
             article.status === "published" ||
-            article.status === "scheduled" ||
-            article.status === "draft"
+              article.status === "scheduled" ||
+              article.status === "draft"
               ? article.status
               : "draft",
           authorId: typeof article.authorId === "string" ? article.authorId : "",
@@ -340,7 +340,9 @@ const EditPublication = () => {
         categoryIds: form.categoryId ? [form.categoryId] : [],
         tags,
         featuredImageUrl: form.featuredImageUrl.trim() || null,
-        publishedAt: toScheduledIso(form.publishedAt),
+        publishedAt: form.status === "published" 
+          ? (form.publishedAt ? toScheduledIso(form.publishedAt) : new Date().toISOString()) 
+          : (form.status === "scheduled" ? scheduledAtIso : null),
       };
 
       if (form.status === "scheduled") {
@@ -386,10 +388,12 @@ const EditPublication = () => {
         authorAvatarUrl: selectedAuthor?.avatarUrl,
         authorRole: selectedAuthor?.bio,
         categoryName: selectedCategoryName,
-        publishedAt: form.status === "published" ? new Date().toISOString() : null,
+        publishedAt: form.status === "published" 
+          ? (form.publishedAt ? toScheduledIso(form.publishedAt) : new Date().toISOString()) 
+          : (form.status === "scheduled" ? toScheduledIso(form.scheduledAt) : null),
       },
     };
-    
+
     localStorage.setItem("periodico_preview_draft", JSON.stringify(previewData));
     window.open(`/publication/${id}/preview`, "_blank");
   };
@@ -623,23 +627,6 @@ const EditPublication = () => {
                     onChange={(event) => updateField("scheduledAt", event.target.value)}
                     disabled={loading}
                   />
-                </>
-              ) : form.status === "published" ? (
-                <>
-                  <label className="new-publication-label mt-12" htmlFor="edit-publication-published-at">
-                    Fecha de publicación (Retroactiva)
-                  </label>
-                  <input
-                    id="edit-publication-published-at"
-                    className="new-publication-input"
-                    type="datetime-local"
-                    value={form.publishedAt}
-                    onChange={(event) => updateField("publishedAt", event.target.value)}
-                    disabled={loading}
-                  />
-                  <p className="new-publication-helper-text">
-                    Si dejas esto en blanco, se usará la fecha actual al guardar.
-                  </p>
                 </>
               ) : null}
             </article>
