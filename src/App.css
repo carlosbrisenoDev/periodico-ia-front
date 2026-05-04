@@ -4985,7 +4985,7 @@ body,
 .pc-banner {
   background: #2a3f52;
   padding: 40px 24px;
-  border-bottom: 4px solid #d35400;
+  /*border-bottom: 4px solid #d35400;*/
 }
 
 .pc-banner-title {
@@ -5046,7 +5046,7 @@ body,
   color: #111827;
   margin: 0;
   padding-bottom: 12px;
-  border-bottom: 3px solid #d35400;
+  /*border-bottom: 3px solid #d35400;*/
   font-family: "Inter", sans-serif;
 }
 
