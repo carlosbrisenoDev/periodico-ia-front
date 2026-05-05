@@ -610,7 +610,7 @@ const EditPublication = () => {
                 disabled={loading}
               >
                 <option value="draft">Borrador</option>
-                <option value="scheduled">Programado</option>
+                {/* <option value="scheduled">Programado</option> */}
                 <option value="published">Publicado</option>
               </select>
 

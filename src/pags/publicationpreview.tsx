@@ -95,6 +95,8 @@ const normalizeCategories = (payload: unknown[]): SimpleCategory[] =>
       }
 
       const record = item as Record<string, unknown>;
+      console.log(record);
+
       if (typeof record.id !== "string" || typeof record.name !== "string") {
         return null;
       }
@@ -122,6 +124,8 @@ const buildArticleFromPublicDetail = (
   const resolvedCategoryName = fallback?.categoryName || firstCategory?.name || "General";
   const resolvedCategoryId = fallback?.categoryId || firstCategory?.id || null;
 
+  const resolvedCategorySlug = fallback?.categorySlug || firstCategory?.slug || null;
+
   return {
     id: fallback?.id ?? detail.id,
     title,
@@ -134,6 +138,7 @@ const buildArticleFromPublicDetail = (
     authorRole: fallback?.authorRole ?? author?.bio ?? null,
     categoryName: resolvedCategoryName,
     categoryId: resolvedCategoryId,
+    categorySlug: resolvedCategorySlug,
     publishedAt: fallback?.publishedAt ?? detail.publishedAt ?? detail.createdAt ?? null,
   };
 };
@@ -310,7 +315,11 @@ export const PublicationPreview = () => {
               className="public-back-link"
               onClick={() => {
                 if (article?.categoryId) {
-                  navigate(`/categoria/${article.categoryName}`);
+                  const matchedCategory = categories.find(c => c.id === article?.categoryId);
+                  const slugToUse = article?.categorySlug || matchedCategory?.slug || slugify(article?.categoryName || "");
+                  navigate(`/categoria/${slugToUse}`);
+                  console.log(article);
+
                   return;
                 }
                 navigate("/");
@@ -333,7 +342,11 @@ export const PublicationPreview = () => {
         {!loading && article ? (
           <article className="public-article">
             {article.categoryName ? (
-              <div style={{ marginBottom: 24 }} onClick={() => navigate(`/categoria/${slugify(article.categoryName)}`)}>
+              <div style={{ marginBottom: 24 }} onClick={() => {
+                const matchedCategory = categories.find(c => c.id === article?.categoryId);
+                const slugToUse = article?.categorySlug || matchedCategory?.slug || slugify(article?.categoryName || "");
+                navigate(`/categoria/${slugToUse}`);
+              }}>
                 <span className="public-article-category">{article.categoryName}</span>
               </div>
             ) : null}

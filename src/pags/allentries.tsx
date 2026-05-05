@@ -51,6 +51,7 @@ const FEATURED_MENU_OPTIONS: Array<{
     label: "Subdestacada en Primera Plana",
     description: " ",
   },
+  /*
   {
     value: "category_hero",
     label: "Destacada en Categoría",
@@ -61,6 +62,7 @@ const FEATURED_MENU_OPTIONS: Array<{
     label: "Subdestacada en Categoría",
     description: " ",
   },
+  */
 ];
 
 const normalizeEntry = (item: unknown, index: number): ArticleEntry | null => {
@@ -608,7 +610,7 @@ export const AllEntries = ({ variant = "mine" }: AllEntriesProps) => {
             <option value="all">Todos los estados</option>
             <option value="published">Publicado</option>
             <option value="draft">Borrador</option>
-            <option value="scheduled">Programado</option>
+            {/* <option value="scheduled">Programado</option> */}
           </select>
 
           {variant === "all" ? (
