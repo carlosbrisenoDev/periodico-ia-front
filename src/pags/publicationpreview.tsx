@@ -298,9 +298,9 @@ export const PublicationPreview = () => {
 
   return (
     <div className="public-layout">
-      <PublicNavbar 
-        categories={categories as any} 
-        activeCategorySlug={article?.categoryId ?? undefined} 
+      <PublicNavbar
+        categories={categories as any}
+        activeCategorySlug={article?.categoryId ?? undefined}
       />
 
       <main className="public-main">
@@ -310,7 +310,7 @@ export const PublicationPreview = () => {
               className="public-back-link"
               onClick={() => {
                 if (article?.categoryId) {
-                  navigate(`/categoria/${article.categoryId}`);
+                  navigate(`/categoria/${article.categoryName}`);
                   return;
                 }
                 navigate("/");

@@ -387,9 +387,7 @@ body,
 }
 
 .entries-date-cell {
-  display: flex;
-  align-items: center;
-  gap: 7px;
+  vertical-align: middle;
   color: var(--text-muted);
 }
 
@@ -4985,7 +4983,7 @@ body,
 .pc-banner {
   background: #2a3f52;
   padding: 40px 24px;
-  /*border-bottom: 4px solid #d35400;*/
+  border-bottom: 4px solid #2a3f52;
 }
 
 .pc-banner-title {
@@ -5046,7 +5044,7 @@ body,
   color: #111827;
   margin: 0;
   padding-bottom: 12px;
-  /*border-bottom: 3px solid #d35400;*/
+  border-bottom: 3px solid #2a3f52;
   font-family: "Inter", sans-serif;
 }
 
@@ -5534,9 +5532,11 @@ body,
   .recent-banner {
     padding: 40px 24px;
   }
+
   .recent-banner-title {
     font-size: 2.25rem;
   }
+
   .recent-banner-subtitle {
     font-size: 1rem;
   }

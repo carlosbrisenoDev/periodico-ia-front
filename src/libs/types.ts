@@ -82,3 +82,8 @@ export type ArticlePreviewLocationState = {
   article: ArticlePreviewData;
 };
 
+export type PublicCategory = {
+  id?: string;
+  name?: string;
+  slug?: string;
+};

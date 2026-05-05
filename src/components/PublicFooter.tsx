@@ -1,15 +1,11 @@
 import React from "react";
 import logoSrc from "../assets/logo.png";
 import { PhoneIcon, FacebookIcon, XIcon, InstagramIcon, LinkedInIcon } from "./Icons.tsx";
+import type { PublicCategory } from "../libs/types.ts";
 
-type FooterCategory = {
-  id: string;
-  name: string;
-  slug?: string;
-};
 
 interface PublicFooterProps {
-  categories?: FooterCategory[];
+  categories?: PublicCategory[];
   variant?: "full" | "search";
 }
 

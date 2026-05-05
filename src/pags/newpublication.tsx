@@ -339,7 +339,7 @@ const NewPublication = () => {
 
   const handleDraftSave = async (event: FormEvent) => {
     event.preventDefault();
-    await submitArticle("draft");
+    await submitArticle(form.status);
   };
 
   const handlePublish = async () => {

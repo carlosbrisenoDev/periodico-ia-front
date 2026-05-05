@@ -334,7 +334,7 @@ const ImageLibrary = () => {
                                     </td>
                                     <td>{image.filename}</td>
                                     <td>{formatFileSize(image.size)}</td>
-                                    <td>{formatDate(image.createdAt)}</td>
+                                    <td className="entries-date-cell">{formatDate(image.createdAt)}</td>
                                     <td>
                                         <button
                                             type="button"

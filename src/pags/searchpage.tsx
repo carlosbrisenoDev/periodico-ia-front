@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { apiFetch } from "../libs/http.ts";
+import { apiFetch, getPublicCategories } from "../libs/http.ts";
 import { API_BASE_URL } from "../libs/config.ts";
-import type { PublicArticle } from "../libs/types.ts";
+import type { PublicArticle, PublicCategory } from "../libs/types.ts";
 import PublicNavbar from "../components/PublicNavbar.tsx";
 import PublicFooter from "../components/PublicFooter.tsx";
 import { SearchIcon } from "../components/Icons.tsx";
@@ -15,11 +15,6 @@ const FilterIcon = () => (
 
 /* ── helpers ─────────────────────────────────────────── */
 
-type Category = {
-  id: string;
-  name: string;
-  slug: string;
-};
 
 
 
@@ -38,7 +33,7 @@ const SearchPage = () => {
   const [inputValue, setInputValue] = useState(query);
   const [results, setResults] = useState<PublicArticle[]>([]);
   const [loading, setLoading] = useState(false);
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [categories, setCategories] = useState<PublicCategory[]>([]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -47,10 +42,8 @@ const SearchPage = () => {
       setLoading(true);
       try {
         // Fetch categories for navbar
-        const cats = await apiFetch<unknown[]>(`${API_BASE_URL}/api/v1/public/categories`, {
-          signal: controller.signal
-        });
-        setCategories(Array.isArray(cats) ? (cats as Category[]) : []);
+        const cats = await getPublicCategories(controller.signal);
+        setCategories(cats);
 
         if (query) {
           const data = await apiFetch<{ items: PublicArticle[] }>(

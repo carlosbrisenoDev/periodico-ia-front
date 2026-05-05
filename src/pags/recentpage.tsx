@@ -1,16 +1,11 @@
 import { useEffect, useState } from "react";
-import { apiFetch } from "../libs/http.ts";
+import { apiFetch, getPublicCategories } from "../libs/http.ts";
 import { API_BASE_URL } from "../libs/config.ts";
-import type { PublicArticle } from "../libs/types.ts";
+import type { PublicArticle, PublicCategory } from "../libs/types.ts";
 import PublicNavbar from "../components/PublicNavbar.tsx";
 import PublicFooter from "../components/PublicFooter.tsx";
 import { NewspaperIcon } from "../components/Icons.tsx";
 
-type Category = {
-  id: string;
-  name: string;
-  slug: string;
-};
 
 const formatArticleDate = (iso: string): string => {
   const d = new Date(iso);
@@ -35,7 +30,7 @@ const RecentPage = () => {
   const [articles, setArticles] = useState<PublicArticle[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [categories, setCategories] = useState<PublicCategory[]>([]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -43,17 +38,15 @@ const RecentPage = () => {
     const loadData = async () => {
       try {
         setLoading(true);
-        const [articlesData, catsData] = await Promise.all([
+        const [articlesData, fetchedCats] = await Promise.all([
           apiFetch<PublicArticle[]>(`${API_BASE_URL}/api/v1/public/recent`, {
             signal: controller.signal,
           }),
-          apiFetch<unknown[]>(`${API_BASE_URL}/api/v1/public/categories`, {
-            signal: controller.signal,
-          }),
+          getPublicCategories(controller.signal),
         ]);
 
         setArticles(Array.isArray(articlesData) ? articlesData : []);
-        setCategories(Array.isArray(catsData) ? (catsData as Category[]) : []);
+        setCategories(fetchedCats);
       } catch (err) {
         if (err instanceof Error && err.name === "AbortError") return;
         setError("No se pudieron cargar las noticias recientes.");

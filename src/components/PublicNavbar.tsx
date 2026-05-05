@@ -2,15 +2,11 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { MenuIcon, CloseIcon, SearchIcon } from "./Icons.tsx";
 import logoSrc from "../assets/logo.png";
+import type { PublicCategory } from "../libs/types.ts";
 
-type Category = {
-  id: string;
-  name: string;
-  slug: string;
-};
 
 interface PublicNavbarProps {
-  categories: Category[];
+  categories: PublicCategory[];
   mobileOpen: boolean;
   setMobileOpen: (open: boolean) => void;
   activeCategorySlug?: string;

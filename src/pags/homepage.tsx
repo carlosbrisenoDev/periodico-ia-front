@@ -1,18 +1,13 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { apiFetch, getHomeData, getLatestPublications } from "../libs/http.ts";
+import { apiFetch, getHomeData, getLatestPublications, getPublicCategories } from "../libs/http.ts";
 import { API_BASE_URL } from "../libs/config.ts";
-import type { PublicArticle } from "../libs/types.ts";
+import type { PublicArticle, PublicCategory } from "../libs/types.ts";
 import PublicFooter from "../components/PublicFooter.tsx";
 import PublicNavbar from "../components/PublicNavbar.tsx";
 
 /* ── helpers ─────────────────────────────────────────── */
 
-type Category = {
-  id: string;
-  name: string;
-  slug: string;
-};
 
 const SECTION_ORDER: {
   key: string;
@@ -248,7 +243,7 @@ const CategorySectionB = ({
 const HomePage = () => {
   const [articles, setArticles] = useState<PublicArticle[]>([]);
   const [featuredArticles, setFeaturedArticles] = useState<PublicArticle[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [categories, setCategories] = useState<PublicCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -259,23 +254,9 @@ const HomePage = () => {
       try {
         setLoading(true);
 
-        const catsPromise = apiFetch<unknown[]>(`${API_BASE_URL}/api/v1/public/categories`, {
-          method: "GET",
-          signal: controller.signal
-        }).then(res =>
-          (Array.isArray(res) ? res : []).map(item => {
-            const cat = item as Record<string, unknown>;
-            return {
-              id: typeof cat.id === 'string' ? cat.id : '',
-              name: typeof cat.name === 'string' ? cat.name : '',
-              slug: typeof cat.slug === 'string' ? cat.slug : '',
-            };
-          }).filter(c => c.id && c.name)
-        ).catch(() => [] as Category[]);
-
         const [homeData, fetchedCats] = await Promise.all([
           getHomeData(controller.signal),
-          catsPromise
+          getPublicCategories(controller.signal)
         ]);
 
         setCategories(fetchedCats);

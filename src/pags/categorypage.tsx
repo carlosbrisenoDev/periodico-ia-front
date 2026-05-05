@@ -1,19 +1,14 @@
 import { useEffect, useState, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { API_BASE_URL } from "../libs/config.ts";
-import { apiFetch } from "../libs/http.ts";
-import type { PublicArticle } from "../libs/types.ts";
+import { apiFetch, getPublicCategories } from "../libs/http.ts";
+import type { PublicArticle, PublicCategory } from "../libs/types.ts";
 import PublicFooter from "../components/PublicFooter.tsx";
 import PublicNavbar from "../components/PublicNavbar.tsx";
 
 
 /* ── helpers ─────────────────────────────────────────── */
 
-type Category = {
-  id: string;
-  name: string;
-  slug: string;
-};
 
 
 
@@ -216,7 +211,7 @@ const CategoryPage = () => {
   const [articles, setArticles] = useState<PublicArticle[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [categories, setCategories] = useState<PublicCategory[]>([]);
 
   useEffect(() => {
     if (!id) return;
@@ -228,17 +223,14 @@ const CategoryPage = () => {
         setLoading(true);
         setError(null);
         
-        const [categoryData, catsPayload] = await Promise.all([
+        const [categoryData, fetchedCats] = await Promise.all([
           fetchCategoryArticles(id, controller.signal),
-          apiFetch<unknown[]>(`${API_BASE_URL}/api/v1/public/categories`, {
-            method: "GET",
-            signal: controller.signal,
-          })
+          getPublicCategories(controller.signal)
         ]);
 
         setCategoryName(categoryData.name);
         setArticles(categoryData.articles);
-        setCategories(Array.isArray(catsPayload) ? (catsPayload as Category[]) : []);
+        setCategories(fetchedCats);
       } catch (err: unknown) {
         if (err instanceof Error && err.name === "AbortError") return;
         setError("No se pudieron cargar las publicaciones de esta categoría.");
@@ -252,14 +244,47 @@ const CategoryPage = () => {
   }, [id]);
 
   const featured = useMemo(() => {
-    return articles.find(a => a.featuredType === 'category_hero') || articles[0] || null;
+    if (articles.length === 0) return null;
+
+    // 1. Prioritize category_hero (Category-specific featured)
+    const catHero = articles.find(a => a.featuredType === 'category_hero');
+    if (catHero) return catHero;
+
+    // 2. Fallback to global hero if it exists in this category
+    const globalHero = articles.find(a => a.featuredType === 'hero');
+    if (globalHero) return globalHero;
+
+    // 3. Fallback to a global headline
+    const headline = articles.find(a => a.featuredType === 'headline');
+    if (headline) return headline;
+
+    // 4. Prefer a non-breaking article for the main slot to leave breaking for side cards
+    const firstNonBreaking = articles.find(a => a.featuredType === 'none');
+    if (firstNonBreaking) return firstNonBreaking;
+
+    // 5. Ultimate fallback
+    return articles[0];
   }, [articles]);
 
   const sideCards = useMemo(() => {
-    const fId = featured?.id;
+    if (!featured) return [];
+
+    const fId = featured.id;
+    // 1. Prioritize articles specifically marked for category side slots (breaking)
     const breaking = articles.filter(a => a.featuredType === 'breaking' && a.id !== fId);
-    if (breaking.length >= 2) return breaking.slice(0, 2);
-    return articles.filter(a => a.id !== fId).slice(0, 2);
+    
+    // 2. Then headlines that weren't picked for the main slot
+    const headlines = articles.filter(a => a.featuredType === 'headline' && a.id !== fId);
+    
+    // 3. Then any other articles
+    const others = articles.filter(a => 
+      a.id !== fId && 
+      a.featuredType !== 'breaking' && 
+      a.featuredType !== 'headline'
+    );
+
+    const combined = [...breaking, ...headlines, ...others];
+    return combined.slice(0, 2);
   }, [articles, featured]);
 
   const allCards = useMemo(() => {

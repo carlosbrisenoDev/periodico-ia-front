@@ -7,6 +7,7 @@ import type {
   ProfileData,
   PublicArticle,
   PublicHomeResponse,
+  PublicCategory,
   UpdateProfileInput,
   UpdateProfileResponse,
 } from "./types.ts";
@@ -486,5 +487,23 @@ export const getArticleRecommendations = async (
   return (Array.isArray(response.items) ? response.items : [])
     .map((item, index) => normalizeRecommendation(item, index))
     .filter((item): item is ArticleRecommendation => item !== null);
+};
+
+export const getPublicCategories = async (
+  signal?: AbortSignal,
+): Promise<PublicCategory[]> => {
+  const res = await apiFetch<unknown[]>(`${PUBLIC_PREFIX}/categories`, {
+    method: "GET",
+    signal,
+  });
+
+  return (Array.isArray(res) ? res : []).map(item => {
+    const cat = item as Record<string, unknown>;
+    return {
+      id: typeof cat.id === 'string' ? cat.id : '',
+      name: typeof cat.name === 'string' ? cat.name : '',
+      slug: typeof cat.slug === 'string' ? cat.slug : '',
+    };
+  }).filter(c => c.id && c.name);
 };
 
