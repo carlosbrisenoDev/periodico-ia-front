@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { apiFetch, getHomeData, getLatestPublications, getPublicCategories } from "../libs/http.ts";
-import { API_BASE_URL } from "../libs/config.ts";
+import { getHomeData, getLatestPublications, getPublicCategories } from "../libs/http.ts";
 import type { PublicArticle, PublicCategory } from "../libs/types.ts";
 import PublicFooter from "../components/PublicFooter.tsx";
 import PublicNavbar from "../components/PublicNavbar.tsx";
@@ -364,8 +363,8 @@ const HomePage = () => {
             {SECTION_ORDER.map((sec) => {
               // Try to find the category in the fetched categories
               const catObj = categories.find(c => 
-                c.name.toLowerCase() === sec.label.toLowerCase() || 
-                c.slug.toLowerCase() === sec.key.toLowerCase()
+                (c.name?.toLowerCase() === sec.label.toLowerCase()) || 
+                (c.slug?.toLowerCase() === sec.key.toLowerCase())
               );
               
               // Get articles for this category using the found name or the hardcoded key

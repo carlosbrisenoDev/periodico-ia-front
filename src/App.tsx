@@ -99,13 +99,15 @@ const App = () => {
           <Route path="/publication/:id/edit" element={<EditPublication />} />
           <Route path="/authors-users" element={<AuthorsUsers />} />
           <Route path="/categories" element={<Categories />} />
-          <Route path="/deletedentries" element={<DeletedEntries />} />
+          <Route path="/deleted-entries" element={<DeletedEntries />} />
           <Route path="/settings" element={<SettingsPage />} />
+
         </Route>
 
         <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
           <Route path="/all-entries" element={<AllEntriesAdmin />} />
         </Route>
+
       </Routes>
     </BrowserRouter>
   );
