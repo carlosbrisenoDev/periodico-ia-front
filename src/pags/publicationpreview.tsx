@@ -212,7 +212,7 @@ export const PublicationPreview = () => {
 
   const recommendationTitle = useMemo(() => {
     if (article?.categoryName) {
-      return `Más de ${article.categoryName}`;
+      return `Más de Noticias`;
     }
 
     return "Recomendaciones";

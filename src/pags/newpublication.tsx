@@ -358,8 +358,8 @@ const NewPublication = () => {
         authorAvatarUrl: selectedAuthor?.avatarUrl,
         authorRole: selectedAuthor?.bio,
         categoryName: selectedCategoryName,
-        publishedAt: form.status === "published" 
-          ? new Date().toISOString() 
+        publishedAt: form.status === "published"
+          ? new Date().toISOString()
           : (form.status === "scheduled" ? toScheduledIso(form.scheduledAt) : null),
       },
     };
