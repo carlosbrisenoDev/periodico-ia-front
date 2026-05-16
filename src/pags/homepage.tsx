@@ -1,25 +1,12 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { getHomeData, getLatestPublications, getPublicCategories } from "../libs/http.ts";
+import { getHomeData, getLatestPublications, getPublicCategories, getCategoryArticles } from "../libs/http.ts";
 import type { PublicArticle, PublicCategory } from "../libs/types.ts";
 import PublicFooter from "../components/PublicFooter.tsx";
 import PublicNavbar from "../components/PublicNavbar.tsx";
 
 /* ── helpers ─────────────────────────────────────────── */
 
-
-const SECTION_ORDER: {
-  key: string;
-  label: string;
-  layout: "A" | "B";
-  grey: boolean;
-}[] = [
-    { key: "Deportes", label: "Deportes", layout: "A", grey: false },
-    { key: "Cultura", label: "Cultura", layout: "B", grey: true },
-    { key: "Seguridad", label: "Seguridad", layout: "A", grey: false },
-    { key: "Comunidad", label: "Comunidad", layout: "B", grey: true },
-    { key: "Opinión", label: "Opinión", layout: "A", grey: false },
-  ];
 
 const formatArticleDate = (iso: string): string => {
   const d = new Date(iso);
@@ -243,6 +230,7 @@ const HomePage = () => {
   const [articles, setArticles] = useState<PublicArticle[]>([]);
   const [featuredArticles, setFeaturedArticles] = useState<PublicArticle[]>([]);
   const [categories, setCategories] = useState<PublicCategory[]>([]);
+  const [categoryArticlesMap, setCategoryArticlesMap] = useState<Record<string, PublicArticle[]>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -261,14 +249,23 @@ const HomePage = () => {
         setCategories(fetchedCats);
         setFeaturedArticles(homeData.featured);
 
-        if (homeData.recent.length > 0) {
-          setArticles(homeData.recent);
-          setError(null);
-          return;
-        }
+        const recent = homeData.recent.length > 0 ? homeData.recent : await getLatestPublications(controller.signal);
+        setArticles(recent);
 
-        const latest = await getLatestPublications(controller.signal);
-        setArticles(latest);
+        const catPromises = fetchedCats.map(async (cat) => {
+          if (!cat.slug && !cat.id) return { key: (cat.name || "").toLowerCase().trim(), articles: [] };
+          const slug = cat.slug || cat.id || "";
+          const catArts = await getCategoryArticles(slug, controller.signal).catch(() => []);
+          return { key: (cat.name || "").toLowerCase().trim(), articles: catArts };
+        });
+        
+        const catResults = await Promise.all(catPromises);
+        const newCatMap: Record<string, PublicArticle[]> = {};
+        for (const res of catResults) {
+          if (res.key) newCatMap[res.key] = res.articles;
+        }
+        setCategoryArticlesMap(newCatMap);
+
         setError(null);
       } catch (err: unknown) {
         if (err instanceof Error && err.name === "AbortError") return;
@@ -360,37 +357,43 @@ const HomePage = () => {
             )}
 
             {/* Category Sections */}
-            {SECTION_ORDER.map((sec) => {
-              // Try to find the category in the fetched categories
-              const catObj = categories.find(c => 
-                (c.name?.toLowerCase() === sec.label.toLowerCase()) || 
-                (c.slug?.toLowerCase() === sec.key.toLowerCase())
-              );
+            {categories.map((catObj, index) => {
+              const catKey = (catObj.name || "").toLowerCase().trim();
               
-              // Get articles for this category using the found name or the hardcoded key
-              const catKey = (catObj?.name || sec.key).toLowerCase().trim();
-              const catArticles = grouped[catKey] ?? [];
+              const fromGroup = grouped[catKey] || [];
+              const fromFetch = categoryArticlesMap[catKey] || [];
+              
+              const seen = new Set<string>();
+              const catArticles: PublicArticle[] = [];
+              for (const a of [...fromGroup, ...fromFetch]) {
+                if (!seen.has(a.id)) {
+                  seen.add(a.id);
+                  catArticles.push(a);
+                }
+              }
               
               if (catArticles.length === 0) return null;
               
-              const title = catObj?.name || sec.label;
-              const slug = catObj?.slug || slugify(title);
+              const title = catObj.name || "Categoría";
+              const slug = catObj.slug || slugify(title);
+              const layout = index % 2 === 0 ? "A" : "B";
+              const grey = index % 2 !== 0;
 
-              return sec.layout === "A" ? (
+              return layout === "A" ? (
                 <CategorySectionA
-                  key={sec.key}
+                  key={catObj.id || slug}
                   title={title}
                   categoryId={slug}
                   articles={catArticles}
-                  grey={sec.grey}
+                  grey={grey}
                 />
               ) : (
                 <CategorySectionB
-                  key={sec.key}
+                  key={catObj.id || slug}
                   title={title}
                   categoryId={slug}
                   articles={catArticles}
-                  grey={sec.grey}
+                  grey={grey}
                 />
               );
             })}

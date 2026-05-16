@@ -507,3 +507,17 @@ export const getPublicCategories = async (
   }).filter(c => c.id && c.name);
 };
 
+export const getCategoryArticles = async (
+  id: string,
+  signal?: AbortSignal,
+): Promise<PublicArticle[]> => {
+  const data = await apiFetch<{ articles?: unknown[] }>(
+    `${PUBLIC_PREFIX}/category/${id}`,
+    { method: "GET", signal },
+  );
+
+  return (Array.isArray(data.articles) ? data.articles : [])
+    .map((item, index) => normalizePublicArticle(item, index))
+    .filter((item): item is PublicArticle => item !== null);
+};
+
