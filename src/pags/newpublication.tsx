@@ -16,8 +16,11 @@ type PublicationForm = {
   tags: string;
   authorId: string;
   scheduledAt: string;
-  publishedAt: string;
   featuredImageUrl: string;
+  featuredImageCaption: string;
+  isVideoGallery: boolean;
+  videoUrl: string;
+  allowComments: boolean;
 };
 
 type AuthorOption = {
@@ -60,8 +63,11 @@ const INITIAL_FORM: PublicationForm = {
   tags: "",
   authorId: "",
   scheduledAt: "",
-  publishedAt: "",
   featuredImageUrl: "",
+  featuredImageCaption: "",
+  isVideoGallery: false,
+  videoUrl: "",
+  allowComments: true,
 };
 
 const normalizeImageUrl = (value: string): string => {
@@ -293,6 +299,10 @@ const NewPublication = () => {
         authorId: form.authorId,
         categoryIds: form.categoryId ? [form.categoryId] : [],
         featuredImageUrl: form.featuredImageUrl.trim() || null,
+        featuredImageCaption: form.featuredImageCaption.trim() || null,
+        isVideoGallery: form.isVideoGallery,
+        videoUrl: form.videoUrl.trim() || null,
+        allowComments: form.allowComments,
         tags,
         isFeatured: false,
         publishedAt: nextStatus === "published" ? new Date().toISOString() : (nextStatus === "scheduled" ? scheduledAtIso : null),
@@ -353,6 +363,8 @@ const NewPublication = () => {
         excerpt: form.excerpt.trim() || "Aún no has escrito una descripción.",
         content: form.content.trim() || "El contenido del artículo se mostrará aquí.",
         featuredImageUrl: form.featuredImageUrl.trim() || null,
+        isVideoGallery: form.isVideoGallery,
+        videoUrl: form.videoUrl.trim() || null,
         tags: parseTagsInput(form.tags),
         authorName: selectedAuthorName,
         authorAvatarUrl: selectedAuthor?.avatarUrl,
@@ -584,7 +596,7 @@ const NewPublication = () => {
                 }
               >
                 <option value="draft">Borrador</option>
-                {/* <option value="scheduled">Programado</option> */}
+                <option value="scheduled">Programado</option>
                 <option value="published">Publicado</option>
               </select>
 
@@ -662,16 +674,73 @@ const NewPublication = () => {
                     alt="Vista previa de imagen destacada"
                     className="new-publication-image-preview"
                   />
+                  <label className="new-publication-label mt-12" htmlFor="new-publication-featured-caption">
+                    Pie de foto (opcional)
+                  </label>
+                  <input
+                    id="new-publication-featured-caption"
+                    className="new-publication-input"
+                    type="text"
+                    placeholder="Escribe el pie de foto..."
+                    value={form.featuredImageCaption}
+                    onChange={(event) => updateField("featuredImageCaption", event.target.value)}
+                  />
                   <button
                     type="button"
                     className="new-publication-clear-image"
-                    onClick={() => updateField("featuredImageUrl", "")}
+                    onClick={() => {
+                      updateField("featuredImageUrl", "");
+                      updateField("featuredImageCaption", "");
+                    }}
                     disabled={submitting || loadingOptions}
                   >
                     Quitar imagen
                   </button>
                 </>
               ) : null}
+            </article>
+
+            <article className="new-publication-card">
+              <p className="new-publication-label">Video Relacionado</p>
+              <label className="new-publication-checkbox-label" style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', marginBottom: '12px' }}>
+                <input
+                  type="checkbox"
+                  checked={form.isVideoGallery}
+                  onChange={(e) => updateField("isVideoGallery", e.target.checked)}
+                />
+                Marcar como Galería de Video
+              </label>
+
+              {form.isVideoGallery && (
+                <>
+                  <label className="new-publication-label" htmlFor="new-publication-video-url">
+                    URL del Video (YouTube)
+                  </label>
+                  <input
+                    id="new-publication-video-url"
+                    className="new-publication-input"
+                    type="url"
+                    placeholder="https://youtube.com/watch?v=..."
+                    value={form.videoUrl}
+                    onChange={(e) => updateField("videoUrl", e.target.value)}
+                  />
+                  <p className="new-publication-helper-text">
+                    Esta URL se usará en el preview y hero section del artículo si está marcado.
+                  </p>
+                </>
+              )}
+            </article>
+
+            <article className="new-publication-card">
+              <p className="new-publication-label">Interacción</p>
+              <label className="new-publication-checkbox-label" style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', marginBottom: '12px' }}>
+                <input
+                  type="checkbox"
+                  checked={form.allowComments}
+                  onChange={(e) => updateField("allowComments", e.target.checked)}
+                />
+                Permitir Comentarios
+              </label>
             </article>
 
             <article className="new-publication-card">

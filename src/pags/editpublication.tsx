@@ -18,6 +18,10 @@ type PublicationForm = {
   scheduledAt: string;
   publishedAt: string;
   featuredImageUrl: string;
+  featuredImageCaption: string;
+  isVideoGallery: boolean;
+  videoUrl: string;
+  allowComments: boolean;
 };
 
 type AuthorOption = {
@@ -44,6 +48,10 @@ type ArticleDetailResponse = {
   scheduledAt?: string | null;
   publishedAt?: string | null;
   featuredImageUrl?: string | null;
+  featuredImageCaption?: string | null;
+  isVideoGallery?: boolean;
+  videoUrl?: string | null;
+  allowComments?: boolean;
 };
 
 type ImageAsset = {
@@ -69,6 +77,10 @@ const INITIAL_FORM: PublicationForm = {
   scheduledAt: "",
   publishedAt: "",
   featuredImageUrl: "",
+  featuredImageCaption: "",
+  isVideoGallery: false,
+  videoUrl: "",
+  allowComments: true,
 };
 
 const toDatetimeLocal = (isoValue: string | null | undefined): string => {
@@ -240,6 +252,11 @@ const EditPublication = () => {
           publishedAt: toDatetimeLocal(article.publishedAt),
           featuredImageUrl:
             typeof article.featuredImageUrl === "string" ? article.featuredImageUrl : "",
+          featuredImageCaption:
+            typeof article.featuredImageCaption === "string" ? article.featuredImageCaption : "",
+          isVideoGallery: typeof article.isVideoGallery === "boolean" ? article.isVideoGallery : false,
+          videoUrl: typeof article.videoUrl === "string" ? article.videoUrl : "",
+          allowComments: typeof article.allowComments === "boolean" ? article.allowComments : true,
         });
       } catch (err: unknown) {
         if (err instanceof Error && err.name === "AbortError") {
@@ -340,6 +357,10 @@ const EditPublication = () => {
         categoryIds: form.categoryId ? [form.categoryId] : [],
         tags,
         featuredImageUrl: form.featuredImageUrl.trim() || null,
+        featuredImageCaption: form.featuredImageCaption.trim() || null,
+        isVideoGallery: form.isVideoGallery,
+        videoUrl: form.videoUrl.trim() || null,
+        allowComments: form.allowComments,
         publishedAt: form.status === "published" 
           ? (form.publishedAt ? toScheduledIso(form.publishedAt) : new Date().toISOString()) 
           : (form.status === "scheduled" ? scheduledAtIso : null),
@@ -383,6 +404,8 @@ const EditPublication = () => {
         excerpt: form.excerpt.trim() || "Aún no has escrito una descripción.",
         content: form.content.trim() || "El contenido del artículo se mostrará aquí.",
         featuredImageUrl: form.featuredImageUrl.trim() || null,
+        isVideoGallery: form.isVideoGallery,
+        videoUrl: form.videoUrl.trim() || null,
         tags: parseTagsInput(form.tags),
         authorName: selectedAuthorName,
         authorAvatarUrl: selectedAuthor?.avatarUrl,
@@ -610,7 +633,7 @@ const EditPublication = () => {
                 disabled={loading}
               >
                 <option value="draft">Borrador</option>
-                {/* <option value="scheduled">Programado</option> */}
+                <option value="scheduled">Programado</option>
                 <option value="published">Publicado</option>
               </select>
 
@@ -690,16 +713,77 @@ const EditPublication = () => {
                     alt="Vista previa de imagen destacada"
                     className="new-publication-image-preview"
                   />
+                  <label className="new-publication-label mt-12" htmlFor="edit-publication-featured-caption">
+                    Pie de foto (opcional)
+                  </label>
+                  <input
+                    id="edit-publication-featured-caption"
+                    className="new-publication-input"
+                    type="text"
+                    placeholder="Escribe el pie de foto..."
+                    value={form.featuredImageCaption}
+                    onChange={(event) => updateField("featuredImageCaption", event.target.value)}
+                    disabled={loading}
+                  />
                   <button
                     type="button"
                     className="new-publication-clear-image"
-                    onClick={() => updateField("featuredImageUrl", "")}
+                    onClick={() => {
+                      updateField("featuredImageUrl", "");
+                      updateField("featuredImageCaption", "");
+                    }}
                     disabled={submitting || loading}
                   >
                     Quitar imagen
                   </button>
                 </>
               ) : null}
+            </article>
+
+            <article className="new-publication-card">
+              <p className="new-publication-label">Video Relacionado</p>
+              <label className="new-publication-checkbox-label" style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', marginBottom: '12px' }}>
+                <input
+                  type="checkbox"
+                  checked={form.isVideoGallery}
+                  onChange={(e) => updateField("isVideoGallery", e.target.checked)}
+                  disabled={loading}
+                />
+                Marcar como Galería de Video
+              </label>
+
+              {form.isVideoGallery && (
+                <>
+                  <label className="new-publication-label" htmlFor="edit-publication-video-url">
+                    URL del Video (YouTube)
+                  </label>
+                  <input
+                    id="edit-publication-video-url"
+                    className="new-publication-input"
+                    type="url"
+                    placeholder="https://youtube.com/watch?v=..."
+                    value={form.videoUrl}
+                    onChange={(e) => updateField("videoUrl", e.target.value)}
+                    disabled={loading}
+                  />
+                  <p className="new-publication-helper-text">
+                    Esta URL se usará en el preview y hero section del artículo si está marcado.
+                  </p>
+                </>
+              )}
+            </article>
+
+            <article className="new-publication-card">
+              <p className="new-publication-label">Interacción</p>
+              <label className="new-publication-checkbox-label" style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', marginBottom: '12px' }}>
+                <input
+                  type="checkbox"
+                  checked={form.allowComments}
+                  onChange={(e) => updateField("allowComments", e.target.checked)}
+                  disabled={loading}
+                />
+                Permitir Comentarios
+              </label>
             </article>
 
             <article className="new-publication-card">

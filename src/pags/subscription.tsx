@@ -9,11 +9,17 @@ import PublicFooter from "../components/PublicFooter.tsx";
 type SubscriptionForm = {
   email: string;
   username: string;
+  age: string;
+  phone: string;
+  location: string;
 };
 
 const INITIAL_FORM: SubscriptionForm = {
   email: "",
   username: "",
+  age: "",
+  phone: "",
+  location: "",
 };
 
 /* ── Component ───────────────────────────────────────── */
@@ -57,6 +63,9 @@ const SubscriptionPage = () => {
         username: username || email.split("@")[0],
         email,
         password: crypto.randomUUID().slice(0, 16),
+        age: form.age ? Number(form.age) : undefined,
+        phone: form.phone.trim() || undefined,
+        location: form.location.trim() || undefined,
       });
       setMessage(response.message || "¡Suscripción creada correctamente!");
       setForm(INITIAL_FORM);
@@ -108,6 +117,47 @@ const SubscriptionPage = () => {
               value={form.username}
               onChange={(e) => updateField("username", e.target.value)}
               placeholder="Tu nombre"
+              disabled={submitting}
+            />
+
+            <label className="ps-label" htmlFor="ps-age">
+              Edad <span className="ps-optional">(Opcional)</span>
+            </label>
+            <input
+              id="ps-age"
+              className="ps-input"
+              type="number"
+              value={form.age}
+              onChange={(e) => updateField("age", e.target.value)}
+              placeholder="Ej: 30"
+              min="1"
+              max="120"
+              disabled={submitting}
+            />
+
+            <label className="ps-label" htmlFor="ps-phone">
+              Teléfono <span className="ps-optional">(Opcional)</span>
+            </label>
+            <input
+              id="ps-phone"
+              className="ps-input"
+              type="tel"
+              value={form.phone}
+              onChange={(e) => updateField("phone", e.target.value)}
+              placeholder="Tu número de teléfono"
+              disabled={submitting}
+            />
+
+            <label className="ps-label" htmlFor="ps-location">
+              Ubicación <span className="ps-optional">(Opcional)</span>
+            </label>
+            <input
+              id="ps-location"
+              className="ps-input"
+              type="text"
+              value={form.location}
+              onChange={(e) => updateField("location", e.target.value)}
+              placeholder="Ciudad o País"
               disabled={submitting}
             />
 

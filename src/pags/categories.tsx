@@ -5,23 +5,23 @@ import {API_BASE_URL} from "../libs/config.ts";
 import {ApiError, apiFetch} from "../libs/http.ts";
 
 type CategoryItem = {
-    id: string; name: string; slug: string; description: string; color?: string;
+    id: string; name: string; slug: string; description: string; color?: string; order: number;
 };
 
 type CreateCategoryResponse = {
-    id?: string; name?: string; slug?: string; description?: string;
+    id?: string; name?: string; slug?: string; description?: string; order?: number;
 };
 
 type NewCategoryForm = {
-    name: string; slug: string; color: string;
+    name: string; slug: string; color: string; order: number;
 };
 
 type EditCategoryForm = {
-    id: string; name: string; slug: string; color: string;
+    id: string; name: string; slug: string; color: string; order: number;
 };
 
 const INITIAL_FORM: NewCategoryForm = {
-    name: "", slug: "", color: "#3B82F6",
+    name: "", slug: "", color: "#3B82F6", order: 0,
 };
 
 const normalizeCategory = (item: unknown, index: number): CategoryItem | null => {
@@ -45,6 +45,7 @@ const normalizeCategory = (item: unknown, index: number): CategoryItem | null =>
         slug: safeSlug,
         description: typeof record.description === "string" && record.description.trim().length > 0 ? record.description.trim() : `/${safeSlug}`,
         color: typeof record.color === "string" ? record.color : undefined,
+        order: typeof record.order === "number" ? record.order : 0,
     };
 };
 
@@ -90,6 +91,8 @@ const Categories = () => {
     const [createError, setCreateError] = useState<string | null>(null);
     const [editError, setEditError] = useState<string | null>(null);
     const [form, setForm] = useState<NewCategoryForm>(INITIAL_FORM);
+    const [draggedCategoryId, setDraggedCategoryId] = useState<string | null>(null);
+    const [updatingOrder, setUpdatingOrder] = useState<boolean>(false);
 
     useEffect(() => {
         const controller = new AbortController();
@@ -104,7 +107,8 @@ const Categories = () => {
 
                 const normalized = (Array.isArray(payload) ? payload : [])
                     .map((item, index) => normalizeCategory(item, index))
-                    .filter((item): item is CategoryItem => item !== null);
+                    .filter((item): item is CategoryItem => item !== null)
+                    .sort((a, b) => a.order - b.order);
 
                 setCategories(normalized);
                 setError(null);
@@ -172,10 +176,11 @@ const Categories = () => {
             const payload = await apiFetch<CreateCategoryResponse>(`${API_BASE_URL}/api/v1/category`, {
                 method: "POST", credentials: "include", headers: {
                     "Content-Type": "application/json",
-                }, body: JSON.stringify({
-                    name, slug: finalSlug,
+                },
+                body: JSON.stringify({
+                    name, slug: finalSlug, order: Number(form.order) || 0, color: form.color,
                 }),
-            },);
+            });
 
             const newCategory: CategoryItem = {
                 id: typeof payload.id === "string" ? payload.id : `category-${Date.now()}`,
@@ -183,9 +188,13 @@ const Categories = () => {
                 slug: typeof payload.slug === "string" ? payload.slug : finalSlug,
                 description: typeof payload.description === "string" && payload.description.trim().length > 0 ? payload.description : `/${finalSlug}`,
                 color: form.color,
+                order: typeof payload.order === "number" ? payload.order : Number(form.order) || 0,
             };
 
-            setCategories((prev) => [newCategory, ...prev]);
+            setCategories((prev) => {
+                const next = [newCategory, ...prev];
+                return next.sort((a, b) => a.order - b.order);
+            });
             setShowCreateModal(false);
             setForm(INITIAL_FORM);
         } catch (err: unknown) {
@@ -206,6 +215,7 @@ const Categories = () => {
             name: category.name,
             slug: category.slug,
             color: category.color ?? colorForCategory(category.slug),
+            order: category.order,
         });
         setEditError(null);
     };
@@ -246,17 +256,22 @@ const Categories = () => {
             const payload = await apiFetch<CreateCategoryResponse>(`${API_BASE_URL}/api/v1/category/${editForm.id}`, {
                 method: "PATCH", credentials: "include", headers: {
                     "Content-Type": "application/json",
-                }, body: JSON.stringify({
-                    name, slug,
+                },
+                body: JSON.stringify({
+                    name, slug, order: Number(editForm.order) || 0, color: editForm.color,
                 }),
-            },);
+            });
 
             const nextName = typeof payload.name === "string" ? payload.name : name;
             const nextSlug = typeof payload.slug === "string" ? payload.slug : slug;
+            const nextOrder = typeof payload.order === "number" ? payload.order : Number(editForm.order) || 0;
 
-            setCategories((prev) => prev.map((category) => category.id === editForm.id ? {
-                ...category, name: nextName, slug: nextSlug, color: editForm.color, description: `/${nextSlug}`,
-            } : category,),);
+            setCategories((prev) => {
+                const next = prev.map((category) => category.id === editForm.id ? {
+                    ...category, name: nextName, slug: nextSlug, color: editForm.color, description: `/${nextSlug}`, order: nextOrder,
+                } : category);
+                return next.sort((a, b) => a.order - b.order);
+            });
 
             setEditForm(null);
         } catch (err: unknown) {
@@ -301,6 +316,57 @@ const Categories = () => {
         }
     };
 
+    const handleDragStart = (e: React.DragEvent, id: string) => {
+        e.dataTransfer.effectAllowed = "move";
+        e.dataTransfer.setData("text/plain", id);
+        setDraggedCategoryId(id);
+    };
+
+    const handleDragOver = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+    };
+
+    const handleDrop = async (e: React.DragEvent, targetId: string) => {
+        e.preventDefault();
+        const sourceId = e.dataTransfer.getData("text/plain");
+        setDraggedCategoryId(null);
+
+        if (!sourceId || sourceId === targetId || updatingOrder) return;
+
+        const sourceIndex = categories.findIndex((c) => c.id === sourceId);
+        const targetIndex = categories.findIndex((c) => c.id === targetId);
+
+        if (sourceIndex === -1 || targetIndex === -1) return;
+
+        const newCategories = [...categories];
+        const [removed] = newCategories.splice(sourceIndex, 1);
+        newCategories.splice(targetIndex, 0, removed);
+
+        // Update orders locally
+        const updatedCategories = newCategories.map((c, idx) => ({ ...c, order: idx }));
+        setCategories(updatedCategories);
+
+        // Save changed orders to backend
+        setUpdatingOrder(true);
+        try {
+            const promises = updatedCategories.map((cat) => 
+                apiFetch<CreateCategoryResponse>(`${API_BASE_URL}/api/v1/category/${cat.id}`, {
+                    method: "PATCH",
+                    credentials: "include",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ order: cat.order }),
+                })
+            );
+            await Promise.all(promises);
+        } catch (err) {
+            console.error("Failed to update orders", err);
+            // Optional: reload categories on failure
+        } finally {
+            setUpdatingOrder(false);
+        }
+    };
+
     return (<div className="layout dashboard-layout">
         <aside className="sidebar">
             <Sidebar/>
@@ -328,7 +394,15 @@ const Categories = () => {
                 <p className="categories-info">Aún no hay categorías creadas.</p>) : null}
 
             <section className="categories-grid" aria-label="Listado de categorías">
-                {categories.map((category) => (<article key={category.id} className="category-card">
+                {categories.map((category) => (<article 
+                    key={category.id} 
+                    className="category-card"
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, category.id)}
+                    onDragOver={handleDragOver}
+                    onDrop={(e) => handleDrop(e, category.id)}
+                    style={{ opacity: draggedCategoryId === category.id ? 0.5 : 1, cursor: 'grab' }}
+                >
                     <div className="space-between row">
                         <span
                             className="category-badge"
@@ -429,6 +503,15 @@ const Categories = () => {
                             onChange={(event) => updateFormField("color", event.target.value)}
                         />
 
+                        <label htmlFor="new-category-order">Orden</label>
+                        <input
+                            id="new-category-order"
+                            type="number"
+                            placeholder="0"
+                            value={form.order}
+                            onChange={(event) => updateFormField("order", Number(event.target.value))}
+                        />
+
                         {createError ? <p className="categories-modal-error">{createError}</p> : null}
 
                         <div className="categories-modal-actions">
@@ -484,6 +567,16 @@ const Categories = () => {
                             value={editForm.color}
                             onChange={(event) => setEditForm((prev) => (prev ? {
                                 ...prev, color: event.target.value
+                            } : prev))}
+                        />
+
+                        <label htmlFor="edit-category-order">Orden</label>
+                        <input
+                            id="edit-category-order"
+                            type="number"
+                            value={editForm.order}
+                            onChange={(event) => setEditForm((prev) => (prev ? {
+                                ...prev, order: Number(event.target.value)
                             } : prev))}
                         />
 

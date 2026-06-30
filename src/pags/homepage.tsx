@@ -4,6 +4,7 @@ import { getHomeData, getLatestPublications, getPublicCategories, getCategoryArt
 import type { PublicArticle, PublicCategory } from "../libs/types.ts";
 import PublicFooter from "../components/PublicFooter.tsx";
 import PublicNavbar from "../components/PublicNavbar.tsx";
+import { AdBlock } from "../components/AdBlock.tsx";
 
 /* ── helpers ─────────────────────────────────────────── */
 
@@ -335,6 +336,8 @@ const HomePage = () => {
                 </div>
               </div>
             </section>
+
+            <AdBlock style={{ margin: "2rem auto", maxWidth: "728px" }} adSlot="HOME_MIDDLE" />
 
             {/* Últimas Noticias */}
             {latestThree.length > 0 && (

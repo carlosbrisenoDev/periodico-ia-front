@@ -38,7 +38,9 @@ export type PublicArticle = {
   slug: string;
   excerpt: string;
   featuredImageUrl?: string;
+  featuredImageCaption?: string | null;
   createdAt: string;
+  scheduledAt?: string | null;
   authorName: string;
   categoryName: string;
   isFeatured?: boolean;
@@ -57,6 +59,7 @@ export type ArticlePreviewData = {
   excerpt: string;
   content: string;
   featuredImageUrl?: string | null;
+  featuredImageCaption?: string | null;
   tags: string[];
   authorName: string;
   authorAvatarUrl?: string | null;

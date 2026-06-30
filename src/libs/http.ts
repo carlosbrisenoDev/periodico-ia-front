@@ -279,6 +279,9 @@ export const registerSubscriber = async (input: {
   username: string;
   email: string;
   password: string;
+  age?: number;
+  phone?: string;
+  location?: string;
 }): Promise<{ message: string }> => {
   const payload = await apiFetch<RegisterSubscriberResponse>(`${SUBSCRIBERS_PREFIX}/register`, {
     method: "POST",
@@ -346,6 +349,10 @@ const normalizePublicArticle = (
     excerpt: typeof record.excerpt === "string" ? record.excerpt : "Sin descripción.",
     featuredImageUrl:
       typeof record.featuredImageUrl === "string" ? record.featuredImageUrl : undefined,
+    featuredImageCaption:
+      typeof record.featuredImageCaption === "string" ? record.featuredImageCaption : undefined,
+    scheduledAt:
+      typeof record.scheduledAt === "string" ? record.scheduledAt : undefined,
     createdAt:
       typeof record.createdAt === "string"
         ? record.createdAt

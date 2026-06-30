@@ -8,11 +8,58 @@ import {
   useLocation,
 } from "react-router-dom";
 import "./App.css";
+
+const useContentProtection = () => {
+  const location = useLocation();
+
+  useEffect(() => {
+    const isAdminRoute = [
+      "/admin", "/dashboard", "/allentries", "/all-entries", 
+      "/new-publication", "/publication/", "/authors-users", 
+      "/subscribers", "/comments", "/citizen-reports", "/categories", 
+      "/deleted-entries", "/settings", "/image-library"
+    ].some(path => location.pathname.includes(path) || location.pathname.startsWith(path));
+
+    if (!isAdminRoute) {
+      // Apply CSS protection
+      document.body.style.userSelect = "none";
+      document.body.style.webkitUserSelect = "none";
+      
+      const disableEvents = (e: Event) => {
+        // Allow clicks on inputs, textareas, etc.
+        const target = e.target as HTMLElement;
+        if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.tagName === "SELECT") {
+          return;
+        }
+        e.preventDefault();
+      };
+
+      document.addEventListener("contextmenu", disableEvents);
+      document.addEventListener("copy", disableEvents);
+      document.addEventListener("cut", disableEvents);
+
+      return () => {
+        document.body.style.userSelect = "";
+        document.body.style.webkitUserSelect = "";
+        document.removeEventListener("contextmenu", disableEvents);
+        document.removeEventListener("copy", disableEvents);
+        document.removeEventListener("cut", disableEvents);
+      };
+    } else {
+      document.body.style.userSelect = "";
+      document.body.style.webkitUserSelect = "";
+    }
+  }, [location.pathname]);
+};
+
 import Dashboard from "./pags/dashboard.tsx";
 import AdminLoginPage from "./pags/adminloginpage.tsx";
 import AllEntries from "./pags/allentries.tsx";
 import AllEntriesAdmin from "./pags/allentriesadmin.tsx";
 import AuthorsUsers from "./pags/authorsusers.tsx";
+import Subscribers from "./pags/subscribers.tsx";
+import CommentsModeration from "./pags/comments.tsx";
+import CitizenReportsModeration from "./pags/citizen-reports.tsx";
 import Categories from "./pags/categories.tsx";
 import NewPublication from "./pags/newpublication.tsx";
 import EditPublication from "./pags/editpublication.tsx";
@@ -78,6 +125,15 @@ const ProtectedRoute = ({ allowedRoles }: { allowedRoles?: string[] }) => {
 const App = () => {
   return (
     <BrowserRouter>
+      <AppContent />
+    </BrowserRouter>
+  );
+};
+
+const AppContent = () => {
+  useContentProtection();
+
+  return (
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/categoria/:id" element={<CategoryPage />} />
@@ -98,6 +154,9 @@ const App = () => {
           <Route path="/publication/:id/preview" element={<PublicationPreview />} />
           <Route path="/publication/:id/edit" element={<EditPublication />} />
           <Route path="/authors-users" element={<AuthorsUsers />} />
+          <Route path="/subscribers" element={<Subscribers />} />
+          <Route path="/comments" element={<CommentsModeration />} />
+          <Route path="/citizen-reports" element={<CitizenReportsModeration />} />
           <Route path="/categories" element={<Categories />} />
           <Route path="/deleted-entries" element={<DeletedEntries />} />
           <Route path="/settings" element={<SettingsPage />} />
@@ -109,7 +168,6 @@ const App = () => {
         </Route>
 
       </Routes>
-    </BrowserRouter>
   );
 };
 

@@ -11,6 +11,8 @@ import type {
   ArticleRecommendation,
   ArticlePreviewLocationState,
 } from "../libs/types.ts";
+import { CommentsSection } from "../components/CommentsSection.tsx";
+import { AdBlock } from "../components/AdBlock.tsx";
 
 type ArticleDetailResponse = {
   id: string;
@@ -19,6 +21,7 @@ type ArticleDetailResponse = {
   excerpt: string;
   content: string;
   featuredImageUrl: string | null;
+  featuredImageCaption: string | null;
   author: {
     id: string;
     name: string;
@@ -33,6 +36,16 @@ type ArticleDetailResponse = {
   publishedAt: string | null;
   createdAt: string;
   tags?: string[];
+  isVideoGallery?: boolean;
+  videoUrl?: string | null;
+  allowComments?: boolean;
+};
+
+const getYoutubeEmbedUrl = (url?: string | null) => {
+  if (!url) return null;
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+  const match = url.match(regExp);
+  return (match && match[2].length === 11) ? `https://www.youtube.com/embed/${match[2]}` : null;
 };
 
 
@@ -47,6 +60,9 @@ type PublicationPreviewArticle = ArticlePreviewData & {
   authorAvatarUrl?: string | null;
   categorySlug?: string | null;
   categoryId?: string | null;
+  isVideoGallery?: boolean;
+  videoUrl?: string | null;
+  allowComments?: boolean;
 };
 
 
@@ -132,6 +148,7 @@ const buildArticleFromPublicDetail = (
     excerpt,
     content,
     featuredImageUrl: fallback?.featuredImageUrl ?? detail.featuredImageUrl ?? null,
+    featuredImageCaption: fallback?.featuredImageCaption ?? detail.featuredImageCaption ?? null,
     tags: fallback?.tags?.length ? fallback.tags : (Array.isArray(detail.tags) ? detail.tags : []),
     authorName: resolvedAuthorName,
     authorAvatarUrl: fallback?.authorAvatarUrl ?? author?.avatarUrl ?? null,
@@ -139,6 +156,9 @@ const buildArticleFromPublicDetail = (
     categoryName: resolvedCategoryName,
     categoryId: resolvedCategoryId,
     categorySlug: resolvedCategorySlug,
+    isVideoGallery: fallback?.isVideoGallery ?? detail.isVideoGallery ?? false,
+    videoUrl: fallback?.videoUrl ?? detail.videoUrl ?? null,
+    allowComments: fallback?.allowComments ?? detail.allowComments ?? true,
     publishedAt: fallback?.publishedAt ?? detail.publishedAt ?? detail.createdAt ?? null,
   };
 };
@@ -188,6 +208,100 @@ export const PublicationPreview = () => {
   const [recommendations, setRecommendations] = useState<ArticleRecommendation[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportReason, setReportReason] = useState("");
+  const [reportEmail, setReportEmail] = useState("");
+  const [reporting, setReporting] = useState(false);
+  const [reportSuccess, setReportSuccess] = useState(false);
+  const [reportError, setReportError] = useState<string | null>(null);
+
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+
+  useEffect(() => {
+    return () => {
+      if ("speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, []);
+
+  const handleTTS = () => {
+    if (!("speechSynthesis" in window)) {
+      alert("Tu navegador no soporta lectura por voz.");
+      return;
+    }
+
+    if (isPlaying) {
+      if (isPaused) {
+        window.speechSynthesis.resume();
+        setIsPaused(false);
+      } else {
+        window.speechSynthesis.pause();
+        setIsPaused(true);
+      }
+      return;
+    }
+
+    window.speechSynthesis.cancel();
+    
+    const textToRead = `
+      ${article?.title || ""} 
+      ${article?.excerpt || ""} 
+      ${contentBlocks.filter((b: any) => b.type === "text" || b.type === "subtitle").map((b: any) => b.text).join(". ")}
+    `;
+
+    const utterance = new SpeechSynthesisUtterance(textToRead);
+    utterance.lang = "es-ES";
+    utterance.onend = () => {
+      setIsPlaying(false);
+      setIsPaused(false);
+    };
+    
+    setIsPlaying(true);
+    setIsPaused(false);
+    window.speechSynthesis.speak(utterance);
+  };
+
+  const handleStopTTS = () => {
+    if ("speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+      setIsPlaying(false);
+      setIsPaused(false);
+    }
+  };
+
+  const handleReportSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!article?.id) return;
+    if (!reportReason.trim() || reportReason.trim().length > 500) {
+      setReportError("Por favor ingresa un motivo válido (máximo 500 caracteres).");
+      return;
+    }
+    
+    try {
+      setReporting(true);
+      setReportError(null);
+      await apiFetch(`${API_BASE_URL}/api/v1/reports`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          targetType: "article",
+          targetId: article.id,
+          reason: reportReason,
+          contactEmail: reportEmail.trim() || undefined
+        })
+      });
+      setReportSuccess(true);
+      setReportReason("");
+      setReportEmail("");
+    } catch (err: unknown) {
+      setReportError(err instanceof Error ? err.message : "Error al enviar el reporte.");
+    } finally {
+      setReporting(false);
+    }
+  };
 
   const handleShare = (network: string) => {
     const currentUrl = window.location.href;
@@ -354,6 +468,35 @@ export const PublicationPreview = () => {
             <h1 className="public-article-title">{article.title}</h1>
             <p className="public-article-excerpt">{article.excerpt}</p>
 
+            <div style={{ display: "flex", gap: "10px", marginBottom: "20px" }}>
+              <button 
+                onClick={handleTTS} 
+                style={{ display: "flex", alignItems: "center", gap: "6px", padding: "8px 12px", border: "1px solid #d1d5db", borderRadius: "20px", background: "#f9fafb", cursor: "pointer", fontSize: "0.875rem", color: "#374151" }}
+              >
+                {isPlaying && !isPaused ? (
+                  <>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+                    Pausar lectura
+                  </>
+                ) : (
+                  <>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                    {isPaused ? "Reanudar lectura" : "Escuchar artículo"}
+                  </>
+                )}
+              </button>
+              
+              {isPlaying && (
+                <button 
+                  onClick={handleStopTTS} 
+                  style={{ display: "flex", alignItems: "center", gap: "6px", padding: "8px 12px", border: "1px solid #d1d5db", borderRadius: "20px", background: "#f9fafb", cursor: "pointer", fontSize: "0.875rem", color: "#ef4444" }}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg>
+                  Detener
+                </button>
+              )}
+            </div>
+
             <div className="public-article-meta">
               <div className="public-meta-item">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="public-meta-icon"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
@@ -370,11 +513,28 @@ export const PublicationPreview = () => {
             </div>
 
             <div className="public-article-hero">
-              {article.featuredImageUrl ? (
-                <img
-                  src={normalizeAssetUrl(article.featuredImageUrl) ?? ""}
-                  alt={article.title}
-                />
+              {article.isVideoGallery && getYoutubeEmbedUrl(article.videoUrl) ? (
+                <div style={{ position: "relative", paddingBottom: "56.25%", height: 0, overflow: "hidden", margin: 0 }}>
+                  <iframe
+                    src={getYoutubeEmbedUrl(article.videoUrl)!}
+                    style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", border: 0 }}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    title={article.title}
+                  />
+                </div>
+              ) : article.featuredImageUrl ? (
+                <figure style={{ margin: 0 }}>
+                  <img
+                    src={normalizeAssetUrl(article.featuredImageUrl) ?? ""}
+                    alt={article.title}
+                  />
+                  {article.featuredImageCaption && (
+                    <figcaption className="public-article-featured-caption">
+                      {article.featuredImageCaption}
+                    </figcaption>
+                  )}
+                </figure>
               ) : (
                 <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: "#5a7a94" }}>
                   <span>Imagen destacada pendiente</span>
@@ -429,7 +589,24 @@ export const PublicationPreview = () => {
                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"></line><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"></line></svg>
                 </button>
               </div>
+              <div style={{ marginTop: "24px", paddingTop: "24px", borderTop: "1px solid #e5e7eb" }}>
+                <button 
+                  className="entries-new-button" 
+                  style={{ backgroundColor: "transparent", color: "#6b7280", border: "1px solid #d1d5db", padding: "8px 16px", borderRadius: "6px", fontSize: "0.875rem", display: "inline-flex", alignItems: "center", gap: "8px", cursor: "pointer" }}
+                  onClick={() => setShowReportModal(true)}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-flag"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" x2="4" y1="22" y2="15"/></svg>
+                  Reportar contenido
+                </button>
+              </div>
             </div>
+
+            {/* Comments Section */}
+            {article.id && !article.id.startsWith("public-") && !article.id.startsWith("article-") && (
+              <CommentsSection articleId={article.id} allowComments={article.allowComments} />
+            )}
+            
+            <AdBlock style={{ marginTop: "2rem" }} adSlot="ARTICLE_BOTTOM" />
           </article>
         ) : null}
 
@@ -469,6 +646,64 @@ export const PublicationPreview = () => {
             </div>
           </section>
         ) : null}
+
+        {showReportModal && (
+          <div className="categories-modal-overlay" onClick={() => setShowReportModal(false)}>
+            <div className="categories-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "500px" }}>
+              <h2 className="categories-modal-title">Reportar Contenido</h2>
+              
+              {reportSuccess ? (
+                <div style={{ padding: "24px 0", textAlign: "center" }}>
+                  <p style={{ color: "#059669", fontWeight: "bold", marginBottom: "16px" }}>¡Gracias por tu reporte!</p>
+                  <p style={{ color: "#4b5563", marginBottom: "24px" }}>Revisaremos esta publicación lo antes posible.</p>
+                  <button className="primary" onClick={() => {
+                    setShowReportModal(false);
+                    setReportSuccess(false);
+                  }}>Cerrar</button>
+                </div>
+              ) : (
+                <form className="categories-form" onSubmit={handleReportSubmit}>
+                  <p style={{ marginBottom: "16px", color: "#4b5563", fontSize: "0.875rem" }}>
+                    Si consideras que este contenido viola nuestras normas o contiene información falsa, por favor detalla el motivo.
+                  </p>
+                  
+                  <label htmlFor="report-reason">Motivo del reporte *</label>
+                  <textarea
+                    id="report-reason"
+                    className="new-publication-input"
+                    style={{ minHeight: "100px", resize: "vertical" }}
+                    placeholder="Describe detalladamente el problema..."
+                    value={reportReason}
+                    onChange={(e) => setReportReason(e.target.value)}
+                    maxLength={500}
+                    required
+                  />
+
+                  <label htmlFor="report-email">Tu correo electrónico (opcional)</label>
+                  <input
+                    id="report-email"
+                    type="email"
+                    className="new-publication-input"
+                    placeholder="Para contactarte si es necesario"
+                    value={reportEmail}
+                    onChange={(e) => setReportEmail(e.target.value)}
+                  />
+
+                  {reportError && <p className="categories-modal-error">{reportError}</p>}
+
+                  <div className="categories-modal-actions">
+                    <button type="button" onClick={() => setShowReportModal(false)} disabled={reporting}>
+                      Cancelar
+                    </button>
+                    <button type="submit" className="primary" disabled={reporting} style={{ backgroundColor: "#ef4444" }}>
+                      {reporting ? "Enviando..." : "Enviar Reporte"}
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
+          </div>
+        )}
       </main>
 
       <PublicFooter categories={categories} />

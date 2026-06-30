@@ -14,6 +14,7 @@ type DashboardArticle = {
 
 type DashboardSummaryResponse = {
   latestArticles?: unknown[];
+  recentAuditLogs?: unknown[];
 };
 
 const normalizeArticle = (
@@ -111,6 +112,7 @@ const statusClass = (status: string): string => {
 const Dashboard = () => {
   const navigate = useNavigate();
   const [articles, setArticles] = useState<DashboardArticle[]>([]);
+  const [auditLogs, setAuditLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -134,13 +136,14 @@ const Dashboard = () => {
           ? payload.latestArticles
           : [];
 
-        const normalized = latest
-          .map((item, index) => normalizeArticle(item, index))
-          .filter((item): item is DashboardArticle => item !== null)
-          .slice(0, 3);
+          const normalized = latest
+            .map((item, index) => normalizeArticle(item, index))
+            .filter((item): item is DashboardArticle => item !== null)
+            .slice(0, 3);
 
-        setArticles(normalized);
-        setError(null);
+          setArticles(normalized);
+          setAuditLogs(Array.isArray(payload.recentAuditLogs) ? payload.recentAuditLogs.slice(0, 5) : []);
+          setError(null);
       } catch (err: unknown) {
         if (err instanceof Error && err.name === "AbortError") {
           return;
@@ -206,6 +209,31 @@ const Dashboard = () => {
                   {statusLabel(article.status)}
                 </span>
               </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="dashboard-card" style={{ marginTop: "1.5rem" }}>
+          <h2 className="dashboard-card-title">Registro de Auditoría</h2>
+          <div className="dashboard-list">
+            {loading ? (
+              <p className="dashboard-info">Cargando registros...</p>
+            ) : null}
+
+            {!loading && auditLogs.length === 0 ? (
+              <p className="dashboard-info">No hay registros recientes.</p>
+            ) : null}
+
+            {auditLogs.map((log) => (
+              <div key={log.id || log._id} className="dashboard-list-item" style={{ flexDirection: "column", alignItems: "flex-start", gap: "4px" }}>
+                <p className="dashboard-item-title" style={{ fontWeight: 600 }}>{log.action} - {log.targetType}</p>
+                <p className="dashboard-item-meta" style={{ marginTop: 0 }}>
+                  Por <strong>{log.actorEmail}</strong> el {formatDate(log.createdAt)} {new Date(log.createdAt).toLocaleTimeString("es-ES")}
+                </p>
+                <p className="dashboard-item-meta" style={{ fontSize: "0.85rem", marginTop: 0 }}>
+                  Detalles: {JSON.stringify(log.details)}
+                </p>
+              </div>
             ))}
           </div>
         </section>

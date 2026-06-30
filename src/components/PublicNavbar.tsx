@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { MenuIcon, CloseIcon, SearchIcon } from "./Icons.tsx";
+import { MenuIcon, CloseIcon, SearchIcon, MoonIcon, SunIcon } from "./Icons.tsx";
 import logoSrc from "../assets/logo.png";
 import type { PublicCategory } from "../libs/types.ts";
 
@@ -26,7 +26,31 @@ const formatFullDate = (): string => {
 const PublicNavbar = ({ categories, activeCategorySlug }: Omit<PublicNavbarProps, 'mobileOpen' | 'setMobileOpen'>) => {
   const [searchText, setSearchText] = useState("");
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [isDark, setIsDark] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme === "dark") {
+      setIsDark(true);
+      document.documentElement.classList.add("dark-mode");
+    } else {
+      setIsDark(false);
+      document.documentElement.classList.remove("dark-mode");
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    if (isDark) {
+      document.documentElement.classList.remove("dark-mode");
+      localStorage.setItem("theme", "light");
+      setIsDark(false);
+    } else {
+      document.documentElement.classList.add("dark-mode");
+      localStorage.setItem("theme", "dark");
+      setIsDark(true);
+    }
+  };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,6 +74,14 @@ const PublicNavbar = ({ categories, activeCategorySlug }: Omit<PublicNavbarProps
               <img className="public-nav-logo" src={logoSrc} alt="Información de Altura" />
             </Link>
             <div className="public-nav-actions">
+              <button 
+                onClick={toggleTheme} 
+                className="theme-toggle-btn" 
+                aria-label="Alternar tema"
+                style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-main)", display: "flex", alignItems: "center" }}
+              >
+                {isDark ? <SunIcon /> : <MoonIcon />}
+              </button>
               <div className="public-nav-date">{formatFullDate()}</div>
               <Link className="public-nav-subscribe hide-mobile" to="/suscripcion">
                 Suscribirse
