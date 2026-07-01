@@ -29,7 +29,6 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -48,7 +47,6 @@ const Dashboard = () => {
         );
 
           setAuditLogs(Array.isArray(payload.recentAuditLogs) ? payload.recentAuditLogs.slice(0, 5) : []);
-          setError(null);
 
       } catch (err: unknown) {
         if (err instanceof Error && err.name === "AbortError") {
@@ -59,8 +57,6 @@ const Dashboard = () => {
           navigate("/adminlogin", { replace: true });
           return;
         }
-
-        setError(err instanceof Error ? err.message : "Error desconocido");
 
       } finally {
         setLoading(false);

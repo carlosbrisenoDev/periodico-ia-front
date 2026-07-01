@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import Sidebar from "../components/sidebar.tsx";
+import { Sidebar } from "../components/sidebar.tsx";
 import { API_BASE_URL } from "../libs/config.ts";
 import { ApiError, apiFetch } from "../libs/http.ts";
 import "../App.css";
@@ -24,7 +24,6 @@ export default function VideosPage() {
   const [videos, setVideos] = useState<VideoAsset[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [saving, setSaving] = useState(false);
   const [newVideoUrl, setNewVideoUrl] = useState("");
@@ -94,15 +93,16 @@ export default function VideosPage() {
   };
 
   return (
-    <div className="layout-wrapper">
-      <Sidebar isMobileOpen={isSidebarOpen} onMobileClose={() => setIsSidebarOpen(false)} />
+    <div className="layout-wrapper dashboard-layout layout">
+      <aside className="sidebar">
+        <Sidebar />
+      </aside>
 
       <main className="main-content">
         <header className="mobile-header">
           <button
             type="button"
             className="menu-button"
-            onClick={() => setIsSidebarOpen(true)}
             aria-label="Abrir menú"
           >
             <svg

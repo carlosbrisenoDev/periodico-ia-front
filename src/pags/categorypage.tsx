@@ -92,7 +92,7 @@ const normalizePublicArticle = (item: unknown, index: number): PublicArticle | n
 const fetchCategoryArticles = async (
   id: string,
   signal?: AbortSignal,
-): Promise<{ name: string; articles: PublicArticle[] }> => {
+): Promise<{ name: string; template?: string; color?: string; articles: PublicArticle[] }> => {
   /* "Noticias" is not a real category — it shows ALL articles */
   if (id === "noticias") {
     const home = await apiFetch<{ recent?: unknown[]; featured?: unknown[]; latest?: unknown[] }>(

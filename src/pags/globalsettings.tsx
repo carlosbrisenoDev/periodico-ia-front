@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import DashboardLayout from "../components/dashboardlayout.tsx";
-import { getAuthToken } from "../libs/http.ts";
+import { Sidebar } from "../components/sidebar.tsx";
+import { apiFetch } from "../libs/http.ts";
 import { API_BASE_URL } from "../libs/config.ts";
 
 export default function GlobalSettingsPage() {
@@ -16,20 +16,12 @@ export default function GlobalSettingsPage() {
 
   const fetchSettings = async () => {
     try {
-      const token = getAuthToken();
-      const res = await fetch(`${API_BASE_URL}/api/v1/settings`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (res.ok) {
-        const data = await res.json();
+      const data = await apiFetch<any>(`${API_BASE_URL}/api/v1/settings`);
         setAdsenseEnabled(data.adsenseEnabled || false);
         setAdsenseClientId(data.adsenseClientId || "");
         if (Array.isArray(data.commentBlocklist)) {
           setCommentBlocklist(data.commentBlocklist.join(", "));
         }
-      }
     } catch (err) {
       console.error("Error fetching settings:", err);
     }
@@ -46,12 +38,10 @@ export default function GlobalSettingsPage() {
       .filter((s) => s.length > 0);
 
     try {
-      const token = getAuthToken();
-      const res = await fetch(`${API_BASE_URL}/api/v1/settings`, {
+      await apiFetch<any>(`${API_BASE_URL}/api/v1/settings`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           adsenseEnabled,
@@ -60,11 +50,7 @@ export default function GlobalSettingsPage() {
         }),
       });
 
-      if (res.ok) {
-        setMessage({ type: "success", text: "Configuración guardada correctamente." });
-      } else {
-        setMessage({ type: "error", text: "Error al guardar la configuración." });
-      }
+      setMessage({ type: "success", text: "Configuración guardada correctamente." });
     } catch (err) {
       setMessage({ type: "error", text: "Error de red al guardar la configuración." });
     } finally {
@@ -73,9 +59,14 @@ export default function GlobalSettingsPage() {
   };
 
   return (
-    <DashboardLayout>
-      <div style={{ padding: "24px", maxWidth: "800px", margin: "0 auto" }}>
-        <h1 style={{ fontSize: "2rem", marginBottom: "24px", color: "var(--text-main)" }}>Ajustes del Sitio</h1>
+    <div className="layout dashboard-layout">
+      <aside className="sidebar">
+        <Sidebar />
+      </aside>
+
+      <main className="content utility-page-content settings-content">
+        <div style={{ padding: "24px", maxWidth: "800px", margin: "0 auto" }}>
+          <h1 style={{ fontSize: "2rem", marginBottom: "24px", color: "var(--text-main)" }}>Ajustes del Sitio</h1>
 
           {message && (
             <div
@@ -174,6 +165,7 @@ export default function GlobalSettingsPage() {
             </div>
           </form>
         </div>
-    </DashboardLayout>
+      </main>
+    </div>
   );
 }
