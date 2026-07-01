@@ -14,7 +14,7 @@ type SubscriptionForm = {
   phone: string;
   location: string;
 };
-
+const INITIAL_FORM: SubscriptionForm = {
   email: "",
   password: "",
   username: "",
