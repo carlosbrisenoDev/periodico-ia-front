@@ -1,5 +1,5 @@
 import { type FormEvent, useState, useEffect } from "react";
-import { ApiError, registerSubscriber, getPublicCategories } from "../libs/http.ts";
+import { ApiError, registerSubscriber, subscriberLogin, getPublicCategories } from "../libs/http.ts";
 import type { PublicCategory } from "../libs/types.ts";
 import PublicNavbar from "../components/PublicNavbar.tsx";
 import PublicFooter from "../components/PublicFooter.tsx";
@@ -8,14 +8,15 @@ import PublicFooter from "../components/PublicFooter.tsx";
 
 type SubscriptionForm = {
   email: string;
+  password?: string;
   username: string;
   age: string;
   phone: string;
   location: string;
 };
 
-const INITIAL_FORM: SubscriptionForm = {
   email: "",
+  password: "",
   username: "",
   age: "",
   phone: "",
@@ -30,6 +31,7 @@ const SubscriptionPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState("");
   const [categories, setCategories] = useState<PublicCategory[]>([]);
+  const [isLoginMode, setIsLoginMode] = useState(false);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -59,21 +61,38 @@ const SubscriptionPage = () => {
     setMessage("");
 
     try {
-      const response = await registerSubscriber({
-        username: username || email.split("@")[0],
-        email,
-        password: crypto.randomUUID().slice(0, 16),
-        age: form.age ? Number(form.age) : undefined,
-        phone: form.phone.trim() || undefined,
-        location: form.location.trim() || undefined,
-      });
-      setMessage(response.message || "¡Suscripción creada correctamente!");
-      setForm(INITIAL_FORM);
+      if (isLoginMode) {
+        if (!form.password) {
+          setError("Ingresa tu contraseña.");
+          setSubmitting(false);
+          return;
+        }
+        const response = await subscriberLogin({ email, password: form.password });
+        setMessage(response.message || "¡Inicio de sesión exitoso!");
+        setForm(INITIAL_FORM);
+        setTimeout(() => {
+          window.location.href = "/reportar";
+        }, 1000);
+      } else {
+        const response = await registerSubscriber({
+          username: username || email.split("@")[0],
+          email,
+          password: form.password || crypto.randomUUID().slice(0, 16),
+          age: form.age ? Number(form.age) : undefined,
+          phone: form.phone.trim() || undefined,
+          location: form.location.trim() || undefined,
+        });
+        setMessage(response.message || "¡Suscripción creada correctamente!");
+        setForm(INITIAL_FORM);
+        setTimeout(() => {
+          window.location.href = "/reportar";
+        }, 1000);
+      }
     } catch (err: unknown) {
       if (err instanceof ApiError) {
         setError(err.message);
       } else {
-        setError(err instanceof Error ? err.message : "No se pudo completar la suscripción.");
+        setError(err instanceof Error ? err.message : `No se pudo completar ${isLoginMode ? "el inicio de sesión" : "la suscripción"}.`);
       }
     } finally {
       setSubmitting(false);
@@ -87,9 +106,13 @@ const SubscriptionPage = () => {
       {/* ── Main Content ──────────────────────────── */}
       <main className="ps-main">
         <div className="ps-card">
-          <h1 className="ps-title">Completa tu Suscripción</h1>
+          <h1 className="ps-title">{isLoginMode ? "Iniciar Sesión" : "Completa tu Suscripción"}</h1>
           <p className="ps-subtitle">
-            Recibe <strong>gratis</strong> un resumen claro de lo más importante del día, sin publicidad intrusiva.
+            {isLoginMode ? (
+              "Ingresa tus credenciales para continuar."
+            ) : (
+              <>Recibe <strong>gratis</strong> un resumen claro de lo más importante del día, sin publicidad intrusiva.</>
+            )}
           </p>
 
           <form className="ps-form" onSubmit={submitSubscription}>
@@ -107,18 +130,34 @@ const SubscriptionPage = () => {
               required
             />
 
-            <label className="ps-label" htmlFor="ps-name">
-              Nombre Completo <span className="ps-optional">(Opcional)</span>
+            <label className="ps-label" htmlFor="ps-password">
+              Contraseña <span className="ps-required">{isLoginMode ? "*" : "(Opcional si solo quieres suscribirte)"}</span>
             </label>
             <input
-              id="ps-name"
+              id="ps-password"
               className="ps-input"
-              type="text"
-              value={form.username}
-              onChange={(e) => updateField("username", e.target.value)}
-              placeholder="Tu nombre"
+              type="password"
+              value={form.password || ""}
+              onChange={(e) => updateField("password", e.target.value)}
+              placeholder="Tu contraseña"
               disabled={submitting}
+              required={isLoginMode}
             />
+
+            {!isLoginMode && (
+              <>
+                <label className="ps-label" htmlFor="ps-name">
+                  Nombre Completo <span className="ps-optional">(Opcional)</span>
+                </label>
+                <input
+                  id="ps-name"
+                  className="ps-input"
+                  type="text"
+                  value={form.username}
+                  onChange={(e) => updateField("username", e.target.value)}
+                  placeholder="Tu nombre"
+                  disabled={submitting}
+                />
 
             <label className="ps-label" htmlFor="ps-age">
               Edad <span className="ps-optional">(Opcional)</span>
@@ -160,17 +199,42 @@ const SubscriptionPage = () => {
               placeholder="Ciudad o País"
               disabled={submitting}
             />
+              </>
+            )}
 
             {error && <p className="ps-feedback ps-feedback-error">{error}</p>}
             {!error && message && <p className="ps-feedback ps-feedback-success">{message}</p>}
 
             <button className="ps-button" type="submit" disabled={submitting}>
-              {submitting ? "Enviando..." : "Suscribirme Ahora"}
+              {submitting ? "Procesando..." : isLoginMode ? "Iniciar Sesión" : "Suscribirme Ahora"}
             </button>
 
-            <p className="ps-terms">
-              Al suscribirte, aceptas nuestros Términos de Servicio y Política de Privacidad
-            </p>
+            <div style={{ textAlign: "center", marginTop: "1rem" }}>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsLoginMode(!isLoginMode);
+                  setError(null);
+                  setMessage("");
+                }}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "var(--primary-color)",
+                  cursor: "pointer",
+                  textDecoration: "underline",
+                  fontSize: "0.9rem"
+                }}
+              >
+                {isLoginMode ? "¿No tienes cuenta? Regístrate y suscríbete" : "¿Ya tienes cuenta? Inicia sesión"}
+              </button>
+            </div>
+
+            {!isLoginMode && (
+              <p className="ps-terms">
+                Al suscribirte, aceptas nuestros Términos de Servicio y Política de Privacidad
+              </p>
+            )}
           </form>
         </div>
       </main>
