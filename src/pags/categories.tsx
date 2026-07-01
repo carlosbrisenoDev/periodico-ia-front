@@ -5,7 +5,7 @@ import {API_BASE_URL} from "../libs/config.ts";
 import {ApiError, apiFetch} from "../libs/http.ts";
 
 type CategoryItem = {
-    id: string; name: string; slug: string; description: string; color?: string; order: number;
+    id: string; name: string; slug: string; description: string; color?: string; order: number; template: string;
 };
 
 type CreateCategoryResponse = {
@@ -13,15 +13,15 @@ type CreateCategoryResponse = {
 };
 
 type NewCategoryForm = {
-    name: string; slug: string; color: string; order: number;
+    name: string; slug: string; color: string; order: number; template: string;
 };
 
 type EditCategoryForm = {
-    id: string; name: string; slug: string; color: string; order: number;
+    id: string; name: string; slug: string; color: string; order: number; template: string;
 };
 
 const INITIAL_FORM: NewCategoryForm = {
-    name: "", slug: "", color: "#3B82F6", order: 0,
+    name: "", slug: "", color: "#3B82F6", order: 0, template: "default"
 };
 
 const normalizeCategory = (item: unknown, index: number): CategoryItem | null => {
@@ -46,6 +46,7 @@ const normalizeCategory = (item: unknown, index: number): CategoryItem | null =>
         description: typeof record.description === "string" && record.description.trim().length > 0 ? record.description.trim() : `/${safeSlug}`,
         color: typeof record.color === "string" ? record.color : undefined,
         order: typeof record.order === "number" ? record.order : 0,
+        template: typeof record.template === "string" ? record.template : "default",
     };
 };
 
@@ -178,7 +179,7 @@ const Categories = () => {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                    name, slug: finalSlug, order: Number(form.order) || 0, color: form.color,
+                    name, slug: finalSlug, order: Number(form.order) || 0, color: form.color, template: form.template
                 }),
             });
 
@@ -189,6 +190,7 @@ const Categories = () => {
                 description: typeof payload.description === "string" && payload.description.trim().length > 0 ? payload.description : `/${finalSlug}`,
                 color: form.color,
                 order: typeof payload.order === "number" ? payload.order : Number(form.order) || 0,
+                template: form.template,
             };
 
             setCategories((prev) => {
@@ -216,6 +218,7 @@ const Categories = () => {
             slug: category.slug,
             color: category.color ?? colorForCategory(category.slug),
             order: category.order,
+            template: category.template || "default",
         });
         setEditError(null);
     };
@@ -258,7 +261,7 @@ const Categories = () => {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                    name, slug, order: Number(editForm.order) || 0, color: editForm.color,
+                    name, slug, order: Number(editForm.order) || 0, color: editForm.color, template: editForm.template
                 }),
             });
 
@@ -268,7 +271,7 @@ const Categories = () => {
 
             setCategories((prev) => {
                 const next = prev.map((category) => category.id === editForm.id ? {
-                    ...category, name: nextName, slug: nextSlug, color: editForm.color, description: `/${nextSlug}`, order: nextOrder,
+                    ...category, name: nextName, slug: nextSlug, color: editForm.color, description: `/${nextSlug}`, order: nextOrder, template: editForm.template,
                 } : category);
                 return next.sort((a, b) => a.order - b.order);
             });
@@ -491,6 +494,18 @@ const Categories = () => {
                             onChange={(event) => updateFormField("slug", event.target.value)}
                         />
 
+                        <label htmlFor="new-category-template">Diseño (Plantilla)</label>
+                        <select
+                            id="new-category-template"
+                            value={form.template}
+                            onChange={(event) => updateFormField("template", event.target.value)}
+                        >
+                            <option value="default">Por Defecto</option>
+                            <option value="magazine">Revista (Magazine)</option>
+                            <option value="list">Lista Vertical</option>
+                            <option value="hero-grid">Destacado (Hero Grid)</option>
+                        </select>
+
                         <label htmlFor="new-category-color">Color</label>
                         <input
                             id="new-category-color"
@@ -555,6 +570,20 @@ const Categories = () => {
                                 ...prev, slug: event.target.value
                             } : prev))}
                         />
+
+                        <label htmlFor="edit-category-template">Diseño (Plantilla)</label>
+                        <select
+                            id="edit-category-template"
+                            value={editForm.template}
+                            onChange={(event) => setEditForm((prev) => (prev ? {
+                                ...prev, template: event.target.value
+                            } : prev))}
+                        >
+                            <option value="default">Por Defecto</option>
+                            <option value="magazine">Revista (Magazine)</option>
+                            <option value="list">Lista Vertical</option>
+                            <option value="hero-grid">Destacado (Hero Grid)</option>
+                        </select>
 
                         <label htmlFor="edit-category-color">Color</label>
                         <input
