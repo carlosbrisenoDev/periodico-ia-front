@@ -6,7 +6,7 @@ import { ApiError, apiFetch } from "../libs/http.ts";
 type EditableBlock =
   | { id: string; type: "paragraph"; text: string }
   | { id: string; type: "subtitle"; text: string }
-  | { id: string; type: "image"; url: string }
+  | { id: string; type: "image"; url: string; caption?: string }
   | { id: string; type: "video"; url: string }
   | { id: string; type: "image-row"; urls: string[]; layout?: "equal" | "left-large" | "right-large" };
 
@@ -48,7 +48,7 @@ const createEditableBlock = (block: ContentBlock): EditableBlock => {
   }
 
   if (block.type === "image") {
-    return { id: createBlockId(), type: "image", url: block.url };
+    return { id: createBlockId(), type: "image", url: block.url, caption: block.caption };
   }
 
   if (block.type === "video") {
@@ -68,7 +68,7 @@ const createEmptyBlock = (type: EditableBlock["type"]): EditableBlock => {
   }
 
   if (type === "image") {
-    return { id: createBlockId(), type, url: "" };
+    return { id: createBlockId(), type, url: "", caption: "" };
   }
 
   if (type === "video") {
@@ -95,7 +95,7 @@ const initializeBlocks = (value: string): EditableBlock[] => {
 const stripIds = (blocks: EditableBlock[]): ContentBlock[] =>
   blocks.map((block) => {
     if (block.type === "image") {
-      return { type: "image", url: block.url };
+      return { type: "image", url: block.url, caption: block.caption };
     }
     if (block.type === "video") {
       return { type: "video", url: block.url };
@@ -434,11 +434,22 @@ export const ArticleContentEditor = ({
                       <span>Sin imágenes</span>
                     </div>
                   ) : (
-                    <div className="editor-image-preview-wrapper">
+                    <div className="editor-image-preview-wrapper" style={{ display: "flex", flexDirection: "column" }}>
                       <img
                         className="editor-image-preview"
                         src={normalizeImageUrl(block.url)}
                         alt="Imagen del contenido"
+                      />
+                      <input
+                        className="editor-input"
+                        style={{ marginTop: "12px", border: "none", borderBottom: "1px dashed var(--border)", borderRadius: 0, padding: "8px 4px", fontSize: "0.875rem" }}
+                        type="text"
+                        placeholder="Escribe un pie de foto (opcional)..."
+                        value={block.caption || ""}
+                        onChange={(event) =>
+                          updateBlock(block.id, (current) => ({ ...current, caption: event.target.value }))
+                        }
+                        disabled={disabled}
                       />
                     </div>
                   )}

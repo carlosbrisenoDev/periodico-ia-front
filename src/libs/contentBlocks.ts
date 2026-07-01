@@ -1,12 +1,12 @@
 export type ContentBlock =
   | { type: "paragraph"; text: string }
   | { type: "subtitle"; text: string }
-  | { type: "image"; url: string }
+  | { type: "image"; url: string; caption?: string }
   | { type: "video"; url: string }
   | { type: "image-row"; urls: string[]; layout?: "equal" | "left-large" | "right-large" };
 
 const SUBTITLE_PATTERN = /^\[\[subtitle:(.+)\]\]$/i;
-const IMAGE_PATTERN = /^\[\[image:(.+)\]\]$/i;
+const IMAGE_PATTERN = /^\[\[image:([^|\]]+)(?:\|(.*))?\]\]$/i;
 const VIDEO_PATTERN = /^\[\[video:(.+)\]\]$/i;
 const IMAGEROW_PATTERN = /^\[\[image-row(?:(?:(?::layout=)(equal|left-large|right-large))|):(.+)\]\]$/i;
 
@@ -54,8 +54,9 @@ export const parseContentBlocks = (content: string): ContentBlock[] => {
     if (imageMatch) {
       flushParagraph();
       const url = imageMatch[1]?.trim();
+      const caption = imageMatch[2]?.trim();
       if (url) {
-        blocks.push({ type: "image", url });
+        blocks.push({ type: "image", url, caption });
       }
       continue;
     }
@@ -113,8 +114,14 @@ export const serializeContentBlocks = (blocks: ContentBlock[]): string => {
         return [`[[image-row${layoutSegment}: ${block.urls.join(' | ')}]]`];
       }
 
-      const url = block.url.trim();
-      return url ? [`[[image: ${url}]]`] : [];
+      if (block.type === "image") {
+        const url = block.url.trim();
+        const caption = block.caption?.trim();
+        if (!url) return [];
+        return caption ? [`[[image: ${url} | ${caption}]]`] : [`[[image: ${url}]]`];
+      }
+
+      return [];
     })
     .join("\n\n");
 };

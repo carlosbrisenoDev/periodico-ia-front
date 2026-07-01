@@ -50,7 +50,7 @@ const ReportNewsPage = () => {
     <div className="ph-page">
       <PublicNavbar categories={categories} />
 
-      <main className="ps-main" style={{ minHeight: "100vh", backgroundColor: "var(--bg-main)", padding: "2rem 1rem" }}>
+      <main className="ps-main" style={{ minHeight: "100vh", backgroundColor: "var(--bg-page)", padding: "2rem 1rem" }}>
         <div style={{ maxWidth: "800px", margin: "0 auto", paddingBottom: "2rem" }}>
 
         <CitizenReportForm prefillUser={user || undefined} />

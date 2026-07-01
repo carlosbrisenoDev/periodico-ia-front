@@ -471,7 +471,7 @@ export const PublicationPreview = () => {
             <div style={{ display: "flex", gap: "10px", marginBottom: "20px" }}>
               <button 
                 onClick={handleTTS} 
-                style={{ display: "flex", alignItems: "center", gap: "6px", padding: "8px 12px", border: "1px solid #d1d5db", borderRadius: "20px", background: "#f9fafb", cursor: "pointer", fontSize: "0.875rem", color: "#374151" }}
+                style={{ display: "flex", alignItems: "center", gap: "6px", padding: "8px 12px", border: "1px solid var(--border)", borderRadius: "20px", background: "var(--bg-surface)", cursor: "pointer", fontSize: "0.875rem", color: "var(--text-main)" }}
               >
                 {isPlaying && !isPaused ? (
                   <>
@@ -489,7 +489,7 @@ export const PublicationPreview = () => {
               {isPlaying && (
                 <button 
                   onClick={handleStopTTS} 
-                  style={{ display: "flex", alignItems: "center", gap: "6px", padding: "8px 12px", border: "1px solid #d1d5db", borderRadius: "20px", background: "#f9fafb", cursor: "pointer", fontSize: "0.875rem", color: "#ef4444" }}
+                  style={{ display: "flex", alignItems: "center", gap: "6px", padding: "8px 12px", border: "1px solid var(--border)", borderRadius: "20px", background: "var(--bg-surface)", cursor: "pointer", fontSize: "0.875rem", color: "#ef4444" }}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg>
                   Detener
@@ -559,8 +559,13 @@ export const PublicationPreview = () => {
                   return (
                     <figure key={`${block.url.slice(0, 24)}-${index}`}>
                       <div className="public-article-inline-image-wrapper">
-                        <img src={imageUrl} alt="Imagen del contenido" />
+                        <img src={imageUrl} alt={block.caption || "Imagen del contenido"} />
                       </div>
+                      {block.caption && (
+                        <figcaption className="public-article-featured-caption" style={{ textAlign: "center", marginTop: "8px", color: "var(--text-muted)", fontSize: "0.875rem" }}>
+                          {block.caption}
+                        </figcaption>
+                      )}
                     </figure>
                   );
                 }
@@ -615,10 +620,10 @@ export const PublicationPreview = () => {
                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"></line><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"></line></svg>
                 </button>
               </div>
-              <div style={{ marginTop: "24px", paddingTop: "24px", borderTop: "1px solid #e5e7eb" }}>
+              <div style={{ marginTop: "24px", paddingTop: "24px", borderTop: "1px solid var(--border)" }}>
                 <button 
                   className="entries-new-button" 
-                  style={{ backgroundColor: "transparent", color: "#6b7280", border: "1px solid #d1d5db", padding: "8px 16px", borderRadius: "6px", fontSize: "0.875rem", display: "inline-flex", alignItems: "center", gap: "8px", cursor: "pointer" }}
+                  style={{ backgroundColor: "transparent", color: "var(--text-muted)", border: "1px solid var(--border)", padding: "8px 16px", borderRadius: "6px", fontSize: "0.875rem", display: "inline-flex", alignItems: "center", gap: "8px", cursor: "pointer" }}
                   onClick={() => setShowReportModal(true)}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-flag"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" x2="4" y1="22" y2="15"/></svg>
@@ -649,7 +654,7 @@ export const PublicationPreview = () => {
                         {item.featuredImageUrl ? (
                           <img src={item.featuredImageUrl} alt={item.title} />
                         ) : (
-                          <div style={{ width: "100%", height: "100%", backgroundColor: "#e5e7eb" }} />
+                          <div style={{ width: "100%", height: "100%", backgroundColor: "var(--border)" }} />
                         )}
                       </div>
                       <div className="public-card-content">
@@ -667,7 +672,7 @@ export const PublicationPreview = () => {
                   ))}
                 </div>
               ) : (
-                <p style={{ color: "#4b5563" }}>Todavía no hay recomendaciones para este artículo.</p>
+                <p style={{ color: "var(--text-muted)" }}>Todavía no hay recomendaciones para este artículo.</p>
               )}
             </div>
           </section>
@@ -681,7 +686,7 @@ export const PublicationPreview = () => {
               {reportSuccess ? (
                 <div style={{ padding: "24px 0", textAlign: "center" }}>
                   <p style={{ color: "#059669", fontWeight: "bold", marginBottom: "16px" }}>¡Gracias por tu reporte!</p>
-                  <p style={{ color: "#4b5563", marginBottom: "24px" }}>Revisaremos esta publicación lo antes posible.</p>
+                  <p style={{ color: "var(--text-muted)", marginBottom: "24px" }}>Revisaremos esta publicación lo antes posible.</p>
                   <button className="primary" onClick={() => {
                     setShowReportModal(false);
                     setReportSuccess(false);
@@ -689,7 +694,7 @@ export const PublicationPreview = () => {
                 </div>
               ) : (
                 <form className="categories-form" onSubmit={handleReportSubmit}>
-                  <p style={{ marginBottom: "16px", color: "#4b5563", fontSize: "0.875rem" }}>
+                  <p style={{ marginBottom: "16px", color: "var(--text-muted)", fontSize: "0.875rem" }}>
                     Si consideras que este contenido viola nuestras normas o contiene información falsa, por favor detalla el motivo.
                   </p>
                   

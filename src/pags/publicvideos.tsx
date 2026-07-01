@@ -78,7 +78,7 @@ export default function PublicVideosPage() {
                     />
                   </div>
                 ) : (
-                  <div style={{ height: "200px", backgroundColor: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "8px" }}>
+                  <div style={{ height: "200px", backgroundColor: "var(--bg-surface)", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "8px" }}>
                     <a href={video.url} target="_blank" rel="noopener noreferrer" style={{ color: "#8b1f1f", textDecoration: "underline" }}>
                       Ver video en {video.platform}
                     </a>
