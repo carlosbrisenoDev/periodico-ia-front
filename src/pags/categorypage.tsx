@@ -36,7 +36,7 @@ const articleHref = (a: PublicArticle) => `/articulo/${a.id}`;
 /* ── Data Fetching ───────────────────────────────────── */
 
 type CategoryPageResponse = {
-  category?: { id?: string; name?: string; slug?: string };
+  category?: { id?: string; name?: string; slug?: string; template?: string; color?: string };
   articles?: unknown[];
 };
 
@@ -125,14 +125,21 @@ const fetchCategoryArticles = async (
   const name =
     data.category && typeof data.category.name === "string" ? data.category.name : id;
 
+  const template =
+    data.category && typeof data.category.template === "string" ? data.category.template : "default";
+
+  const color =
+    data.category && typeof data.category.color === "string" ? data.category.color : undefined;
+
   const articles = Array.isArray(data.articles)
     ? (data.articles
         .map((item, i) => normalizePublicArticle(item, i))
         .filter((a): a is PublicArticle => a !== null))
     : [];
 
-  return { name, articles };
+  return { name, template, color, articles };
 };
+
 
 /* ── Card Components ─────────────────────────────────── */
 
@@ -146,8 +153,9 @@ const FeaturedCard = ({ article, category }: { article: PublicArticle; category:
       )}
     </div>
     <div className="pc-featured-body">
-      <span className="pc-badge">{category}</span>
+      <span className="pc-badge" style={{ color: "var(--category-color, inherit)", borderColor: "var(--category-color, inherit)" }}>{category}</span>
       <h2 className="pc-featured-title">{article.title}</h2>
+
       <p className="pc-featured-excerpt">{article.excerpt}</p>
       <div className="pc-meta">
         <span>{formatArticleDate(article.createdAt)}</span>
@@ -170,8 +178,9 @@ const SmallCard = ({ article, category }: { article: PublicArticle; category: st
       )}
     </div>
     <div className="pc-small-body">
-      <div className="pc-small-category">{category}</div>
+      <div className="pc-small-category" style={{ color: "var(--category-color, inherit)" }}>{category}</div>
       <h3 className="pc-small-title">{article.title}</h3>
+
       <div className="pc-meta">
         <span>{formatArticleDate(article.createdAt)}</span>
         <span>•</span>
@@ -191,12 +200,58 @@ const GridCard = ({ article, category }: { article: PublicArticle; category: str
       )}
     </div>
     <div className="pc-grid-body">
-      <div className="pc-small-category">{category}</div>
+      <div className="pc-small-category" style={{ color: "var(--category-color, inherit)" }}>{category}</div>
       <h3 className="pc-grid-title">{article.title}</h3>
       <div className="pc-meta">
         <span>{formatArticleDate(article.createdAt)}</span>
         <span>•</span>
         <span>{formatArticleTime(article.createdAt)}</span>
+      </div>
+    </div>
+  </a>
+);
+
+const MagazineCard = ({ article, category, reverse }: { article: PublicArticle; category: string; reverse?: boolean }) => (
+  <a className={`pc-magazine-card ${reverse ? "pc-magazine-card-reverse" : ""}`} href={articleHref(article)}>
+    <div className="pc-magazine-image">
+      {article.featuredImageUrl ? (
+        <img src={article.featuredImageUrl} alt={article.title} />
+      ) : (
+        <div className="pc-image-placeholder">{category}</div>
+      )}
+    </div>
+    <div className="pc-magazine-body">
+      <div className="pc-small-category" style={{ color: "var(--category-color, inherit)" }}>{category}</div>
+      <h2 className="pc-magazine-title">{article.title}</h2>
+      <p className="pc-magazine-excerpt">{article.excerpt}</p>
+      <div className="pc-meta">
+        <span>{formatArticleDate(article.createdAt)}</span>
+        <span>•</span>
+        <span>{formatArticleTime(article.createdAt)}</span>
+        <span>•</span>
+        <span className="pc-meta-author">{article.authorName}</span>
+      </div>
+    </div>
+  </a>
+);
+
+const ListCard = ({ article, category }: { article: PublicArticle; category: string }) => (
+  <a className="pc-list-card" href={articleHref(article)}>
+    <div className="pc-list-image">
+      {article.featuredImageUrl ? (
+        <img src={article.featuredImageUrl} alt={article.title} />
+      ) : (
+        <div className="pc-image-placeholder">{category}</div>
+      )}
+    </div>
+    <div className="pc-list-body">
+      <div className="pc-small-category" style={{ color: "var(--category-color, inherit)" }}>{category}</div>
+      <h3 className="pc-list-title">{article.title}</h3>
+      <p className="pc-list-excerpt">{article.excerpt}</p>
+      <div className="pc-meta">
+        <span>{formatArticleDate(article.createdAt)}</span>
+        <span>•</span>
+        <span className="pc-meta-author">{article.authorName}</span>
       </div>
     </div>
   </a>
@@ -208,10 +263,13 @@ const CategoryPage = () => {
   const { id } = useParams<{ id: string }>();
   const capitalizedId = id ? id.charAt(0).toUpperCase() + id.slice(1) : "";
   const [categoryName, setCategoryName] = useState(capitalizedId);
+  const [template, setTemplate] = useState("default");
+  const [color, setColor] = useState<string | undefined>();
   const [articles, setArticles] = useState<PublicArticle[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [categories, setCategories] = useState<PublicCategory[]>([]);
+
 
   useEffect(() => {
     if (!id) return;
@@ -230,7 +288,14 @@ const CategoryPage = () => {
 
         setCategoryName(categoryData.name);
         setArticles(categoryData.articles);
+        if ('template' in categoryData) {
+          setTemplate(categoryData.template as string);
+        }
+        if ('color' in categoryData) {
+          setColor(categoryData.color as string | undefined);
+        }
         setCategories(fetchedCats);
+
       } catch (err: unknown) {
         if (err instanceof Error && err.name === "AbortError") return;
         setError("No se pudieron cargar las publicaciones de esta categoría.");
@@ -296,16 +361,17 @@ const CategoryPage = () => {
 
 
   return (
-    <div className="ph-page">
+    <div className="ph-page" style={color ? { "--category-color": color } as React.CSSProperties : {}}>
       <PublicNavbar 
         categories={categories} 
         activeCategorySlug={id} 
       />
 
       {/* ── Category Banner ───────────────────────── */}
-      <section className="pc-banner">
+      <section className="pc-banner" style={color ? { backgroundColor: color, color: "#fff" } : {}}>
         <h1 className="pc-banner-title">{categoryName || id}</h1>
       </section>
+
 
       {/* ── Main Content ──────────────────────────── */}
       <main className="pc-main">
@@ -324,38 +390,58 @@ const CategoryPage = () => {
 
         {!loading && !error && articles.length > 0 && (
           <>
-            {/* Destacadas */}
-            <section className="pc-section">
-              <div className="pc-section-header">
-                <h2 className="pc-section-title">Destacadas</h2>
-              </div>
-
-              <div className="pc-featured-grid">
-                {featured && (
-                  <FeaturedCard article={featured} category={id === "noticias" ? featured.categoryName : categoryName} />
-                )}
-                {sideCards.length > 0 && (
-                  <div className="pc-side-stack">
-                    {sideCards.map((a) => (
-                      <SmallCard key={a.id} article={a} category={id === "noticias" ? a.categoryName : categoryName} />
-                    ))}
-                  </div>
-                )}
-              </div>
-            </section>
-
-            {/* Todas las publicaciones */}
-            {allCards.length > 0 && (
-              <section className="pc-section pc-section-border">
-                <div className="pc-section-header">
-                  <h2 className="pc-section-title">Todas las publicaciones de {categoryName}</h2>
-                </div>
-                <div className="pc-all-grid">
-                  {allCards.map((a) => (
-                    <GridCard key={a.id} article={a} category={id === "noticias" ? a.categoryName : categoryName} />
+            {template === 'magazine' ? (
+              <section className="pc-section pc-section-magazine">
+                <div className="pc-magazine-list">
+                  {articles.map((a, idx) => (
+                    <MagazineCard key={a.id} article={a} category={id === "noticias" ? a.categoryName : categoryName} reverse={idx % 2 !== 0} />
                   ))}
                 </div>
               </section>
+            ) : template === 'list' ? (
+              <section className="pc-section pc-section-list">
+                <div className="pc-list-vertical">
+                  {articles.map((a) => (
+                    <ListCard key={a.id} article={a} category={id === "noticias" ? a.categoryName : categoryName} />
+                  ))}
+                </div>
+              </section>
+            ) : (
+              <>
+                {/* Destacadas (Hero Grid / Default) */}
+                <section className="pc-section">
+                  <div className="pc-section-header">
+                    <h2 className="pc-section-title">Destacadas</h2>
+                  </div>
+
+                  <div className="pc-featured-grid">
+                    {featured && (
+                      <FeaturedCard article={featured} category={id === "noticias" ? featured.categoryName : categoryName} />
+                    )}
+                    {sideCards.length > 0 && (
+                      <div className="pc-side-stack">
+                        {sideCards.map((a) => (
+                          <SmallCard key={a.id} article={a} category={id === "noticias" ? a.categoryName : categoryName} />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </section>
+
+                {/* Todas las publicaciones */}
+                {allCards.length > 0 && (
+                  <section className="pc-section pc-section-border">
+                    <div className="pc-section-header">
+                      <h2 className="pc-section-title">Todas las publicaciones de {categoryName}</h2>
+                    </div>
+                    <div className="pc-all-grid">
+                      {allCards.map((a) => (
+                        <GridCard key={a.id} article={a} category={id === "noticias" ? a.categoryName : categoryName} />
+                      ))}
+                    </div>
+                  </section>
+                )}
+              </>
             )}
           </>
         )}

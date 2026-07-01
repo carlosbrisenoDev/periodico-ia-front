@@ -565,6 +565,32 @@ export const PublicationPreview = () => {
                   );
                 }
 
+                if (block.type === "video") {
+                  return (
+                    <div key={`${block.url.slice(0, 24)}-${index}`} style={{ position: "relative", paddingBottom: "56.25%", height: 0, overflow: "hidden", margin: "24px 0" }}>
+                      <iframe
+                        src={getYoutubeEmbedUrl(block.url) || block.url}
+                        style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", border: 0 }}
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                        title="Video"
+                      />
+                    </div>
+                  );
+                }
+
+                if (block.type === "image-row") {
+                  return (
+                    <div key={`row-${index}`} className={`image-row-grid image-row-${block.layout || 'equal'}`}>
+                      {block.urls.map((url, i) => (
+                        <div key={i} className={`image-row-item image-row-item-${i}`}>
+                          <img src={normalizeAssetUrl(url) ?? ""} alt="Imagen" />
+                        </div>
+                      ))}
+                    </div>
+                  );
+                }
+
                 return (
                   <p key={`${block.text.slice(0, 24)}-${index}`}>
                     {block.text}

@@ -5,7 +5,7 @@ import type { ProfileData } from "../libs/types.ts";
 
 type NavItem = {
     label: string;
-    icon: | "home" | "doc" | "grid" | "users" | "folder" | "plus" | "image" | "trash" | "settings" | "logout" | "message-circle" | "alert-triangle";
+    icon: | "home" | "doc" | "grid" | "users" | "folder" | "plus" | "image" | "video" | "trash" | "settings" | "logout" | "message-circle" | "alert-triangle";
     path?: string;
 };
 
@@ -34,15 +34,20 @@ const PRIMARY_ITEMS: NavItem[] = [{ label: "Dashboard", icon: "home", path: "/da
     icon: "plus",
     path: "/new-publication"
 }, { label: "Biblioteca de Imágenes", icon: "image", path: "/image-library" }, {
+    label: "Videos",
+    icon: "video",
+    path: "/videos"
+}, {
     label: "Entradas Borradas",
     icon: "trash",
     path: "/deleted-entries"
 },];
 
-const FOOTER_ITEMS: NavItem[] = [{ label: "Configuración", icon: "settings", path: "/settings" }, {
-    label: "Cerrar Sesión",
-    icon: "logout"
-},];
+const FOOTER_ITEMS: NavItem[] = [
+    { label: "Mi Cuenta", icon: "settings", path: "/settings" },
+    { label: "Ajustes", icon: "settings", path: "/global-settings" },
+    { label: "Cerrar Sesión", icon: "logout" },
+];
 
 import SIDEBAR_LOGO_PATH from "../assets/logo.png";
 
@@ -92,6 +97,21 @@ const Icon = ({ icon }: { icon: NavItem["icon"] }) => {
             <rect x="14" y="3" width="7" height="7" rx="1" />
             <rect x="3" y="14" width="7" height="7" rx="1" />
             <rect x="14" y="14" width="7" height="7" rx="1" />
+        </svg>);
+    }
+    
+    if (icon === "video") {
+        return (<svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+        >
+            <path d="m22 8-6 4 6 4V8Z" />
+            <rect width="14" height="12" x="2" y="6" rx="2" ry="2" />
         </svg>);
     }
 
@@ -363,6 +383,7 @@ export const Sidebar = () => {
                             "/allentries",
                             "/new-publication",
                             "/image-library",
+                            "/videos",
                             "/authors-users",
                             "/categories",
                             "/subscribers",

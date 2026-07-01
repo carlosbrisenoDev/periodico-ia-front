@@ -6,7 +6,9 @@ import { ApiError, apiFetch } from "../libs/http.ts";
 type EditableBlock =
   | { id: string; type: "paragraph"; text: string }
   | { id: string; type: "subtitle"; text: string }
-  | { id: string; type: "image"; url: string };
+  | { id: string; type: "image"; url: string }
+  | { id: string; type: "video"; url: string }
+  | { id: string; type: "image-row"; urls: string[]; layout?: "equal" | "left-large" | "right-large" };
 
 type ImageAsset = {
   id: string;
@@ -49,6 +51,14 @@ const createEditableBlock = (block: ContentBlock): EditableBlock => {
     return { id: createBlockId(), type: "image", url: block.url };
   }
 
+  if (block.type === "video") {
+    return { id: createBlockId(), type: "video", url: block.url };
+  }
+
+  if (block.type === "image-row") {
+    return { id: createBlockId(), type: "image-row", urls: block.urls, layout: block.layout };
+  }
+
   return { id: createBlockId(), type: "paragraph", text: block.text };
 };
 
@@ -59,6 +69,14 @@ const createEmptyBlock = (type: EditableBlock["type"]): EditableBlock => {
 
   if (type === "image") {
     return { id: createBlockId(), type, url: "" };
+  }
+
+  if (type === "video") {
+    return { id: createBlockId(), type, url: "" };
+  }
+
+  if (type === "image-row") {
+    return { id: createBlockId(), type, urls: ["", "", ""], layout: "equal" };
   }
 
   return { id: createBlockId(), type, text: "" };
@@ -79,6 +97,12 @@ const stripIds = (blocks: EditableBlock[]): ContentBlock[] =>
     if (block.type === "image") {
       return { type: "image", url: block.url };
     }
+    if (block.type === "video") {
+      return { type: "video", url: block.url };
+    }
+    if (block.type === "image-row") {
+      return { type: "image-row", urls: block.urls, layout: block.layout };
+    }
 
     return block.type === "subtitle"
       ? { type: "subtitle", text: block.text }
@@ -93,6 +117,7 @@ export const ArticleContentEditor = ({
 }: ArticleContentEditorProps) => {
   const [blocks, setBlocks] = useState<EditableBlock[]>(() => initializeBlocks(value));
   const [activeImageBlockId, setActiveImageBlockId] = useState<string | null>(null);
+  const [activeImageRowIndex, setActiveImageRowIndex] = useState<number | null>(null);
   const [showImageModal, setShowImageModal] = useState<boolean>(false);
   const [showLibraryModal, setShowLibraryModal] = useState<boolean>(false);
   const [images, setImages] = useState<ImageAsset[]>([]);
@@ -149,8 +174,9 @@ export const ArticleContentEditor = ({
 
     commitBlocks(nextBlocks);
 
-    if (type === "image") {
+    if (type === "image" || type === "image-row") {
       setActiveImageBlockId(nextBlock.id);
+      setActiveImageRowIndex(type === "image-row" ? 0 : null);
       setShowImageModal(true);
       setShowLibraryModal(false);
       setImageError(null);
@@ -165,6 +191,7 @@ export const ArticleContentEditor = ({
     const nextBlocks = blocks.filter((block) => block.id !== blockId);
     if (activeImageBlockId === blockId) {
       setActiveImageBlockId(null);
+      setActiveImageRowIndex(null);
       setShowImageModal(false);
       setShowLibraryModal(false);
     }
@@ -186,12 +213,13 @@ export const ArticleContentEditor = ({
     commitBlocks(nextBlocks);
   };
 
-  const openImageMenu = (blockId: string) => {
+  const openImageMenu = (blockId: string, rowIndex: number | null = null) => {
     if (disabled) {
       return;
     }
 
     setActiveImageBlockId(blockId);
+    setActiveImageRowIndex(rowIndex);
     setShowLibraryModal(false);
     setShowImageModal(true);
     setImageError(null);
@@ -201,6 +229,7 @@ export const ArticleContentEditor = ({
     setShowImageModal(false);
     setShowLibraryModal(false);
     setActiveImageBlockId(null);
+    setActiveImageRowIndex(null);
     setImageError(null);
   };
 
@@ -274,6 +303,16 @@ export const ArticleContentEditor = ({
       return;
     }
 
+    if (current.type === "image-row" && activeImageRowIndex !== null) {
+      updateBlock(current.id, (b) => {
+        if (b.type !== "image-row") return b;
+        const newUrls = [...b.urls];
+        newUrls[activeImageRowIndex] = url;
+        return { ...b, urls: newUrls };
+      });
+      return;
+    }
+
     updateBlock(current.id, () => ({
       ...current,
       url,
@@ -334,6 +373,8 @@ export const ArticleContentEditor = ({
   const iconPlus = <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5v14"/></svg>;
   const iconUp = <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m18 15-6-6-6 6"/></svg>;
   const iconDown = <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>;
+  const iconVideo = <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m22 8-6 4 6 4V8Z"/><rect width="14" height="12" x="2" y="6" rx="2" ry="2"/></svg>;
+  const iconGrid = <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg>;
 
   const renderActionChips = (blockId: string) => (
     <div className="editor-chips-group">
@@ -345,6 +386,12 @@ export const ArticleContentEditor = ({
       </button>
       <button type="button" className="editor-action-chip" onClick={() => addBlock("subtitle", blockId)} disabled={disabled}>
         {iconH} Subtítulo
+      </button>
+      <button type="button" className="editor-action-chip" onClick={() => addBlock("video", blockId)} disabled={disabled}>
+        {iconVideo} Video
+      </button>
+      <button type="button" className="editor-action-chip" onClick={() => addBlock("image-row", blockId)} disabled={disabled}>
+        {iconGrid} Fila Imágenes
       </button>
     </div>
   );
@@ -396,6 +443,94 @@ export const ArticleContentEditor = ({
                       <button type="button" className="editor-primary-action" onClick={() => openImageMenu(block.id)} disabled={disabled}>
                         {iconPlus} {block.url ? "Cambiar Imagen" : "Agregar Imagen"}
                       </button>
+                      {renderActionChips(block.id)}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          }
+
+          if (block.type === "image-row") {
+            const toggleLayout = () => {
+              updateBlock(block.id, (b) => {
+                if (b.type !== "image-row") return b;
+                const nextLayout = b.layout === 'equal' ? 'left-large' : b.layout === 'left-large' ? 'right-large' : 'equal';
+                return { ...b, layout: nextLayout };
+              });
+            };
+
+            return (
+              <div key={block.id} className="editor-block-wrapper">
+                {sideControls}
+                <div className="editor-block-container">
+                  <div className="editor-image-head">
+                    <span className="editor-image-label">Fila de Imágenes (Grid)</span>
+                    <button type="button" className="editor-trash-btn" onClick={() => removeBlock(block.id)} disabled={disabled}>
+                      {iconTrash}
+                    </button>
+                  </div>
+                  
+                  <div style={{ display: "flex", gap: "10px", margin: "10px 0" }}>
+                    <button type="button" onClick={toggleLayout} style={{ padding: "4px 8px", background: "#f3f4f6", border: "1px solid #d1d5db", borderRadius: "4px" }}>
+                      Distribución: {block.layout === 'equal' ? 'Iguales' : block.layout === 'left-large' ? 'Izquierda Grande' : 'Derecha Grande'}
+                    </button>
+                  </div>
+
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "10px" }}>
+                    {block.urls.map((url, i) => (
+                      <div key={i} className={`editor-block-container ${!url ? "image-empty" : ""}`} style={{ marginBottom: 0 }}>
+                        {!url ? (
+                          <div className="editor-image-placeholder" style={{ minHeight: "100px" }}>
+                            {iconImgBig}
+                          </div>
+                        ) : (
+                          <div className="editor-image-preview-wrapper" style={{ height: "100px" }}>
+                            <img className="editor-image-preview" src={normalizeImageUrl(url)} alt={`Col ${i}`} />
+                          </div>
+                        )}
+                        <button type="button" className="editor-primary-action" onClick={() => openImageMenu(block.id, i)} disabled={disabled} style={{ marginTop: "10px", width: "100%", justifyContent: "center" }}>
+                          {iconPlus} {url ? "Cambiar" : "Agregar"}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="editor-block-footer">
+                    <div className="editor-footer-left">
+                      {renderActionChips(block.id)}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          }
+
+          if (block.type === "video") {
+            return (
+              <div key={block.id} className="editor-block-wrapper">
+                {sideControls}
+                <div className="editor-block-container">
+                  <div className="editor-image-head">
+                    <span className="editor-image-label">Video Embebido (YouTube/Twitter)</span>
+                    <button type="button" className="editor-trash-btn" onClick={() => removeBlock(block.id)} disabled={disabled}>
+                      {iconTrash}
+                    </button>
+                  </div>
+                  <input
+                    className="editor-input"
+                    type="text"
+                    placeholder="Pega la URL de YouTube o X (Twitter)..."
+                    value={block.url}
+                    onChange={(event) =>
+                      updateBlock(block.id, (current) => ({ ...current, url: event.target.value }))
+                    }
+                    disabled={disabled}
+                    style={{ marginTop: "10px" }}
+                  />
+                  
+                  <div className="editor-block-footer">
+                    <div className="editor-footer-left">
                       {renderActionChips(block.id)}
                     </div>
                   </div>

@@ -64,14 +64,17 @@ import Categories from "./pags/categories.tsx";
 import NewPublication from "./pags/newpublication.tsx";
 import EditPublication from "./pags/editpublication.tsx";
 import ImageLibrary from "./pags/imagelibrary.tsx";
+import VideosPage from "./pags/videos.tsx";
 import SubscriptionPage from "./pags/subscription.tsx";
 import DeletedEntries from "./pags/deletedentries.tsx";
 import SettingsPage from "./pags/settings.tsx";
+import GlobalSettingsPage from "./pags/globalsettings.tsx";
 import { PublicationPreview } from "./pags/publicationpreview.tsx";
 import HomePage from "./pags/homepage.tsx";
 import CategoryPage from "./pags/categorypage.tsx";
 import SearchPage from "./pags/searchpage.tsx";
 import RecentPage from "./pags/recentpage.tsx";
+import PublicVideosPage from "./pags/publicvideos.tsx";
 import {
   getOptionalMe,
 } from "./libs/http.ts";
@@ -140,6 +143,7 @@ const AppContent = () => {
         <Route path="/articulo/:id" element={<PublicationPreview />} />
         <Route path="/buscar" element={<SearchPage />} />
         <Route path="/recientes" element={<RecentPage />} />
+        <Route path="/videoteca" element={<PublicVideosPage />} />
         <Route path="/suscripcion" element={<SubscriptionPage />} />
         <Route path="/adminlogin" element={<AdminLoginPage />} />
 
@@ -150,6 +154,7 @@ const AppContent = () => {
           <Route path="/allentries" element={<AllEntries />} />
           <Route path="/new-publication" element={<NewPublication />} />
           <Route path="/image-library" element={<ImageLibrary />} />
+          <Route path="/videos" element={<VideosPage />} />
           <Route path="/publication/preview" element={<PublicationPreview />} />
           <Route path="/publication/:id/preview" element={<PublicationPreview />} />
           <Route path="/publication/:id/edit" element={<EditPublication />} />
@@ -160,6 +165,10 @@ const AppContent = () => {
           <Route path="/categories" element={<Categories />} />
           <Route path="/deleted-entries" element={<DeletedEntries />} />
           <Route path="/settings" element={<SettingsPage />} />
+
+          <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
+            <Route path="/global-settings" element={<GlobalSettingsPage />} />
+          </Route>
 
         </Route>
 

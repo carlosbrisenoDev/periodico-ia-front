@@ -347,18 +347,15 @@ const Categories = () => {
         const updatedCategories = newCategories.map((c, idx) => ({ ...c, order: idx }));
         setCategories(updatedCategories);
 
-        // Save changed orders to backend
+        // Save changed orders to backend using the batch endpoint
         setUpdatingOrder(true);
         try {
-            const promises = updatedCategories.map((cat) => 
-                apiFetch<CreateCategoryResponse>(`${API_BASE_URL}/api/v1/category/${cat.id}`, {
-                    method: "PATCH",
-                    credentials: "include",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ order: cat.order }),
-                })
-            );
-            await Promise.all(promises);
+            await apiFetch<{ message: string; count: number }>(`${API_BASE_URL}/api/v1/category/batch-order`, {
+                method: "PATCH",
+                credentials: "include",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ items: updatedCategories.map((cat) => ({ id: cat.id, order: cat.order })) }),
+            });
         } catch (err) {
             console.error("Failed to update orders", err);
             // Optional: reload categories on failure

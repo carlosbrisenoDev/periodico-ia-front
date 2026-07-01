@@ -5,6 +5,7 @@ import type { PublicArticle, PublicCategory } from "../libs/types.ts";
 import PublicFooter from "../components/PublicFooter.tsx";
 import PublicNavbar from "../components/PublicNavbar.tsx";
 import { AdBlock } from "../components/AdBlock.tsx";
+import { CitizenReportForm } from "../components/CitizenReportForm.tsx";
 
 /* ── helpers ─────────────────────────────────────────── */
 
@@ -234,6 +235,7 @@ const HomePage = () => {
   const [categoryArticlesMap, setCategoryArticlesMap] = useState<Record<string, PublicArticle[]>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showCitizenReport, setShowCitizenReport] = useState(false);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -414,9 +416,31 @@ const HomePage = () => {
                 </Link>
               </div>
             </section>
+
+            {/* Citizen Report Banner */}
+            <section className="ph-cta" style={{ background: "var(--status-draft-bg)", color: "var(--text-main)", marginTop: "24px" }}>
+              <div className="ph-cta-inner">
+                <h2 className="ph-cta-title">¿Tienes una Noticia?</h2>
+                <p className="ph-cta-text">
+                  Si fuiste testigo de algún acontecimiento importante, haz tu <strong>denuncia ciudadana</strong> aquí.
+                </p>
+                <button 
+                  className="ph-cta-button" 
+                  onClick={() => setShowCitizenReport(true)}
+                  style={{ background: "var(--text-main)", color: "var(--bg-surface)", border: "none", cursor: "pointer", fontSize: "1rem", padding: "12px 24px" }}
+                >
+                  Reportar Noticia
+                </button>
+              </div>
+            </section>
           </>
         )}
       </main>
+
+      <CitizenReportForm 
+        isOpen={showCitizenReport} 
+        onClose={() => setShowCitizenReport(false)} 
+      />
 
       <PublicFooter categories={categories} />
     </div>

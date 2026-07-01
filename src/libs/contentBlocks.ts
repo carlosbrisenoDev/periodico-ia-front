@@ -1,10 +1,14 @@
 export type ContentBlock =
   | { type: "paragraph"; text: string }
   | { type: "subtitle"; text: string }
-  | { type: "image"; url: string };
+  | { type: "image"; url: string }
+  | { type: "video"; url: string }
+  | { type: "image-row"; urls: string[]; layout?: "equal" | "left-large" | "right-large" };
 
 const SUBTITLE_PATTERN = /^\[\[subtitle:(.+)\]\]$/i;
 const IMAGE_PATTERN = /^\[\[image:(.+)\]\]$/i;
+const VIDEO_PATTERN = /^\[\[video:(.+)\]\]$/i;
+const IMAGEROW_PATTERN = /^\[\[image-row(?:(?:(?::layout=)(equal|left-large|right-large))|):(.+)\]\]$/i;
 
 const normalizeLine = (line: string): string => line.trim();
 
@@ -56,6 +60,28 @@ export const parseContentBlocks = (content: string): ContentBlock[] => {
       continue;
     }
 
+    const videoMatch = line.match(VIDEO_PATTERN);
+    if (videoMatch) {
+      flushParagraph();
+      const url = videoMatch[1]?.trim();
+      if (url) {
+        blocks.push({ type: "video", url });
+      }
+      continue;
+    }
+
+    const imageRowMatch = line.match(IMAGEROW_PATTERN);
+    if (imageRowMatch) {
+      flushParagraph();
+      const layout = (imageRowMatch[1] || "equal") as "equal" | "left-large" | "right-large";
+      const urlsRaw = imageRowMatch[2] || "";
+      const urls = urlsRaw.split("|").map(u => u.trim()).filter(Boolean);
+      if (urls.length > 0) {
+        blocks.push({ type: "image-row", urls, layout });
+      }
+      continue;
+    }
+
     paragraphBuffer.push(rawLine.trimEnd());
   }
 
@@ -74,6 +100,17 @@ export const serializeContentBlocks = (blocks: ContentBlock[]): string => {
       if (block.type === "subtitle") {
         const text = block.text.trim();
         return text ? [`[[subtitle: ${text}]]`] : [];
+      }
+
+      if (block.type === "video") {
+        const url = block.url.trim();
+        return url ? [`[[video: ${url}]]`] : [];
+      }
+
+      if (block.type === "image-row") {
+        if (block.urls.length === 0) return [];
+        const layoutSegment = block.layout && block.layout !== 'equal' ? `:layout=${block.layout}` : '';
+        return [`[[image-row${layoutSegment}: ${block.urls.join(' | ')}]]`];
       }
 
       const url = block.url.trim();
