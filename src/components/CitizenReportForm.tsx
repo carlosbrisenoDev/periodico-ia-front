@@ -2,9 +2,9 @@ import { useState } from "react";
 import { API_BASE_URL, MAX_UPLOAD_MB } from "../libs/config.ts";
 import { apiFetch } from "../libs/http.ts";
 
-export const CitizenReportForm = () => {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
+export const CitizenReportForm = ({ prefillUser }: { prefillUser?: { username?: string; email?: string } }) => {
+  const [name, setName] = useState(prefillUser?.username || "");
+  const [email, setEmail] = useState(prefillUser?.email || "");
   const [phone, setPhone] = useState("");
   const [subject, setSubject] = useState("");
   const [description, setDescription] = useState("");
@@ -56,8 +56,8 @@ export const CitizenReportForm = () => {
       });
 
       setSuccess(true);
-      setName("");
-      setEmail("");
+      setName(prefillUser?.username || "");
+      setEmail(prefillUser?.email || "");
       setPhone("");
       setSubject("");
       setDescription("");
@@ -98,14 +98,14 @@ export const CitizenReportForm = () => {
                 />
               </div>
               <div>
-                <label>Correo Electrónico *</label>
+                <label>Tu Correo Electrónico *</label>
                 <input
                   type="email"
                   required
                   className="new-publication-input"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  disabled={submitting}
+                  disabled={submitting || !!prefillUser?.email}
                 />
               </div>
             </div>

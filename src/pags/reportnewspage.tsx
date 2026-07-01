@@ -5,16 +5,18 @@ import { useNavigate } from "react-router-dom";
 
 const ReportNewsPage = () => {
   const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<{ username?: string; email?: string } | null>(null);
   const navigate = useNavigate();
 
   const checkAuth = async () => {
     setLoading(true);
     try {
-      const user = await getSubscriberMe();
-      if (!user) {
+      const authUser = await getSubscriberMe();
+      if (!authUser) {
         navigate("/suscripcion", { state: { redirectTo: "/reportar" }, replace: true });
         return;
       }
+      setUser(authUser);
     } catch {
       navigate("/suscripcion", { state: { redirectTo: "/reportar" }, replace: true });
       return;
@@ -43,7 +45,7 @@ const ReportNewsPage = () => {
           </a>
         </div>
 
-        <CitizenReportForm />
+        <CitizenReportForm prefillUser={user || undefined} />
       </div>
     </div>
   );
