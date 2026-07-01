@@ -2,7 +2,7 @@ import React from "react";
 import logoSrc from "../assets/logo.png";
 import { PhoneIcon, FacebookIcon, XIcon, InstagramIcon, LinkedInIcon } from "./Icons.tsx";
 import type { PublicCategory } from "../libs/types.ts";
-import { CitizenReportForm } from "./CitizenReportForm.tsx";
+import { Link } from "react-router-dom";
 
 
 interface PublicFooterProps {
@@ -11,7 +11,6 @@ interface PublicFooterProps {
 }
 
 const PublicFooter: React.FC<PublicFooterProps> = ({ categories = [], variant = "full" }) => {
-  const [showCitizenReport, setShowCitizenReport] = React.useState(false);
   
   const safeCategories = Array.isArray(categories) ? categories : [];
   if (variant === "search") {
@@ -61,13 +60,9 @@ const PublicFooter: React.FC<PublicFooterProps> = ({ categories = [], variant = 
             <h4 className="public-footer-title">Participa</h4>
             <ul className="public-footer-links" style={{ marginBottom: "2rem" }}>
               <li>
-                <button 
-                  className="public-footer-link" 
-                  style={{ background: "none", border: "none", padding: 0, cursor: "pointer", font: "inherit", color: "inherit", textAlign: "left" }}
-                  onClick={() => setShowCitizenReport(true)}
-                >
-                  Envía tu Reporte Ciudadano
-                </button>
+                <Link to="/reportar" style={{ color: "var(--text-muted)", textDecoration: "none" }}>
+                  Reporte Ciudadano
+                </Link>
               </li>
             </ul>
             <h4 className="public-footer-title">Redes Sociales</h4>
@@ -84,10 +79,7 @@ const PublicFooter: React.FC<PublicFooterProps> = ({ categories = [], variant = 
         </div>
       </div>
       
-      <CitizenReportForm 
-        isOpen={showCitizenReport} 
-        onClose={() => setShowCitizenReport(false)} 
-      />
+
     </footer>
   );
 };

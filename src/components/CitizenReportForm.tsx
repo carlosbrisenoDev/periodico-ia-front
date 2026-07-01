@@ -2,12 +2,7 @@ import { useState } from "react";
 import { API_BASE_URL, MAX_UPLOAD_MB } from "../libs/config.ts";
 import { apiFetch } from "../libs/http.ts";
 
-type CitizenReportFormProps = {
-  isOpen: boolean;
-  onClose: () => void;
-};
-
-export const CitizenReportForm = ({ isOpen, onClose }: CitizenReportFormProps) => {
+export const CitizenReportForm = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -19,7 +14,6 @@ export const CitizenReportForm = ({ isOpen, onClose }: CitizenReportFormProps) =
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
-  if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,15 +70,14 @@ export const CitizenReportForm = ({ isOpen, onClose }: CitizenReportFormProps) =
   };
 
   return (
-    <div className="categories-modal-overlay" onClick={onClose}>
-      <div className="categories-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "600px", maxHeight: "90vh", overflowY: "auto" }}>
-        <h2 className="categories-modal-title">Reporte Ciudadano</h2>
-        
-        {success ? (
+    <div style={{ maxWidth: "800px", margin: "0 auto", padding: "2rem", background: "var(--bg-surface)", borderRadius: "8px", boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)" }}>
+      <h2 style={{ fontSize: "1.5rem", fontWeight: "bold", marginBottom: "1rem", color: "var(--text-main)" }}>Reporte Ciudadano</h2>
+      
+      {success ? (
           <div style={{ padding: "2rem 0", textAlign: "center" }}>
             <h3 style={{ color: "#059669", marginBottom: "1rem" }}>¡Reporte enviado con éxito!</h3>
             <p style={{ color: "#4b5563", marginBottom: "2rem" }}>Gracias por tu colaboración. Nuestro equipo revisará la información a la brevedad.</p>
-            <button className="primary" onClick={onClose}>Cerrar</button>
+            <a href="/" style={{ display: "inline-block", marginTop: "1rem", padding: "0.5rem 1rem", background: "var(--primary-color)", color: "white", borderRadius: "4px", textDecoration: "none" }}>Volver al inicio</a>
           </div>
         ) : (
           <form className="categories-form" onSubmit={handleSubmit}>
@@ -168,14 +161,12 @@ export const CitizenReportForm = ({ isOpen, onClose }: CitizenReportFormProps) =
             {error && <p className="categories-modal-error" style={{ marginTop: "1rem" }}>{error}</p>}
 
             <div className="categories-modal-actions" style={{ marginTop: "2rem" }}>
-              <button type="button" onClick={onClose} disabled={submitting}>Cancelar</button>
-              <button type="submit" className="primary" disabled={submitting}>
+              <button type="submit" className="primary" disabled={submitting} style={{ width: "100%", padding: "0.75rem" }}>
                 {submitting ? "Enviando..." : "Enviar Reporte"}
               </button>
             </div>
           </form>
         )}
-      </div>
     </div>
   );
 };

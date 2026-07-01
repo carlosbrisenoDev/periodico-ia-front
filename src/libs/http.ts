@@ -297,6 +297,36 @@ export const registerSubscriber = async (input: {
   };
 };
 
+export const subscriberLogin = async (input: {
+  email: string;
+  password: string;
+}): Promise<{ message: string }> => {
+  const payload = await apiFetch<{ message?: string }>(`${SUBSCRIBERS_PREFIX}/login`, {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(input),
+  });
+
+  return {
+    message: payload.message ?? "Sesión iniciada correctamente.",
+  };
+};
+
+export const getSubscriberMe = async (): Promise<{ username?: string; email?: string } | null> => {
+  try {
+    const payload = await apiFetch<{ username?: string; email?: string }>(`${SUBSCRIBERS_PREFIX}/me`, {
+      method: "GET",
+      credentials: "include",
+    });
+    return payload;
+  } catch {
+    return null;
+  }
+};
+
 export const isAdmin = (profile: ProfileData | null): boolean => {
   return profile?.role === "admin";
 };

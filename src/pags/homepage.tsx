@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { getHomeData, getLatestPublications, getPublicCategories, getCategoryArticles } from "../libs/http.ts";
 import type { PublicArticle, PublicCategory } from "../libs/types.ts";
 import PublicFooter from "../components/PublicFooter.tsx";
 import PublicNavbar from "../components/PublicNavbar.tsx";
 import { AdBlock } from "../components/AdBlock.tsx";
-import { CitizenReportForm } from "../components/CitizenReportForm.tsx";
 
 /* ── helpers ─────────────────────────────────────────── */
 
@@ -229,13 +228,13 @@ const CategorySectionB = ({
 /* ── Main HomePage ───────────────────────────────────── */
 
 const HomePage = () => {
+  const navigate = useNavigate();
   const [articles, setArticles] = useState<PublicArticle[]>([]);
   const [featuredArticles, setFeaturedArticles] = useState<PublicArticle[]>([]);
   const [categories, setCategories] = useState<PublicCategory[]>([]);
   const [categoryArticlesMap, setCategoryArticlesMap] = useState<Record<string, PublicArticle[]>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showCitizenReport, setShowCitizenReport] = useState(false);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -426,7 +425,7 @@ const HomePage = () => {
                 </p>
                 <button 
                   className="ph-cta-button" 
-                  onClick={() => setShowCitizenReport(true)}
+                  onClick={() => navigate("/reportar")}
                   style={{ background: "var(--text-main)", color: "var(--bg-surface)", border: "none", cursor: "pointer", fontSize: "1rem", padding: "12px 24px" }}
                 >
                   Reportar Noticia
@@ -436,11 +435,6 @@ const HomePage = () => {
           </>
         )}
       </main>
-
-      <CitizenReportForm 
-        isOpen={showCitizenReport} 
-        onClose={() => setShowCitizenReport(false)} 
-      />
 
       <PublicFooter categories={categories} />
     </div>

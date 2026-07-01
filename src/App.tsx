@@ -65,6 +65,7 @@ import NewPublication from "./pags/newpublication.tsx";
 import EditPublication from "./pags/editpublication.tsx";
 import ImageLibrary from "./pags/imagelibrary.tsx";
 import VideosPage from "./pags/videos.tsx";
+import ReportNewsPage from "./pags/reportnewspage.tsx";
 import SubscriptionPage from "./pags/subscription.tsx";
 import DeletedEntries from "./pags/deletedentries.tsx";
 import SettingsPage from "./pags/settings.tsx";
@@ -146,6 +147,7 @@ const AppContent = () => {
         <Route path="/videoteca" element={<PublicVideosPage />} />
         <Route path="/suscripcion" element={<SubscriptionPage />} />
         <Route path="/adminlogin" element={<AdminLoginPage />} />
+        <Route path="/reportar" element={<ReportNewsPage />} />
 
         <Route path="/admin" element={<Navigate to="/adminlogin" replace />} />
 
