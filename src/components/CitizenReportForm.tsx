@@ -118,8 +118,8 @@ export const CitizenReportForm = ({ prefillUser }: { prefillUser?: { username?: 
 
             {error && <p className="categories-modal-error" style={{ marginTop: "1rem" }}>{error}</p>}
 
-            <div className="categories-modal-actions" style={{ marginTop: "2rem" }}>
-              <button type="submit" className="primary" disabled={submitting} style={{ width: "100%", padding: "0.75rem" }}>
+            <div style={{ marginTop: "2rem", display: "flex", justifyContent: "center" }}>
+              <button type="submit" className="primary" disabled={submitting} style={{ width: "100%", padding: "0.75rem", fontSize: "1rem", fontWeight: "600" }}>
                 {submitting ? "Enviando..." : "Enviar Reporte"}
               </button>
             </div>
