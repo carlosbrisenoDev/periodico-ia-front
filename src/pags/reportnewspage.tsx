@@ -1,26 +1,30 @@
 import { useEffect, useState } from "react";
-import { getSubscriberMe } from "../libs/http.ts";
+import { getOptionalMe } from "../libs/http.ts";
 import { CitizenReportForm } from "../components/CitizenReportForm.tsx";
-import { SubscriberLoginForm } from "../components/SubscriberLoginForm.tsx";
+import { useNavigate } from "react-router-dom";
 
 const ReportNewsPage = () => {
   const [loading, setLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const navigate = useNavigate();
 
   const checkAuth = async () => {
     setLoading(true);
-    const user = await getSubscriberMe();
-    if (user) {
-      setIsAuthenticated(true);
-    } else {
-      setIsAuthenticated(false);
+    try {
+      const user = await getOptionalMe();
+      if (!user) {
+        navigate("/adminlogin", { state: { redirectTo: "/reportar" }, replace: true });
+        return;
+      }
+    } catch {
+      navigate("/adminlogin", { state: { redirectTo: "/reportar" }, replace: true });
+      return;
     }
     setLoading(false);
   };
 
   useEffect(() => {
     checkAuth();
-  }, []);
+  }, [navigate]);
 
   if (loading) {
     return (
@@ -39,11 +43,7 @@ const ReportNewsPage = () => {
           </a>
         </div>
 
-        {isAuthenticated ? (
-          <CitizenReportForm />
-        ) : (
-          <SubscriberLoginForm onSuccess={() => setIsAuthenticated(true)} />
-        )}
+        <CitizenReportForm />
       </div>
     </div>
   );
