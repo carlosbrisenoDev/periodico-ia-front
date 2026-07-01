@@ -1,5 +1,5 @@
 import { type ChangeEvent, useCallback, useEffect, useRef, useState } from "react";
-import { API_BASE_URL } from "../libs/config.ts";
+import { API_BASE_URL, MAX_UPLOAD_MB } from "../libs/config.ts";
 import { serializeContentBlocks, parseContentBlocks, type ContentBlock } from "../libs/contentBlocks.ts";
 import { ApiError, apiFetch } from "../libs/http.ts";
 
@@ -324,6 +324,11 @@ export const ArticleContentEditor = ({
     event.target.value = "";
 
     if (!selectedFile) {
+      return;
+    }
+
+    if (selectedFile.size > MAX_UPLOAD_MB * 1024 * 1024) {
+      setImageError(`La imagen no debe superar ${MAX_UPLOAD_MB}MB.`);
       return;
     }
 

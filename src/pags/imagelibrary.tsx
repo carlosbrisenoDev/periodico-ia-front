@@ -1,7 +1,7 @@
 import {type ChangeEvent, useEffect, useMemo, useRef, useState} from "react";
 import {useNavigate} from "react-router-dom";
 import {Sidebar} from "../components/sidebar.tsx";
-import {API_BASE_URL} from "../libs/config.ts";
+import {API_BASE_URL, MAX_UPLOAD_MB} from "../libs/config.ts";
 import {ApiError, apiFetch} from "../libs/http.ts";
 
 type ImageViewMode = "grid" | "list";
@@ -149,6 +149,11 @@ const ImageLibrary = () => {
         event.target.value = "";
 
         if (!selectedFile) {
+            return;
+        }
+
+        if (selectedFile.size > MAX_UPLOAD_MB * 1024 * 1024) {
+            setError(`La imagen no debe superar ${MAX_UPLOAD_MB}MB.`);
             return;
         }
 

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { API_BASE_URL } from "../libs/config.ts";
+import { API_BASE_URL, MAX_UPLOAD_MB } from "../libs/config.ts";
 import { apiFetch } from "../libs/http.ts";
 
 type CitizenReportFormProps = {
@@ -31,8 +31,8 @@ export const CitizenReportForm = ({ isOpen, onClose }: CitizenReportFormProps) =
       let imageUrl = "";
 
       if (imageFile) {
-        if (imageFile.size > 1024 * 1024) {
-          setError("La imagen no debe superar 1MB.");
+        if (imageFile.size > MAX_UPLOAD_MB * 1024 * 1024) {
+          setError(`La imagen no debe superar ${MAX_UPLOAD_MB}MB.`);
           setSubmitting(false);
           return;
         }

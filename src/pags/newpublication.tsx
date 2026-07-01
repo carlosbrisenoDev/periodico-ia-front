@@ -2,7 +2,7 @@ import { type ChangeEvent, type FormEvent, useEffect, useMemo, useRef, useState 
 import { useNavigate } from "react-router-dom";
 import { ArticleContentEditor } from "../components/articlecontenteditor.tsx";
 import { Sidebar } from "../components/sidebar.tsx";
-import { API_BASE_URL } from "../libs/config.ts";
+import { API_BASE_URL, MAX_UPLOAD_MB } from "../libs/config.ts";
 import { ApiError, apiFetch, getMe } from "../libs/http.ts";
 
 type PublicationStatus = "draft" | "scheduled" | "published";
@@ -442,6 +442,11 @@ const NewPublication = () => {
     event.target.value = "";
 
     if (!selectedFile) {
+      return;
+    }
+
+    if (selectedFile.size > MAX_UPLOAD_MB * 1024 * 1024) {
+      setImageError(`La imagen no debe superar ${MAX_UPLOAD_MB}MB.`);
       return;
     }
 

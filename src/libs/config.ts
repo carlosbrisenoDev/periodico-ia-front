@@ -29,3 +29,5 @@ const normalizeApiBaseUrl = (value: string): string => {
 export const API_BASE_URL = normalizeApiBaseUrl(
   rawApiUrl?.trim() || "http://localhost:3000",
 );
+
+export const MAX_UPLOAD_MB = Number(import.meta.env.VITE_MAX_UPLOAD_MB) || 5;
