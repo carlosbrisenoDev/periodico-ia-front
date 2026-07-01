@@ -361,7 +361,7 @@ const HomePage = () => {
             )}
 
             {/* Category Sections */}
-            {categories.map((catObj, index) => {
+            {[...categories].sort((a, b) => (a.order || 0) - (b.order || 0)).map((catObj, index) => {
               const catKey = (catObj.name || "").toLowerCase().trim();
               
               const fromGroup = grouped[catKey] || [];

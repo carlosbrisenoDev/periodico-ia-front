@@ -540,6 +540,9 @@ export const getPublicCategories = async (
       id: typeof cat.id === 'string' ? cat.id : '',
       name: typeof cat.name === 'string' ? cat.name : '',
       slug: typeof cat.slug === 'string' ? cat.slug : '',
+      order: typeof cat.order === 'number' ? cat.order : 0,
+      color: typeof cat.color === 'string' ? cat.color : null,
+      template: typeof cat.template === 'string' ? cat.template : 'default',
     };
   }).filter(c => c.id && c.name);
 };

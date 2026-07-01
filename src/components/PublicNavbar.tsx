@@ -59,8 +59,9 @@ const PublicNavbar = ({ categories, activeCategorySlug }: Omit<PublicNavbarProps
     }
   };
 
-  const visibleCategories = categories.slice(0, 7);
-  const moreCategories = categories.slice(7);
+  const sortedCategories = [...categories].sort((a, b) => (a.order || 0) - (b.order || 0));
+  const visibleCategories = sortedCategories.slice(0, 7);
+  const moreCategories = sortedCategories.slice(7);
 
   return (
     <>

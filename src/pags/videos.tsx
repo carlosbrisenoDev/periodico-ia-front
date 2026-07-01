@@ -130,7 +130,7 @@ export default function VideosPage() {
             </div>
             <button
               type="button"
-              className="categories-btn categories-btn-primary"
+              className="entries-new-button"
               onClick={() => setShowModal(true)}
             >
               + Agregar Video
@@ -159,7 +159,7 @@ export default function VideosPage() {
                   )}
                   <div style={{ padding: "0 16px 16px" }}>
                     <h4 className="categories-card-title" style={{ marginBottom: "4px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                      {video.title || video.videoExternalId}
+                      {video.title ? video.title : `Video de ${video.platform}`}
                     </h4>
                     <p style={{ margin: "0 0 16px 0", fontSize: "12px", color: "#6b7280", wordBreak: "break-all", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
                       {video.url}
@@ -168,7 +168,7 @@ export default function VideosPage() {
                       <button 
                         type="button" 
                         onClick={() => handleDelete(video.id)}
-                        className="categories-btn categories-btn-danger"
+                        style={{ padding: "6px 12px", background: "#ef4444", color: "white", border: "none", borderRadius: "4px", cursor: "pointer", fontSize: "0.875rem", fontWeight: "500" }}
                       >
                         Eliminar
                       </button>
@@ -205,14 +205,15 @@ export default function VideosPage() {
                 <button 
                   type="button" 
                   onClick={() => setShowModal(false)}
-                  className="categories-btn categories-btn-secondary"
+                  style={{ padding: "0.5rem 1rem", border: "1px solid var(--border-color)", background: "transparent", color: "var(--text-main)", borderRadius: "6px", cursor: "pointer", fontWeight: "500" }}
                 >
                   Cancelar
                 </button>
                 <button 
                   type="submit" 
                   disabled={saving}
-                  className="categories-btn categories-btn-primary"
+                  className="primary"
+                  style={{ padding: "0.5rem 1rem", borderRadius: "6px", fontWeight: "500" }}
                 >
                   {saving ? "Guardando..." : "Guardar"}
                 </button>

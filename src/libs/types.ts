@@ -89,4 +89,7 @@ export type PublicCategory = {
   id?: string;
   name?: string;
   slug?: string;
+  order?: number;
+  color?: string | null;
+  template?: string;
 };
