@@ -406,9 +406,9 @@ const CategoryPage = () => {
                   ))}
                 </div>
               </section>
-            ) : (
+            ) : template === 'hero-grid' ? (
               <>
-                {/* Destacadas (Hero Grid / Default) */}
+                {/* Destacadas (Hero Grid) */}
                 <section className="pc-section">
                   <div className="pc-section-header">
                     <h2 className="pc-section-title">Destacadas</h2>
@@ -442,6 +442,17 @@ const CategoryPage = () => {
                   </section>
                 )}
               </>
+            ) : (
+              <section className="pc-section">
+                <div className="pc-section-header">
+                  <h2 className="pc-section-title">Publicaciones Recientes</h2>
+                </div>
+                <div className="pc-all-grid">
+                  {articles.map((a) => (
+                    <GridCard key={a.id} article={a} category={id === "noticias" ? a.categoryName : categoryName} />
+                  ))}
+                </div>
+              </section>
             )}
           </>
         )}
