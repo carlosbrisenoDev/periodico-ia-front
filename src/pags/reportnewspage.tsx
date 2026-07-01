@@ -1,11 +1,15 @@
 import { useEffect, useState } from "react";
-import { getSubscriberMe } from "../libs/http.ts";
+import { getSubscriberMe, getPublicCategories } from "../libs/http.ts";
+import type { PublicCategory } from "../libs/types.ts";
 import { CitizenReportForm } from "../components/CitizenReportForm.tsx";
+import PublicNavbar from "../components/PublicNavbar.tsx";
+import PublicFooter from "../components/PublicFooter.tsx";
 import { useNavigate } from "react-router-dom";
 
 const ReportNewsPage = () => {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<{ username?: string; email?: string } | null>(null);
+  const [categories, setCategories] = useState<PublicCategory[]>([]);
   const navigate = useNavigate();
 
   const checkAuth = async () => {
@@ -26,6 +30,12 @@ const ReportNewsPage = () => {
 
   useEffect(() => {
     checkAuth();
+
+    const controller = new AbortController();
+    getPublicCategories(controller.signal)
+      .then(setCategories)
+      .catch(() => {});
+    return () => controller.abort();
   }, [navigate]);
 
   if (loading) {
@@ -37,16 +47,17 @@ const ReportNewsPage = () => {
   }
 
   return (
-    <div style={{ minHeight: "100vh", backgroundColor: "var(--bg-main)", padding: "2rem 1rem" }}>
-      <div style={{ maxWidth: "800px", margin: "0 auto", paddingBottom: "2rem" }}>
-        <div style={{ marginBottom: "2rem", display: "flex", alignItems: "center", gap: "1rem" }}>
-          <a href="/" style={{ color: "var(--primary-color)", textDecoration: "none", fontWeight: "600" }}>
-            ← Volver al inicio
-          </a>
-        </div>
+    <div className="ph-page">
+      <PublicNavbar categories={categories} />
+
+      <main className="ps-main" style={{ minHeight: "100vh", backgroundColor: "var(--bg-main)", padding: "2rem 1rem" }}>
+        <div style={{ maxWidth: "800px", margin: "0 auto", paddingBottom: "2rem" }}>
 
         <CitizenReportForm prefillUser={user || undefined} />
       </div>
+      </main>
+
+      <PublicFooter categories={categories} />
     </div>
   );
 };

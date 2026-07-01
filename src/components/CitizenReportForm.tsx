@@ -3,9 +3,6 @@ import { API_BASE_URL, MAX_UPLOAD_MB } from "../libs/config.ts";
 import { apiFetch } from "../libs/http.ts";
 
 export const CitizenReportForm = ({ prefillUser }: { prefillUser?: { username?: string; email?: string } }) => {
-  const [name, setName] = useState(prefillUser?.username || "");
-  const [email, setEmail] = useState(prefillUser?.email || "");
-  const [phone, setPhone] = useState("");
   const [subject, setSubject] = useState("");
   const [description, setDescription] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -46,9 +43,8 @@ export const CitizenReportForm = ({ prefillUser }: { prefillUser?: { username?: 
         credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name,
-          email,
-          phone: phone || undefined,
+          name: prefillUser?.username || "Usuario Suscrito",
+          email: prefillUser?.email || "sin_correo@ejemplo.com",
           subject,
           description,
           imageUrl: imageUrl || undefined,
@@ -56,9 +52,6 @@ export const CitizenReportForm = ({ prefillUser }: { prefillUser?: { username?: 
       });
 
       setSuccess(true);
-      setName(prefillUser?.username || "");
-      setEmail(prefillUser?.email || "");
-      setPhone("");
       setSubject("");
       setDescription("");
       setImageFile(null);
@@ -85,42 +78,7 @@ export const CitizenReportForm = ({ prefillUser }: { prefillUser?: { username?: 
               Utiliza este formulario para enviarnos noticias, denuncias ciudadanas o cualquier información de interés para la comunidad.
             </p>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
-              <div>
-                <label>Tu Nombre *</label>
-                <input
-                  type="text"
-                  required
-                  className="new-publication-input"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  disabled={submitting}
-                />
-              </div>
-              <div>
-                <label>Tu Correo Electrónico *</label>
-                <input
-                  type="email"
-                  required
-                  className="new-publication-input"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  disabled={submitting || !!prefillUser?.email}
-                />
-              </div>
-            </div>
-
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", marginTop: "1rem" }}>
-              <div>
-                <label>Teléfono (Opcional)</label>
-                <input
-                  type="tel"
-                  className="new-publication-input"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  disabled={submitting}
-                />
-              </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "1rem", marginTop: "1rem" }}>
               <div>
                 <label>Asunto *</label>
                 <input
