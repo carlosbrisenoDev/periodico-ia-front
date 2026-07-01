@@ -49,6 +49,7 @@ export const CitizenReportForm = ({ isOpen, onClose }: CitizenReportFormProps) =
 
       await apiFetch(`${API_BASE_URL}/api/v1/citizen-reports`, {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name,
