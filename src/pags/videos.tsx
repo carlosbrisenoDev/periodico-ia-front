@@ -123,21 +123,21 @@ export default function VideosPage() {
         </header>
 
         <div className="dashboard-content">
-          <div className="dashboard-header">
+          <header className="categories-header">
             <div>
-              <h1 className="dashboard-title">Videos</h1>
-              <p className="dashboard-subtitle">Gestiona los videos de YouTube o X para los artículos.</p>
+              <h2 className="categories-page-title">Videos</h2>
+              <p className="categories-page-desc">Gestiona los videos de YouTube o X para los artículos.</p>
             </div>
             <button
               type="button"
-              className="new-entry-button"
+              className="categories-btn categories-btn-primary"
               onClick={() => setShowModal(true)}
             >
               + Agregar Video
             </button>
-          </div>
+          </header>
 
-          {error && <p className="error-message" style={{ color: "red", marginBottom: 16 }}>{error}</p>}
+          {error && <p className="categories-error">{error}</p>}
 
           {loading ? (
             <p>Cargando videos...</p>
@@ -147,28 +147,28 @@ export default function VideosPage() {
               <p>Agrega videos de YouTube o X para usarlos en tus notas.</p>
             </div>
           ) : (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))", gap: 20 }}>
+            <div className="categories-grid" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))" }}>
               {videos.map(video => (
-                <div key={video.id} style={{ border: "1px solid #e5e7eb", borderRadius: 8, overflow: "hidden", backgroundColor: "white", position: "relative" }}>
+                <div key={video.id} className="categories-card" style={{ display: "flex", flexDirection: "column", gap: "12px", padding: 0, overflow: "hidden" }}>
                   {video.platform === "youtube" ? (
                     <img src={getThumbnailUrl(video.platform, video.videoExternalId)} alt={video.title} style={{ width: "100%", height: "150px", objectFit: "cover" }} />
                   ) : (
                     <div style={{ height: "150px", backgroundColor: "#f3f4f6", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <span style={{ color: "#6b7280" }}>Video de {video.platform}</span>
+                      <span style={{ color: "#6b7280", fontSize: "14px" }}>Video de {video.platform}</span>
                     </div>
                   )}
-                  <div style={{ padding: 12 }}>
-                    <h4 style={{ margin: "0 0 8px 0", fontSize: "14px", fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                  <div style={{ padding: "0 16px 16px" }}>
+                    <h4 className="categories-card-title" style={{ marginBottom: "4px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                       {video.title || video.videoExternalId}
                     </h4>
-                    <p style={{ margin: "0 0 12px 0", fontSize: "12px", color: "#6b7280", wordBreak: "break-all", overflow: "hidden", textOverflow: "ellipsis", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>
+                    <p style={{ margin: "0 0 16px 0", fontSize: "12px", color: "#6b7280", wordBreak: "break-all", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
                       {video.url}
                     </p>
                     <div style={{ display: "flex", justifyContent: "flex-end" }}>
                       <button 
                         type="button" 
                         onClick={() => handleDelete(video.id)}
-                        style={{ color: "#ef4444", background: "none", border: "none", cursor: "pointer", fontSize: "12px" }}
+                        className="categories-btn categories-btn-danger"
                       >
                         Eliminar
                       </button>
@@ -182,46 +182,37 @@ export default function VideosPage() {
       </main>
 
       {showModal && (
-        <div className="new-publication-modal-overlay">
-          <div className="new-publication-modal" style={{ maxWidth: 500 }}>
-            <div className="new-publication-modal-head">
-              <h2>Agregar Video</h2>
-              <button type="button" className="new-publication-modal-close" onClick={() => setShowModal(false)}>x</button>
-            </div>
-            <form onSubmit={handleAddVideo} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-              <div>
-                <label style={{ display: "block", marginBottom: 8, fontSize: "14px", fontWeight: 500, color: "#374151" }}>URL del Video</label>
-                <input 
-                  type="url" 
-                  value={newVideoUrl} 
-                  onChange={e => setNewVideoUrl(e.target.value)} 
-                  placeholder="Ej. https://www.youtube.com/watch?v=..."
-                  required
-                  style={{ width: "100%", padding: 8, border: "1px solid #d1d5db", borderRadius: 4 }}
-                />
-              </div>
-              <div>
-                <label style={{ display: "block", marginBottom: 8, fontSize: "14px", fontWeight: 500, color: "#374151" }}>Título (Opcional)</label>
-                <input 
-                  type="text" 
-                  value={newVideoTitle} 
-                  onChange={e => setNewVideoTitle(e.target.value)} 
-                  placeholder="Título descriptivo..."
-                  style={{ width: "100%", padding: 8, border: "1px solid #d1d5db", borderRadius: 4 }}
-                />
-              </div>
-              <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 16 }}>
+        <div className="categories-modal-overlay" onClick={() => setShowModal(false)}>
+          <div className="categories-modal" onClick={(e) => e.stopPropagation()}>
+            <h2 className="categories-modal-title">Agregar Video</h2>
+            <form className="categories-form" onSubmit={handleAddVideo}>
+              <label>URL del Video</label>
+              <input 
+                type="url" 
+                value={newVideoUrl} 
+                onChange={e => setNewVideoUrl(e.target.value)} 
+                placeholder="Ej. https://www.youtube.com/watch?v=..."
+                required
+              />
+              <label>Título (Opcional)</label>
+              <input 
+                type="text" 
+                value={newVideoTitle} 
+                onChange={e => setNewVideoTitle(e.target.value)} 
+                placeholder="Título descriptivo..."
+              />
+              <div className="categories-modal-actions">
                 <button 
                   type="button" 
                   onClick={() => setShowModal(false)}
-                  style={{ padding: "8px 16px", background: "white", border: "1px solid #d1d5db", borderRadius: 4, cursor: "pointer" }}
+                  className="categories-btn categories-btn-secondary"
                 >
                   Cancelar
                 </button>
                 <button 
                   type="submit" 
                   disabled={saving}
-                  style={{ padding: "8px 16px", background: "#0ea5e9", color: "white", border: "none", borderRadius: 4, cursor: "pointer" }}
+                  className="categories-btn categories-btn-primary"
                 >
                   {saving ? "Guardando..." : "Guardar"}
                 </button>
