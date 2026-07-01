@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getOptionalMe } from "../libs/http.ts";
+import { getSubscriberMe } from "../libs/http.ts";
 import { CitizenReportForm } from "../components/CitizenReportForm.tsx";
 import { useNavigate } from "react-router-dom";
 
@@ -10,13 +10,13 @@ const ReportNewsPage = () => {
   const checkAuth = async () => {
     setLoading(true);
     try {
-      const user = await getOptionalMe();
+      const user = await getSubscriberMe();
       if (!user) {
-        navigate("/adminlogin", { state: { redirectTo: "/reportar" }, replace: true });
+        navigate("/suscripcion", { state: { redirectTo: "/reportar" }, replace: true });
         return;
       }
     } catch {
-      navigate("/adminlogin", { state: { redirectTo: "/reportar" }, replace: true });
+      navigate("/suscripcion", { state: { redirectTo: "/reportar" }, replace: true });
       return;
     }
     setLoading(false);
