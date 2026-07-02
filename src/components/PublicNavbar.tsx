@@ -79,7 +79,7 @@ const PublicNavbar = ({ categories, activeCategorySlug }: Omit<PublicNavbarProps
                 onClick={toggleTheme} 
                 className="theme-toggle-btn" 
                 aria-label="Alternar tema"
-                style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-main)", display: "flex", alignItems: "center" }}
+                style={{ background: "none", border: "none", cursor: "pointer", color: "#111827", display: "flex", alignItems: "center" }}
               >
                 {isDark ? <SunIcon /> : <MoonIcon />}
               </button>

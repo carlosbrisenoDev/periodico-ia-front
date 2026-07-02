@@ -488,12 +488,35 @@ export const ArticleContentEditor = ({
                   </div>
                   
                   <div style={{ display: "flex", gap: "10px", margin: "10px 0" }}>
-                    <button type="button" onClick={toggleLayout} style={{ padding: "4px 8px", background: "#f3f4f6", border: "1px solid #d1d5db", borderRadius: "4px" }}>
-                      Distribución: {block.layout === 'equal' ? 'Iguales' : block.layout === 'left-large' ? 'Izquierda Grande' : 'Derecha Grande'}
-                    </button>
+                    <select
+                      value={block.urls.length}
+                      onChange={(e) => {
+                        const newLength = parseInt(e.target.value, 10);
+                        updateBlock(block.id, (b) => {
+                          if (b.type !== "image-row") return b;
+                          const newUrls = [...b.urls];
+                          if (newLength === 2 && newUrls.length > 2) {
+                            newUrls.length = 2;
+                          } else if (newLength === 3 && newUrls.length < 3) {
+                            newUrls.push("");
+                          }
+                          return { ...b, urls: newUrls, layout: newLength === 2 ? 'equal' : b.layout };
+                        });
+                      }}
+                      style={{ padding: "4px 8px", background: "#f3f4f6", border: "1px solid #d1d5db", borderRadius: "4px" }}
+                      disabled={disabled}
+                    >
+                      <option value={2}>2 Imágenes</option>
+                      <option value={3}>3 Imágenes</option>
+                    </select>
+                    {block.urls.length === 3 && (
+                      <button type="button" onClick={toggleLayout} style={{ padding: "4px 8px", background: "#f3f4f6", border: "1px solid #d1d5db", borderRadius: "4px" }}>
+                        Distribución: {block.layout === 'equal' ? 'Iguales' : block.layout === 'left-large' ? 'Izquierda Grande' : 'Derecha Grande'}
+                      </button>
+                    )}
                   </div>
 
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "10px" }}>
+                  <div style={{ display: "grid", gridTemplateColumns: block.urls.length === 2 ? "1fr 1fr" : "1fr 1fr 1fr", gap: "10px" }}>
                     {block.urls.map((url, i) => (
                       <div key={i} className={`editor-block-container ${!url ? "image-empty" : ""}`} style={{ marginBottom: 0 }}>
                         {!url ? (

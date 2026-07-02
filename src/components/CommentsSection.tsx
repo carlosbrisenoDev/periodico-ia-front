@@ -37,11 +37,11 @@ export const CommentsSection = ({ articleId, allowComments = true }: CommentsSec
     const fetchComments = async () => {
       try {
         setLoading(true);
-        const data = await apiFetch<{ comments: Comment[] }>(
+        const data = await apiFetch<{ data: Comment[] }>(
           `${API_BASE_URL}/api/v1/comments?articleId=${articleId}&status=approved`,
           { signal: controller.signal }
         );
-        setComments(data.comments || []);
+        setComments(data.data || []);
       } catch (err: any) {
         if (err.name === "AbortError") return;
         setError("Error al cargar comentarios.");

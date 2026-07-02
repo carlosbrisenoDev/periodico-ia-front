@@ -5844,52 +5844,15 @@ body,
   color: var(--text-muted);
 }
 
-.dark-mode .public-nav-container {
-  background: var(--bg-surface);
-  border-bottom-color: var(--border);
-}
 .dark-mode .public-layout,
 .dark-mode .public-main {
   background-color: var(--bg-page);
   color: var(--text-main);
 }
+
 .dark-mode .public-back-bar {
   background-color: var(--bg-surface);
   border-bottom-color: var(--border);
-}
-.dark-mode .public-nav-top {
-  border-bottom-color: var(--border);
-}
-.dark-mode .public-nav-bottom {
-  background: var(--bg-surface);
-}
-.dark-mode .public-nav-date {
-  color: var(--text-muted);
-}
-.dark-mode .public-nav-link {
-  color: var(--text-main);
-}
-.dark-mode .public-nav-link:hover {
-  color: var(--status-scheduled-text);
-}
-.dark-mode .public-nav-link.active {
-  color: var(--status-scheduled-text);
-}
-.dark-mode .public-nav-search-input {
-  background: var(--bg-active);
-  border: 1px solid var(--border);
-  color: var(--text-main);
-}
-
-.dark-mode .public-nav-logo-fallback {
-  color: var(--text-main);
-}
-.dark-mode .public-nav-subscribe {
-  background: var(--text-main);
-  color: var(--bg-surface);
-}
-.dark-mode .public-nav-subscribe:hover {
-  background: var(--text-muted);
 }
 
 .dark-mode .public-article-meta {
@@ -5903,5 +5866,90 @@ body,
   color: var(--text-main);
 }
 .dark-mode .public-article-content {
+  color: var(--text-main);
+}
+.dark-mode .public-article-title {
+  color: var(--text-main);
+}
+.dark-mode .public-article-excerpt {
+  color: var(--text-muted);
+}
+.dark-mode .public-article-featured-caption {
+  color: var(--text-muted);
+}
+.dark-mode .public-meta-item,
+.dark-mode .public-meta-icon {
+  color: var(--text-muted);
+}
+.dark-mode .public-share-section {
+  border-top-color: var(--border);
+}
+.dark-mode .public-share-title {
+  color: var(--text-main);
+}
+.dark-mode .public-share-button {
+  border-color: var(--border);
+  color: var(--text-main);
+}
+.dark-mode .public-share-button:hover {
+  background-color: var(--bg-hover);
+  color: var(--text-main);
+}
+.dark-mode .public-share-button.facebook:hover {
+  background-color: #1877f2;
+  border-color: #1877f2;
+  color: #fff;
+}
+.dark-mode .public-share-button.twitter:hover {
+  background-color: #fff;
+  border-color: #fff;
+  color: #000;
+}
+.dark-mode .public-share-button.linkedin:hover {
+  background-color: #0a66c2;
+  border-color: #0a66c2;
+  color: #fff;
+}
+.dark-mode .public-share-button.share:hover {
+  background-color: var(--bg-hover);
+  border-color: var(--border);
+  color: var(--text-main);
+}
+.dark-mode .public-recommendations {
+  background-color: var(--bg-page);
+  border-top-color: var(--border);
+}
+.dark-mode .public-recommendations-title {
+  border-bottom-color: var(--border);
+  color: var(--text-main);
+}
+.dark-mode .public-card {
+  background-color: var(--bg-surface);
+  border-color: var(--border);
+}
+.dark-mode .public-card:hover {
+  border-color: var(--text-muted);
+}
+.dark-mode .public-card-title {
+  color: var(--text-main);
+}
+.dark-mode .public-card-content,
+.dark-mode .public-card-meta {
+  color: var(--text-muted);
+}
+.dark-mode .public-card-category {
+  color: var(--status-scheduled-text);
+}
+
+.dark-mode .public-home-title {
+  color: var(--text-main);
+}
+.dark-mode .public-back-link {
+  color: var(--text-main);
+}
+.dark-mode .public-back-link:hover {
+  color: var(--text-muted);
+}
+.dark-mode .public-article-prose {
   color: var(--text-main);
 }

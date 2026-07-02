@@ -25,6 +25,24 @@ const formatDate = (dateIso: string): string => {
   return formatted.replace(".", "");
 };
 
+const actionMap: Record<string, string> = {
+  create: 'Crear',
+  update: 'Actualizar',
+  delete: 'Eliminar',
+  restore: 'Restaurar',
+  publish: 'Publicar',
+  login: 'Inicio de sesión',
+  other: 'Otro'
+};
+
+const entityMap: Record<string, string> = {
+  article: 'Artículo',
+  category: 'Categoría',
+  Settings: 'Configuración',
+  Video: 'Video',
+  comment: 'Comentario'
+};
+
 const Dashboard = () => {
   const navigate = useNavigate();
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
@@ -95,7 +113,7 @@ const Dashboard = () => {
 
             {auditLogs.map((log) => (
               <div key={log.id || log._id} className="dashboard-list-item" style={{ flexDirection: "column", alignItems: "flex-start", gap: "4px" }}>
-                <p className="dashboard-item-title" style={{ fontWeight: 600 }}>{log.action} - {log.entityType}</p>
+                <p className="dashboard-item-title" style={{ fontWeight: 600 }}>{actionMap[log.action] || log.action} - {entityMap[log.entityType] || log.entityType}</p>
                 <p className="dashboard-item-meta" style={{ marginTop: 0 }}>
                   Por <strong>{log.userName || log.userEmail || 'Sistema'}</strong> el {formatDate(log.createdAt)} {new Date(log.createdAt).toLocaleTimeString("es-ES")}
                 </p>

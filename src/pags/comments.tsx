@@ -7,6 +7,7 @@ import { ApiError, apiFetch } from "../libs/http.ts";
 type Comment = {
   id: string;
   articleId: string;
+  articleTitle: string;
   authorName: string;
   authorEmail: string;
   content: string;
@@ -15,10 +16,12 @@ type Comment = {
 };
 
 type CommentsResponse = {
-  comments: Comment[];
-  total: number;
-  page: number;
-  pages: number;
+  data: Comment[];
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+  };
 };
 
 const CommentsModeration = () => {
@@ -46,8 +49,9 @@ const CommentsModeration = () => {
         signal,
       });
 
-      setComments(data.comments || []);
-      setTotalPages(data.pages || 1);
+      setComments(data.data || []);
+      const limit = data.meta?.limit || 20;
+      setTotalPages(Math.ceil((data.meta?.total || 0) / limit) || 1);
     } catch (err: unknown) {
       if (err instanceof Error && err.name === "AbortError") return;
       if (err instanceof ApiError && (err.status === 401 || err.status === 403)) {
@@ -149,7 +153,7 @@ const CommentsModeration = () => {
                       {comment.authorEmail} • {new Date(comment.createdAt).toLocaleDateString("es-ES")} {new Date(comment.createdAt).toLocaleTimeString("es-ES")}
                     </p>
                     <p style={{ fontSize: "0.75rem", color: "#9ca3af", margin: "0.25rem 0 0 0" }}>
-                      Artículo ID: {comment.articleId}
+                      Artículo: {comment.articleTitle}
                     </p>
                   </div>
                   <div>
