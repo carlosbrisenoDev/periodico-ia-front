@@ -21,7 +21,7 @@ type EditCategoryForm = {
 };
 
 const INITIAL_FORM: NewCategoryForm = {
-    name: "", slug: "", color: "#3B82F6", order: 0, template: "default"
+    name: "", slug: "", color: "#3B82F6", order: 1, template: "default"
 };
 
 const normalizeCategory = (item: unknown, index: number): CategoryItem | null => {
@@ -109,7 +109,8 @@ const Categories = () => {
                 const normalized = (Array.isArray(payload) ? payload : [])
                     .map((item, index) => normalizeCategory(item, index))
                     .filter((item): item is CategoryItem => item !== null)
-                    .sort((a, b) => a.order - b.order);
+                    .sort((a, b) => a.order - b.order)
+                    .map((cat, idx) => ({ ...cat, order: idx + 1 }));
 
                 setCategories(normalized);
                 setError(null);
@@ -136,7 +137,7 @@ const Categories = () => {
     }, [navigate]);
 
     const openCreateModal = () => {
-        setForm(INITIAL_FORM);
+        setForm({ ...INITIAL_FORM, order: categories.length + 1 });
         setCreateError(null);
         setShowCreateModal(true);
     };
@@ -172,14 +173,16 @@ const Categories = () => {
 
         try {
             setCreating(true);
-            setCreateError(null);
+            let desiredOrder = Number(form.order) || (categories.length + 1);
+            if (desiredOrder < 1) desiredOrder = 1;
+            if (desiredOrder > categories.length + 1) desiredOrder = categories.length + 1;
 
             const payload = await apiFetch<CreateCategoryResponse>(`${API_BASE_URL}/api/v1/category`, {
                 method: "POST", credentials: "include", headers: {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                    name, slug: finalSlug, order: Number(form.order) || 0, color: form.color, template: form.template
+                    name, slug: finalSlug, order: desiredOrder, color: form.color, template: form.template
                 }),
             });
 
@@ -189,16 +192,25 @@ const Categories = () => {
                 slug: typeof payload.slug === "string" ? payload.slug : finalSlug,
                 description: typeof payload.description === "string" && payload.description.trim().length > 0 ? payload.description : `/${finalSlug}`,
                 color: form.color,
-                order: typeof payload.order === "number" ? payload.order : Number(form.order) || 0,
+                order: desiredOrder,
                 template: form.template,
             };
 
-            setCategories((prev) => {
-                const next = [newCategory, ...prev];
-                return next.sort((a, b) => a.order - b.order);
-            });
+            const newCategories = [...categories];
+            newCategories.splice(desiredOrder - 1, 0, newCategory);
+            const updatedCategories = newCategories.map((c, idx) => ({ ...c, order: idx + 1 }));
+
+            setCategories(updatedCategories);
             setShowCreateModal(false);
-            setForm(INITIAL_FORM);
+            setForm({ ...INITIAL_FORM, order: updatedCategories.length + 1 });
+
+            // Reorder in backend silently
+            await apiFetch(`${API_BASE_URL}/api/v1/category/batch-order`, {
+                method: "PATCH",
+                credentials: "include",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ items: updatedCategories.map((cat) => ({ id: cat.id, order: cat.order })) }),
+            }).catch(console.error);
         } catch (err: unknown) {
             if (err instanceof ApiError && (err.status === 401 || err.status === 403)) {
                 navigate("/adminlogin", {replace: true});
@@ -254,29 +266,48 @@ const Categories = () => {
 
         try {
             setSavingEdit(true);
-            setEditError(null);
+            let desiredOrder = Number(editForm.order) || 1;
+            if (desiredOrder < 1) desiredOrder = 1;
+            if (desiredOrder > categories.length) desiredOrder = categories.length;
 
             const payload = await apiFetch<CreateCategoryResponse>(`${API_BASE_URL}/api/v1/category/${editForm.id}`, {
                 method: "PATCH", credentials: "include", headers: {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                    name, slug, order: Number(editForm.order) || 0, color: editForm.color, template: editForm.template
+                    name, slug, color: editForm.color, template: editForm.template
                 }),
             });
 
             const nextName = typeof payload.name === "string" ? payload.name : name;
             const nextSlug = typeof payload.slug === "string" ? payload.slug : slug;
-            const nextOrder = typeof payload.order === "number" ? payload.order : Number(editForm.order) || 0;
 
-            setCategories((prev) => {
-                const next = prev.map((category) => category.id === editForm.id ? {
-                    ...category, name: nextName, slug: nextSlug, color: editForm.color, description: `/${nextSlug}`, order: nextOrder, template: editForm.template,
-                } : category);
-                return next.sort((a, b) => a.order - b.order);
-            });
+            const currentIdx = categories.findIndex((c) => c.id === editForm.id);
+            if (currentIdx === -1) return;
 
+            const updatedCategory = {
+                ...categories[currentIdx],
+                name: nextName,
+                slug: nextSlug,
+                color: editForm.color,
+                description: `/${nextSlug}`,
+                template: editForm.template,
+            };
+
+            const newCategories = [...categories];
+            newCategories.splice(currentIdx, 1);
+            newCategories.splice(desiredOrder - 1, 0, updatedCategory);
+
+            const properlyOrdered = newCategories.map((c, idx) => ({ ...c, order: idx + 1 }));
+            setCategories(properlyOrdered);
             setEditForm(null);
+
+            await apiFetch(`${API_BASE_URL}/api/v1/category/batch-order`, {
+                method: "PATCH",
+                credentials: "include",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ items: properlyOrdered.map((cat) => ({ id: cat.id, order: cat.order })) }),
+            }).catch(console.error);
         } catch (err: unknown) {
             if (err instanceof ApiError && (err.status === 401 || err.status === 403)) {
                 navigate("/adminlogin", {replace: true});
@@ -346,8 +377,8 @@ const Categories = () => {
         const [removed] = newCategories.splice(sourceIndex, 1);
         newCategories.splice(targetIndex, 0, removed);
 
-        // Update orders locally
-        const updatedCategories = newCategories.map((c, idx) => ({ ...c, order: idx }));
+        // Update orders locally to 1-based
+        const updatedCategories = newCategories.map((c, idx) => ({ ...c, order: idx + 1 }));
         setCategories(updatedCategories);
 
         // Save changed orders to backend using the batch endpoint
@@ -519,7 +550,9 @@ const Categories = () => {
                         <input
                             id="new-category-order"
                             type="number"
-                            placeholder="0"
+                            min="1"
+                            max={categories.length + 1}
+                            placeholder="1"
                             value={form.order}
                             onChange={(event) => updateFormField("order", Number(event.target.value))}
                         />
@@ -600,6 +633,8 @@ const Categories = () => {
                         <input
                             id="edit-category-order"
                             type="number"
+                            min="1"
+                            max={categories.length}
                             value={editForm.order}
                             onChange={(event) => setEditForm((prev) => (prev ? {
                                 ...prev, order: Number(event.target.value)
