@@ -247,7 +247,7 @@ const ImageLibrary = () => {
                 <input
                     ref={fileInputRef}
                     type="file"
-                    accept="image/jpeg,image/png"
+                    accept="image/jpeg,image/png,image/webp,image/gif,image/svg+xml,image/tiff,image/avif"
                     className="image-library-file-input"
                     onChange={handleFileUpload}
                 />

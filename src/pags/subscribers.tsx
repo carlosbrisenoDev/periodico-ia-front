@@ -117,7 +117,6 @@ const Subscribers = () => {
                   <th style={{ padding: "12px 8px" }}>Nombre</th>
                   <th style={{ padding: "12px 8px" }}>Email</th>
                   <th style={{ padding: "12px 8px" }}>Edad</th>
-                  <th style={{ padding: "12px 8px" }}>Teléfono</th>
                   <th style={{ padding: "12px 8px" }}>Ubicación</th>
                   <th style={{ padding: "12px 8px" }}>Estado</th>
                 </tr>
@@ -128,7 +127,6 @@ const Subscribers = () => {
                     <td style={{ padding: "12px 8px", fontWeight: "bold" }}>{sub.username}</td>
                     <td style={{ padding: "12px 8px" }}>{sub.email}</td>
                     <td style={{ padding: "12px 8px" }}>{sub.age ?? "-"}</td>
-                    <td style={{ padding: "12px 8px" }}>{sub.phone || "-"}</td>
                     <td style={{ padding: "12px 8px" }}>{sub.location || "-"}</td>
                     <td style={{ padding: "12px 8px" }}>
                       <span className={sub.active ? "author-card-role authors-users-role-admin" : "author-card-inactive"} style={{ display: "inline-block", padding: "4px 8px", borderRadius: "12px", fontSize: "12px" }}>

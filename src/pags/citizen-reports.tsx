@@ -162,11 +162,7 @@ const CitizenReportsModeration = () => {
                       <p style={{ fontSize: "0.875rem", color: "#4b5563", margin: "0 0 0.25rem 0" }}>
                         <strong>De:</strong> {report.name} ({report.email})
                       </p>
-                      {report.phone && (
-                        <p style={{ fontSize: "0.875rem", color: "#4b5563", margin: "0 0 0.25rem 0" }}>
-                          <strong>Teléfono:</strong> {report.phone}
-                        </p>
-                      )}
+
                       <p style={{ fontSize: "0.75rem", color: "#9ca3af", margin: "0.5rem 0 0 0" }}>
                         Recibido el: {new Date(report.createdAt).toLocaleDateString("es-ES")} {new Date(report.createdAt).toLocaleTimeString("es-ES")}
                       </p>
@@ -192,9 +188,9 @@ const CitizenReportsModeration = () => {
                   {report.imageUrl && (
                     <div style={{ margin: "1rem 0" }}>
                       <p style={{ fontSize: "0.875rem", fontWeight: "500", marginBottom: "0.5rem" }}>Imagen Adjunta:</p>
-                      <a href={report.imageUrl.startsWith("http") ? report.imageUrl : `${API_BASE_URL}${report.imageUrl}`} target="_blank" rel="noreferrer">
+                      <a href={report.imageUrl.startsWith("http") || report.imageUrl.startsWith("data:") ? report.imageUrl : `${API_BASE_URL}${report.imageUrl.startsWith("/") ? report.imageUrl : "/" + report.imageUrl}`} target="_blank" rel="noreferrer">
                         <img 
-                          src={report.imageUrl.startsWith("http") ? report.imageUrl : `${API_BASE_URL}${report.imageUrl}`} 
+                          src={report.imageUrl.startsWith("http") || report.imageUrl.startsWith("data:") ? report.imageUrl : `${API_BASE_URL}${report.imageUrl.startsWith("/") ? report.imageUrl : "/" + report.imageUrl}`} 
                           alt="Adjunto del reporte" 
                           style={{ maxWidth: "300px", maxHeight: "300px", borderRadius: "8px", border: "1px solid #d1d5db", objectFit: "contain" }} 
                         />

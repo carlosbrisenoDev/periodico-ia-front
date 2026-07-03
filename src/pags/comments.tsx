@@ -83,6 +83,7 @@ const CommentsModeration = () => {
       setComments(prev => prev.map(c => c.id === id ? { ...c, status: newStatus } : c));
     } catch (err) {
       alert("Error al actualizar el estado del comentario.");
+      console.log(err);
     }
   };
 
@@ -96,6 +97,7 @@ const CommentsModeration = () => {
       setComments(prev => prev.filter(c => c.id !== id));
     } catch (err) {
       alert("Error al eliminar el comentario.");
+      console.log(err);
     }
   };
 

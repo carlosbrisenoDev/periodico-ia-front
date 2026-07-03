@@ -57,6 +57,7 @@ type SimpleCategory = {
 };
 
 type PublicationPreviewArticle = ArticlePreviewData & {
+  slug?: string;
   authorAvatarUrl?: string | null;
   categorySlug?: string | null;
   categoryId?: string | null;
@@ -144,6 +145,7 @@ const buildArticleFromPublicDetail = (
 
   return {
     id: fallback?.id ?? detail.id,
+    slug: fallback?.slug ?? detail.slug,
     title,
     excerpt,
     content,
@@ -152,7 +154,7 @@ const buildArticleFromPublicDetail = (
     tags: fallback?.tags?.length ? fallback.tags : (Array.isArray(detail.tags) ? detail.tags : []),
     authorName: resolvedAuthorName,
     authorAvatarUrl: fallback?.authorAvatarUrl ?? author?.avatarUrl ?? null,
-    authorRole: fallback?.authorRole ?? author?.bio ?? null,
+    authorRole: fallback?.authorRole ?? author?.bio ?? null, 
     categoryName: resolvedCategoryName,
     categoryId: resolvedCategoryId,
     categorySlug: resolvedCategorySlug,
@@ -304,15 +306,14 @@ export const PublicationPreview = () => {
   };
 
   const handleShare = (network: string) => {
-    const currentUrl = window.location.href;
+    let slugToShare = article?.slug || (article?.title ? slugify(article.title) : article?.id);
+    const currentUrl = `${window.location.origin}/articulo/${slugToShare}`;
     const title = article?.title || "Información de Altura";
 
     if (network === "facebook") {
       window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(currentUrl)}`, "_blank");
     } else if (network === "twitter") {
       window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(currentUrl)}&text=${encodeURIComponent(title)}`, "_blank");
-    } else if (network === "linkedin") {
-      window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(currentUrl)}`, "_blank");
     } else if (network === "whatsapp") {
       window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(title + " " + currentUrl)}`, "_blank");
     } else if (network === "share") {
@@ -343,8 +344,13 @@ export const PublicationPreview = () => {
         let nextArticle = locationState?.article ?? localPreviewData?.article ?? null;
 
         if (id) {
+          const isMongoId = /^[a-fA-F0-9]{24}$/.test(id);
+          const endpoint = isMongoId 
+            ? `${API_BASE_URL}/api/v1/public/article/id/${id}`
+            : `${API_BASE_URL}/api/v1/public/article/${id}`;
+            
           const [detail, categoriesPayload] = await Promise.all([
-            apiFetch<ArticleDetailResponse>(`${API_BASE_URL}/api/v1/public/article/id/${id}`, {
+            apiFetch<ArticleDetailResponse>(endpoint, {
               method: "GET",
               signal: controller.signal,
             }),
@@ -356,6 +362,11 @@ export const PublicationPreview = () => {
 
           const normalizedCategories = normalizeCategories(categoriesPayload);
           setCategories(normalizedCategories);
+
+          if (!isMongoId && detail.id) {
+            navigate(`/articulo/${detail.id}`, { replace: true, state: locationState });
+            return;
+          }
 
           nextArticle = buildArticleFromPublicDetail(detail, nextArticle);
         }
@@ -465,6 +476,15 @@ export const PublicationPreview = () => {
               </div>
             ) : null}
 
+            {article.tags && article.tags.length > 0 ? (
+              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "16px" }}>
+                {article.tags.map((tag, idx) => (
+                  <span key={idx} onClick={() => navigate(`/buscar?q=${encodeURIComponent(tag)}`)} style={{ padding: "4px 10px", backgroundColor: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: "16px", fontSize: "0.75rem", cursor: "pointer", color: "var(--text-muted)", display: "inline-block" }}>
+                    #{tag}
+                  </span>
+                ))}
+              </div>
+            ) : null}
             <h1 className="public-article-title">{article.title}</h1>
             <p className="public-article-excerpt">{article.excerpt}</p>
 
@@ -562,7 +582,7 @@ export const PublicationPreview = () => {
                         <img src={imageUrl} alt={block.caption || "Imagen del contenido"} />
                       </div>
                       {block.caption && (
-                        <figcaption className="public-article-featured-caption" style={{ textAlign: "center", marginTop: "8px", color: "var(--text-muted)", fontSize: "0.875rem" }}>
+                        <figcaption style={{ textAlign: "center", marginTop: "8px", color: "var(--text-muted)", fontSize: "0.875rem" }}>
                           {block.caption}
                         </figcaption>
                       )}
@@ -612,9 +632,6 @@ export const PublicationPreview = () => {
                 </button>
                 <button className="public-share-button twitter" aria-label="X (Twitter)" onClick={() => handleShare('twitter')}>
                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg>
-                </button>
-                <button className="public-share-button linkedin" aria-label="LinkedIn" onClick={() => handleShare('linkedin')}>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect width="4" height="12" x="2" y="9"></rect><circle cx="4" cy="4" r="2"></circle></svg>
                 </button>
                 <button className="public-share-button share" aria-label="Share" onClick={() => handleShare('share')}>
                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"></line><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"></line></svg>

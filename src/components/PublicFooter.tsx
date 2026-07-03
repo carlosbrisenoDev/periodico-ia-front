@@ -1,6 +1,6 @@
 import React from "react";
 import logoSrc from "../assets/logo.png";
-import { PhoneIcon, FacebookIcon, XIcon, InstagramIcon, LinkedInIcon } from "./Icons.tsx";
+import { FacebookIcon, XIcon, InstagramIcon, YoutubeIcon } from "./Icons.tsx";
 import type { PublicCategory } from "../libs/types.ts";
 import { Link } from "react-router-dom";
 
@@ -34,10 +34,6 @@ const PublicFooter: React.FC<PublicFooterProps> = ({ categories = [], variant = 
               <img src={logoSrc} alt="Información de Altura" style={{ height: 80, width: "auto" }} />
             </a>
             <p>Periodismo independiente para el mundo moderno.</p>
-            <div className="public-footer-phone">
-              <PhoneIcon />
-              <span>+34 900 123 456</span>
-            </div>
           </div>
           <div>
             <h4 className="public-footer-title">Secciones</h4>
@@ -67,10 +63,10 @@ const PublicFooter: React.FC<PublicFooterProps> = ({ categories = [], variant = 
             </ul>
             <h4 className="public-footer-title">Redes Sociales</h4>
             <div className="public-footer-social">
-              <a href="#" className="public-social-button" aria-label="Facebook"><FacebookIcon /></a>
-              <a href="#" className="public-social-button" aria-label="X (Twitter)"><XIcon /></a>
-              <a href="#" className="public-social-button" aria-label="Instagram"><InstagramIcon /></a>
-              <a href="#" className="public-social-button" aria-label="LinkedIn"><LinkedInIcon /></a>
+              <a href="https://www.facebook.com/Informaciondealtura" target="_blank" rel="noopener noreferrer" className="public-social-button" aria-label="Facebook"><FacebookIcon /></a>
+              <a href="https://x.com/AlturaVeracruz" target="_blank" rel="noopener noreferrer" className="public-social-button" aria-label="X (Twitter)"><XIcon /></a>
+              <a href="https://www.instagram.com/informaciondealtura?igsh=Z3lneHZ4OGJ3azM1" target="_blank" rel="noopener noreferrer" className="public-social-button" aria-label="Instagram"><InstagramIcon /></a>
+              <a href="https://www.youtube.com/@informaci%C3%B3ndealtura" target="_blank" rel="noopener noreferrer" className="public-social-button" aria-label="YouTube"><YoutubeIcon /></a>
             </div>
           </div>
         </div>

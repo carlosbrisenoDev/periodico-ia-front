@@ -296,7 +296,7 @@ const AuthorsUsers = () => {
     }
 
     return userCards;
-  }, [authors, users]);
+  }, [authors, profile?.id, profile?.role, users]);
 
   const openCreateModal = () => {
     setForm({ ...INITIAL_FORM, password: randomPassword() });

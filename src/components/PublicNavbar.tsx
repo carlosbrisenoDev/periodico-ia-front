@@ -71,7 +71,7 @@ const PublicNavbar = ({ categories, activeCategorySlug }: Omit<PublicNavbarProps
             <button className="ph-mobile-toggle" onClick={() => setMobileOpen(true)} aria-label="Abrir menú">
               <MenuIcon />
             </button>
-            <Link className="public-nav-logo-link" to="/">
+            <Link className="public-nav-logo-link" to="/" onClick={(e) => { if (window.location.pathname === "/") { e.preventDefault(); window.location.reload(); } }}>
               <img className="public-nav-logo" src={logoSrc} alt="Información de Altura" />
             </Link>
             <div className="public-nav-actions">

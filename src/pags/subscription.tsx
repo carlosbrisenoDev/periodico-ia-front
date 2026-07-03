@@ -174,18 +174,7 @@ const SubscriptionPage = () => {
               disabled={submitting}
             />
 
-            <label className="ps-label" htmlFor="ps-phone">
-              Teléfono <span className="ps-optional">(Opcional)</span>
-            </label>
-            <input
-              id="ps-phone"
-              className="ps-input"
-              type="tel"
-              value={form.phone}
-              onChange={(e) => updateField("phone", e.target.value)}
-              placeholder="Tu número de teléfono"
-              disabled={submitting}
-            />
+
 
             <label className="ps-label" htmlFor="ps-location">
               Ubicación <span className="ps-optional">(Opcional)</span>

@@ -5,10 +5,10 @@ export type ContentBlock =
   | { type: "video"; url: string }
   | { type: "image-row"; urls: string[]; layout?: "equal" | "left-large" | "right-large" };
 
-const SUBTITLE_PATTERN = /^\[\[subtitle:(.+)\]\]$/i;
-const IMAGE_PATTERN = /^\[\[image:([^|\]]+)(?:\|(.*))?\]\]$/i;
-const VIDEO_PATTERN = /^\[\[video:(.+)\]\]$/i;
-const IMAGEROW_PATTERN = /^\[\[image-row(?:(?:(?::layout=)(equal|left-large|right-large))|):(.+)\]\]$/i;
+const SUBTITLE_PATTERN = /^\[\[subtitle:(.+)]]$/i;
+const IMAGE_PATTERN = /^\[\[image:([^|\]]+)(?:\|(.*))?]]$/i;
+const VIDEO_PATTERN = /^\[\[video:(.+)]]$/i;
+const IMAGEROW_PATTERN = /^\[\[image-row(?::layout=(equal|left-large|right-large)|):(.+)]]$/i;
 
 const normalizeLine = (line: string): string => line.trim();
 

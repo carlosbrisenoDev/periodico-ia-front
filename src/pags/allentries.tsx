@@ -453,7 +453,7 @@ export const AllEntries = ({ variant = "mine" }: AllEntriesProps) => {
 
       return matchStatus && matchAuthor;
     });
-  }, [entries, statusFilter, authorFilter, authorMap]);
+  }, [entries, authorMap, categoryMap, statusFilter, authorFilter]);
 
   const updateFeaturedType = async (
     entryId: string,

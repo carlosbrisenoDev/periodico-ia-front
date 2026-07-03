@@ -89,6 +89,7 @@ export default function VideosPage() {
       setVideos(videos.filter(v => v.id !== id));
     } catch (err: unknown) {
       alert("Error al eliminar video");
+      console.log(err);
     }
   };
 
