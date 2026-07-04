@@ -353,22 +353,24 @@ const HomePage = () => {
             {/* Videografía Block */}
             <div className="ph-videografia-section">
               <SectionHeader title="VIDEOGRAFÍA" href="/videoteca" linkLabel="VER TODOS" linkStyle="arrow" />
-              <div className="ph-video-main">
-                <div className="ph-video-thumbnail">
-                  <PlayIcon />
-                </div>
-                <h3>Información de Altura en Video</h3>
-              </div>
-              <div className="ph-video-list">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="ph-video-item">
-                    <div className="ph-video-thumb-small"><PlayIcon /></div>
-                    <div className="ph-video-info">
-                      <h4>Resumen de noticias en video</h4>
-                      <span><ClockIcon /> 01:30</span>
-                    </div>
+              <div className="ph-video-container">
+                <div className="ph-video-main">
+                  <div className="ph-video-thumbnail">
+                    <PlayIcon />
                   </div>
-                ))}
+                  <h3>Información de Altura en Video</h3>
+                </div>
+                <div className="ph-video-list">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="ph-video-item">
+                      <div className="ph-video-thumb-small"><PlayIcon /></div>
+                      <div className="ph-video-info">
+                        <h4>Resumen de noticias en video</h4>
+                        <span><ClockIcon /> 01:30</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
 

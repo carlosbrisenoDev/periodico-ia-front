@@ -5954,26 +5954,29 @@ body,
   color: var(--text-main);
 }
 
-/* --- Mobile Responsive Additions --- */
+/* --- Mobile Responsive Base Layout --- */
+/* The following styles apply globally to base the desktop design on the mobile responsive one */
+
+/* Navbar and Actions */
+.ph-mobile-search-toggle {
+  background: none;
+  border: none;
+  color: #111827;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+.ph-mobile-search-toggle svg {
+  width: 20px;
+  height: 20px;
+}
+
 @media (max-width: 1023px) {
-  /* Navbar and Actions */
-  .ph-mobile-search-toggle {
-    background: none;
-    border: none;
-    color: #111827;
-    padding: 8px;
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-  }
-  .ph-mobile-search-toggle svg {
-    width: 20px;
-    height: 20px;
-  }
-  
   .hide-mobile {
     display: none !important;
   }
+}
 
   .ph-mobile-action-bar {
     display: flex;
@@ -6295,5 +6298,87 @@ body,
   }
   .ph-mobile-bottom-nav-item.active {
     color: #dc2626;
+  }
+
+/* --- Desktop Enhancements (Base Mobile Layout) --- */
+@media (min-width: 1024px) {
+  .ph-main-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding-bottom: 0; /* Remove bottom padding on desktop */
+  }
+
+  .ph-mobile-bottom-nav {
+    display: none; /* Hide mobile bottom nav on desktop */
+  }
+
+  .ph-mobile-action-bar {
+    max-width: 1200px;
+    margin: 0 auto;
+    border-radius: 8px;
+    margin-top: 16px;
+    margin-bottom: 16px;
+  }
+
+  /* Grid Layouts for Desktop */
+  .ph-list-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+  }
+
+  .ph-las-5-list {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 24px;
+  }
+
+  .ph-las-5-item {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .ph-las-5-img {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+  }
+
+  .ph-videografia-section .ph-video-container {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 24px;
+  }
+
+  .ph-video-main {
+    margin-bottom: 0;
+  }
+
+  /* Horizontal Card Adjustments for Desktop */
+  .ph-horiz-card {
+    padding: 16px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+  }
+  
+  .ph-horiz-image {
+    width: 150px;
+    height: 112px;
+  }
+  
+  .ph-horiz-title {
+    font-size: 1.1rem;
+  }
+
+  /* Newsletter Adjustments */
+  .ph-newsletter-form {
+    flex-direction: row;
+    justify-content: center;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  
+  .ph-newsletter-form input {
+    flex: 1;
   }
 }
