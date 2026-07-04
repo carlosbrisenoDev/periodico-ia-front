@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getHomeData, getLatestPublications, getPublicCategories, getCategoryArticles } from "../libs/http.ts";
+import { getHomeData, getLatestPublications, getPublicCategories, getCategoryArticles, apiFetch } from "../libs/http.ts";
 import type { PublicArticle, PublicCategory } from "../libs/types.ts";
 import PublicFooter from "../components/PublicFooter.tsx";
 import PublicNavbar from "../components/PublicNavbar.tsx";
@@ -143,6 +143,7 @@ const HomePage = () => {
   const [categoryArticlesMap, setCategoryArticlesMap] = useState<Record<string, PublicArticle[]>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [settings, setSettings] = useState<any>(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -151,13 +152,15 @@ const HomePage = () => {
       try {
         setLoading(true);
 
-        const [homeData, fetchedCats] = await Promise.all([
+        const [homeData, fetchedCats, settingsData] = await Promise.all([
           getHomeData(controller.signal),
-          getPublicCategories(controller.signal)
+          getPublicCategories(controller.signal),
+          apiFetch<any>(`https://api.informaciondealtura.com/api/v1/settings`, { signal: controller.signal }).catch(() => ({}))
         ]);
 
         setCategories(fetchedCats);
         setFeaturedArticles(homeData.featured);
+        setSettings(settingsData);
 
         const recent = homeData.recent.length > 0 ? homeData.recent : await getLatestPublications(controller.signal);
         setArticles(recent);
@@ -219,7 +222,7 @@ const HomePage = () => {
       <main className="ph-main-content">
         {/* Top Action Bar for Mobile */}
         <div className="ph-mobile-action-bar">
-          <button className="ph-action-btn live"><span className="red-dot"></span> EN VIVO</button>
+          <button className="ph-action-btn live" disabled style={{ opacity: 0.5, filter: 'grayscale(1)', cursor: 'not-allowed' }}><span className="red-dot"></span> EN VIVO</button>
           <button className="ph-action-btn outline" onClick={() => navigate("/reportar")}><MailIcon /> ENVÍA TU NOTA</button>
           <button className="ph-action-btn outline" onClick={() => navigate("/suscripcion")}><BadgeIcon /> SUSCRÍBETE</button>
         </div>
@@ -291,15 +294,21 @@ const HomePage = () => {
               </div>
             </div>
 
-            {/* Print Edition Banner Placeholder */}
+            {/* Print Edition Banner */}
             <div className="ph-print-banner">
-              <div className="ph-print-banner-inner">
-                <img src="/logo.png" alt="" className="ph-print-logo" style={{width: 40, height: 40, objectFit: 'contain'}} />
-                <div className="ph-print-text">
-                  <h3>BUSCA LA EDICIÓN IMPRESA</h3>
-                  <p>MARTES Y VIERNES</p>
+              {settings?.printEditionImageUrl ? (
+                <a href={settings.printEditionLink || "#"} target="_blank" rel="noopener noreferrer" style={{ display: 'block', width: '100%' }}>
+                  <img src={settings.printEditionImageUrl} alt="Edición Impresa" style={{ width: '100%', height: 'auto', display: 'block' }} />
+                </a>
+              ) : (
+                <div className="ph-print-banner-inner">
+                  <img src="/logo.png" alt="" className="ph-print-logo" style={{width: 40, height: 40, objectFit: 'contain'}} />
+                  <div className="ph-print-text">
+                    <h3>BUSCA LA EDICIÓN IMPRESA</h3>
+                    <p>MARTES Y VIERNES</p>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
 
             {/* Dynamic Categories */}
@@ -324,27 +333,18 @@ const HomePage = () => {
 
               // On mobile, render as a simple horizontal list for "Estado", "Córdoba", "Análisis y Opinión" etc.
               // For "Investigación Especial" we want a dark hero. We will simulate that based on the title.
-              if (title.toUpperCase().includes("INVESTIGACIÓN")) {
-                return (
-                  <div key={slug} className="ph-investigacion-section">
-                    <SectionHeader title={title.toUpperCase()} href={`/categoria/${slug}`} linkLabel="VER TODAS" linkStyle="arrow" />
-                    <FeaturedCard article={catArticles[0]} category={title} />
-                    <div className="ph-list-grid">
+              return (
+                <div key={slug} className={`ph-section ${title.toUpperCase().includes("INVESTIGACIÓN") ? "ph-investigacion-section" : ""}`}>
+                  <SectionHeader title={title.toUpperCase()} href={`/categoria/${slug}`} linkLabel="VER TODAS" linkStyle="arrow" />
+                  <div className="ph-category-content">
+                    {catArticles[0] && (
+                      <FeaturedCard article={catArticles[0]} category={title} />
+                    )}
+                    <div className="ph-list-grid" style={{ marginTop: '16px', gridTemplateColumns: '1fr' }}>
                       {catArticles.slice(1, 3).map((a) => (
                         <HorizCard key={a.id} article={a} category={title} />
                       ))}
                     </div>
-                  </div>
-                );
-              }
-
-              return (
-                <div key={slug} className="ph-section">
-                  <SectionHeader title={title.toUpperCase()} href={`/categoria/${slug}`} linkLabel="VER TODAS" linkStyle="arrow" />
-                  <div className="ph-list-grid">
-                    {catArticles.slice(0, 3).map((a) => (
-                      <HorizCard key={a.id} article={a} category={title} />
-                    ))}
                   </div>
                 </div>
               );
@@ -354,19 +354,23 @@ const HomePage = () => {
             <div className="ph-videografia-section">
               <SectionHeader title="VIDEOGRAFÍA" href="/videoteca" linkLabel="VER TODOS" linkStyle="arrow" />
               <div className="ph-video-container">
-                <div className="ph-video-main">
+                <div className="ph-video-main" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <h3 style={{ margin: 0, fontSize: '1.25rem' }}>Información de Altura en Video</h3>
                   <div className="ph-video-thumbnail">
                     <PlayIcon />
                   </div>
-                  <h3>Información de Altura en Video</h3>
                 </div>
                 <div className="ph-video-list">
                   {[1, 2, 3].map((i) => (
-                    <div key={i} className="ph-video-item">
-                      <div className="ph-video-thumb-small"><PlayIcon /></div>
-                      <div className="ph-video-info">
-                        <h4>Resumen de noticias en video</h4>
-                        <span><ClockIcon /> 01:30</span>
+                    <div key={i} className="ph-video-item" style={{ flexDirection: 'column', alignItems: 'flex-start' }}>
+                      <div className="ph-video-info" style={{ width: '100%' }}>
+                        <h4 style={{ marginBottom: '8px' }}>Resumen de noticias en video</h4>
+                      </div>
+                      <div style={{ display: 'flex', width: '100%', gap: '12px' }}>
+                        <div className="ph-video-thumb-small"><PlayIcon /></div>
+                        <div className="ph-video-info">
+                          <span><ClockIcon /> 01:30</span>
+                        </div>
                       </div>
                     </div>
                   ))}

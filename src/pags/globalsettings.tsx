@@ -8,6 +8,8 @@ export default function GlobalSettingsPage() {
   const [adsenseClientId, setAdsenseClientId] = useState("");
   const [commentBlocklist, setCommentBlocklist] = useState("");
   const [saving, setSaving] = useState(false);
+  const [printEditionImageUrl, setPrintEditionImageUrl] = useState("");
+  const [printEditionLink, setPrintEditionLink] = useState("");
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   useEffect(() => {
@@ -22,6 +24,8 @@ export default function GlobalSettingsPage() {
         if (Array.isArray(data.commentBlocklist)) {
           setCommentBlocklist(data.commentBlocklist.join(", "));
         }
+        setPrintEditionImageUrl(data.printEditionImageUrl || "");
+        setPrintEditionLink(data.printEditionLink || "");
     } catch (err) {
       console.error("Error fetching settings:", err);
     }
@@ -47,6 +51,8 @@ export default function GlobalSettingsPage() {
           adsenseEnabled,
           adsenseClientId,
           commentBlocklist: blocklistArray,
+          printEditionImageUrl,
+          printEditionLink,
         }),
       });
 
@@ -141,6 +147,52 @@ export default function GlobalSettingsPage() {
                     background: "transparent"
                   }}
                 />
+              </div>
+            </div>
+
+            {/* Print Edition Banner Section */}
+            <div style={{ background: "var(--surface)", padding: "24px", borderRadius: "8px", border: "1px solid var(--border)" }}>
+              <h2 style={{ fontSize: "1.5rem", marginBottom: "16px", color: "var(--text-main)" }}>Banner Edición Impresa</h2>
+              <p style={{ marginBottom: "16px", color: "var(--text-muted)", fontSize: "0.9rem" }}>
+                Configura la imagen y el enlace del banner de "Edición Impresa" que aparece en la página principal.
+              </p>
+              
+              <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                  <label style={{ fontWeight: "bold", color: "var(--text-main)" }}>URL de la Imagen</label>
+                  <input
+                    type="text"
+                    value={printEditionImageUrl}
+                    onChange={(e) => setPrintEditionImageUrl(e.target.value)}
+                    placeholder="https://ejemplo.com/imagen.jpg"
+                    style={{
+                      padding: "12px",
+                      borderRadius: "8px",
+                      border: "1px solid var(--border)",
+                      fontSize: "1rem",
+                      background: "transparent",
+                      color: "var(--text-main)"
+                    }}
+                  />
+                </div>
+                
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                  <label style={{ fontWeight: "bold", color: "var(--text-main)" }}>Enlace al hacer click</label>
+                  <input
+                    type="text"
+                    value={printEditionLink}
+                    onChange={(e) => setPrintEditionLink(e.target.value)}
+                    placeholder="https://ejemplo.com/edicion-impresa"
+                    style={{
+                      padding: "12px",
+                      borderRadius: "8px",
+                      border: "1px solid var(--border)",
+                      fontSize: "1rem",
+                      background: "transparent",
+                      color: "var(--text-main)"
+                    }}
+                  />
+                </div>
               </div>
             </div>
 
