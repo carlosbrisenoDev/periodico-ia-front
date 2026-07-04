@@ -177,6 +177,86 @@ const normalizeAssetUrl = (value: string | null | undefined): string | null => {
   return `${API_BASE_URL}${value.startsWith("/") ? value : `/${value}`}`;
 };
 
+const useArticleSEO = (article: PublicationPreviewArticle | null) => {
+  useEffect(() => {
+    if (!article) return;
+
+    const title = article.title ? `${article.title} | Información de Altura` : "Información de Altura";
+    const description = article.excerpt || "Noticia en Información de Altura";
+    const url = `${window.location.origin}/articulo/${article.slug || article.id}`;
+    const imageUrl = normalizeAssetUrl(article.featuredImageUrl) || `${window.location.origin}/default-share.jpg`;
+
+    // 1. Google Indexing & SEO (Title & Description)
+    document.title = title;
+
+    const setMetaTag = (attrName: string, attrValue: string, content: string) => {
+      let element = document.querySelector(`meta[${attrName}="${attrValue}"]`);
+      if (!element) {
+        element = document.createElement("meta");
+        element.setAttribute(attrName, attrValue);
+        document.head.appendChild(element);
+      }
+      element.setAttribute("content", content);
+    };
+
+    setMetaTag("name", "description", description);
+    
+    // 2. Social Media Meta (Open Graph for Facebook/WhatsApp/LinkedIn)
+    setMetaTag("property", "og:type", "article");
+    setMetaTag("property", "og:title", title);
+    setMetaTag("property", "og:description", description);
+    setMetaTag("property", "og:image", imageUrl);
+    setMetaTag("property", "og:url", url);
+    setMetaTag("property", "og:site_name", "Información de Altura");
+
+    // 3. Social Media Meta (Twitter Cards)
+    setMetaTag("name", "twitter:card", "summary_large_image");
+    setMetaTag("name", "twitter:title", title);
+    setMetaTag("name", "twitter:description", description);
+    setMetaTag("name", "twitter:image", imageUrl);
+
+    // 4. Extra Article Meta for Social & AI context
+    if (article.authorName) setMetaTag("property", "article:author", article.authorName);
+    if (article.publishedAt) setMetaTag("property", "article:published_time", article.publishedAt);
+    if (article.categoryName) setMetaTag("property", "article:section", article.categoryName);
+    if (article.tags && article.tags.length > 0) {
+      setMetaTag("property", "article:tag", article.tags.join(", "));
+    }
+
+    // 5. AI Understanding & Rich Snippets (JSON-LD)
+    let script = document.querySelector("script[id='seo-jsonld']") as HTMLScriptElement;
+    if (!script) {
+      script = document.createElement("script");
+      script.type = "application/ld+json";
+      script.id = "seo-jsonld";
+      document.head.appendChild(script);
+    }
+    
+    const jsonLd = {
+      "@context": "https://schema.org",
+      "@type": "NewsArticle",
+      "headline": article.title,
+      "image": [imageUrl],
+      "datePublished": article.publishedAt || new Date().toISOString(),
+      "dateModified": article.publishedAt || new Date().toISOString(),
+      "author": [{
+        "@type": "Person",
+        "name": article.authorName || "Redacción"
+      }],
+      "publisher": {
+        "@type": "Organization",
+        "name": "Información de Altura",
+        "logo": {
+          "@type": "ImageObject",
+          "url": `${window.location.origin}/logo.png`
+        }
+      },
+      "description": description
+    };
+    script.textContent = JSON.stringify(jsonLd);
+  }, [article]);
+};
+
 export const PublicationPreview = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id?: string }>();
@@ -220,6 +300,9 @@ export const PublicationPreview = () => {
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
+
+  // Inyectar SEO y Metadatos para RRSS e IA
+  useArticleSEO(article);
 
   useEffect(() => {
     return () => {

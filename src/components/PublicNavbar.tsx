@@ -56,7 +56,13 @@ const PublicNavbar = ({ categories, activeCategorySlug }: Omit<PublicNavbarProps
     e.preventDefault();
     if (searchText.trim()) {
       navigate(`/buscar?q=${encodeURIComponent(searchText.trim())}`);
+      setMobileOpen(false);
     }
+  };
+
+  const handleMobileSearchClick = () => {
+    // If on mobile, maybe just open search drawer or navigate
+    navigate('/buscar');
   };
 
   const sortedCategories = [...categories].sort((a, b) => (a.order || 0) - (b.order || 0));
@@ -77,16 +83,19 @@ const PublicNavbar = ({ categories, activeCategorySlug }: Omit<PublicNavbarProps
             <div className="public-nav-actions">
               <button 
                 onClick={toggleTheme} 
-                className="theme-toggle-btn" 
+                className="theme-toggle-btn hide-mobile" 
                 aria-label="Alternar tema"
                 style={{ background: "none", border: "none", cursor: "pointer", color: "#111827", display: "flex", alignItems: "center" }}
               >
                 {isDark ? <SunIcon /> : <MoonIcon />}
               </button>
-              <div className="public-nav-date">{formatFullDate()}</div>
+              <div className="public-nav-date hide-mobile">{formatFullDate()}</div>
               <Link className="public-nav-subscribe hide-mobile" to="/suscripcion">
                 Suscribirse
               </Link>
+              <button className="ph-mobile-search-toggle" onClick={handleMobileSearchClick} aria-label="Buscar">
+                <SearchIcon />
+              </button>
             </div>
           </div>
           <div className="public-nav-bottom">

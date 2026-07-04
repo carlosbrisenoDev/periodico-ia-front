@@ -1,6 +1,6 @@
 import React from "react";
 import logoSrc from "../assets/logo.png";
-import { FacebookIcon, XIcon, InstagramIcon, YoutubeIcon } from "./Icons.tsx";
+import { FacebookIcon, XIcon, InstagramIcon, YoutubeIcon, TiktokIcon } from "./Icons.tsx";
 import type { PublicCategory } from "../libs/types.ts";
 import { Link } from "react-router-dom";
 
@@ -67,6 +67,7 @@ const PublicFooter: React.FC<PublicFooterProps> = ({ categories = [], variant = 
               <a href="https://x.com/AlturaVeracruz" target="_blank" rel="noopener noreferrer" className="public-social-button" aria-label="X (Twitter)"><XIcon /></a>
               <a href="https://www.instagram.com/informaciondealtura?igsh=Z3lneHZ4OGJ3azM1" target="_blank" rel="noopener noreferrer" className="public-social-button" aria-label="Instagram"><InstagramIcon /></a>
               <a href="https://www.youtube.com/@informaci%C3%B3ndealtura" target="_blank" rel="noopener noreferrer" className="public-social-button" aria-label="YouTube"><YoutubeIcon /></a>
+              <a href="https://www.tiktok.com/@informaciondealtura" target="_blank" rel="noopener noreferrer" className="public-social-button" aria-label="TikTok"><TiktokIcon /></a>
             </div>
           </div>
         </div>

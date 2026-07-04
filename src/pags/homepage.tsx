@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { getHomeData, getLatestPublications, getPublicCategories, getCategoryArticles } from "../libs/http.ts";
 import type { PublicArticle, PublicCategory } from "../libs/types.ts";
 import PublicFooter from "../components/PublicFooter.tsx";
 import PublicNavbar from "../components/PublicNavbar.tsx";
-import { AdBlock } from "../components/AdBlock.tsx";
+
+import MobileBottomNav from "../components/MobileBottomNav.tsx";
+import { MailIcon, BadgeIcon, PlayIcon, ClockIcon } from "../components/Icons.tsx";
 
 /* ── helpers ─────────────────────────────────────────── */
 
@@ -74,27 +76,6 @@ const FeaturedCard = ({ article, category }: { article: PublicArticle; category:
   </a>
 );
 
-const SmallCard = ({ article, category }: { article: PublicArticle; category: string }) => (
-  <a className="ph-small-card" href={articleHref(article)}>
-    <div className="ph-small-image">
-      {article.featuredImageUrl ? (
-        <img src={article.featuredImageUrl} alt={article.title} />
-      ) : (
-        <div className="ph-image-placeholder">{category}</div>
-      )}
-    </div>
-    <div className="ph-small-body">
-      <div className="ph-small-category">{category}</div>
-      <h3 className="ph-small-title">{article.title}</h3>
-      <div className="ph-meta">
-        <span>{formatArticleDate(article.createdAt)}</span>
-        <span>•</span>
-        <span>{formatArticleTime(article.createdAt)}</span>
-      </div>
-    </div>
-  </a>
-);
-
 const HorizCard = ({ article, category }: { article: PublicArticle; category: string }) => (
   <a className="ph-horiz-card" href={articleHref(article)}>
     <div className="ph-horiz-image">
@@ -130,100 +111,27 @@ const SectionHeader = ({
   title: string;
   href: string;
   linkLabel?: string;
-  linkStyle?: "btn" | "text";
+  linkStyle?: "btn" | "text" | "arrow";
   titleClass?: string;
 }) => (
   <div className="ph-section-header">
     <h2 className={`ph-section-title ${titleClass || ""}`}>{title}</h2>
     <a className={linkStyle === "btn" ? "ph-section-link-btn" : "ph-section-link"} href={href}>
-      {linkLabel || "Ver más →"}
+      {linkStyle === "arrow" ? (
+        <>
+          <span className="hide-mobile">{linkLabel || "VER TODAS"}</span>
+          <span className="ph-arrow-icon">&gt;</span>
+        </>
+      ) : (
+        linkLabel || "VER TODAS >"
+      )}
     </a>
   </div>
 );
 
-/** Layout A: 2 small cards left + 1 featured card right (Deportes, Seguridad, Opinión) */
-const CategorySectionA = ({
-  title,
-  categoryId,
-  articles,
-  grey,
-}: {
-  title: string;
-  categoryId: string;
-  articles: PublicArticle[];
-  grey: boolean;
-}) => {
-  if (articles.length === 0) return null;
-  const featured = articles.find(a => a.featuredType === 'category_hero' || a.featuredType === 'hero') || articles[0];
-  const sides = (() => {
-    const breaking = articles.filter(a => (a.featuredType === 'breaking' || a.featuredType === 'headline') && a.id !== featured.id);
-    if (breaking.length >= 2) return breaking.slice(0, 2);
-    return articles.filter(a => a.id !== featured.id).slice(0, 2);
-  })();
 
 
-  const content = (
-    <div className="ph-section">
-      <SectionHeader
-        title={title}
-        href={`/categoria/${categoryId}`}
-        titleClass={`ph-section-title-${slugify(title)}`}
-      />
-      <div className="ph-cat-a-grid">
-        <div className="ph-cat-a-left">
-          {sides.map((a) => (
-            <SmallCard key={a.id} article={a} category={title} />
-          ))}
-        </div>
-        <FeaturedCard article={featured} category={title} />
-      </div>
-    </div>
-  );
 
-  return grey ? <div className="ph-section-grey">{content}</div> : content;
-};
-
-/** Layout B: 1 featured left + 2 horizontal cards right (Cultura, Comunidad) */
-const CategorySectionB = ({
-  title,
-  articles,
-  categoryId,
-  grey,
-}: {
-  title: string;
-  categoryId: string;
-  articles: PublicArticle[];
-  grey: boolean;
-}) => {
-  if (articles.length === 0) return null;
-  const featured = articles.find(a => a.featuredType === 'category_hero' || a.featuredType === 'hero') || articles[0];
-  const sides = (() => {
-    const breaking = articles.filter(a => (a.featuredType === 'breaking' || a.featuredType === 'headline') && a.id !== featured.id);
-    if (breaking.length >= 2) return breaking.slice(0, 2);
-    return articles.filter(a => a.id !== featured.id).slice(0, 2);
-  })();
-
-
-  const content = (
-    <div className="ph-section">
-      <SectionHeader
-        title={title}
-        href={`/categoria/${categoryId}`}
-        titleClass={`ph-section-title-${slugify(title)}`}
-      />
-      <div className="ph-cat-b-grid">
-        <FeaturedCard article={featured} category={title} />
-        <div className="ph-cat-b-right">
-          {sides.map((a) => (
-            <HorizCard key={a.id} article={a} category={title} />
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-
-  return grey ? <div className="ph-section-grey">{content}</div> : content;
-};
 
 /* ── Main HomePage ───────────────────────────────────── */
 
@@ -308,7 +216,14 @@ const HomePage = () => {
     <div className="ph-page">
       <PublicNavbar categories={categories} />
 
-      <main>
+      <main className="ph-main-content">
+        {/* Top Action Bar for Mobile */}
+        <div className="ph-mobile-action-bar">
+          <button className="ph-action-btn live"><span className="red-dot"></span> EN VIVO</button>
+          <button className="ph-action-btn outline" onClick={() => navigate("/reportar")}><MailIcon /> ENVÍA TU NOTA</button>
+          <button className="ph-action-btn outline" onClick={() => navigate("/suscripcion")}><BadgeIcon /> SUSCRÍBETE</button>
+        </div>
+
         {loading && (
           <div className="ph-loading">
             <div className="ph-spinner" />
@@ -332,38 +247,64 @@ const HomePage = () => {
                 )}
                 <div className="ph-hero-side">
                   {heroSide.map((a) => (
-                    <SmallCard key={a.id} article={a} category={a.categoryName} />
+                    <HorizCard key={a.id} article={a} category={a.categoryName} />
                   ))}
                 </div>
               </div>
             </section>
 
-            <AdBlock style={{ margin: "2rem auto", maxWidth: "728px" }} adSlot="HOME_MIDDLE" />
-
-            {/* Últimas Noticias */}
+            {/* Tendencias / Últimas Noticias */}
             {latestThree.length > 0 && (
-              <div className="ph-section-grey">
-                <div className="ph-section">
-                  <SectionHeader
-                    title="Últimas Noticias"
-                    href="/recientes"
-                    linkLabel="Ver todas →"
-                    linkStyle="btn"
-                    titleClass="ph-section-title-noticias"
-                  />
-                  <div className="ph-latest-grid">
-                    {latestThree.map((a) => (
-                      <SmallCard key={a.id} article={a} category={a.categoryName} />
-                    ))}
-                  </div>
+              <div className="ph-section">
+                <SectionHeader
+                  title="TENDENCIAS"
+                  href="/recientes"
+                  linkLabel="VER TODAS"
+                  linkStyle="arrow"
+                  titleClass="ph-section-title-tendencias"
+                />
+                <div className="ph-list-grid">
+                  {latestThree.map((a) => (
+                    <HorizCard key={a.id} article={a} category={a.categoryName} />
+                  ))}
                 </div>
               </div>
             )}
 
-            {/* Category Sections */}
-            {[...categories].sort((a, b) => (a.order || 0) - (b.order || 0)).map((catObj, index) => {
+            {/* Las 5 de X */}
+            <div id="las-5-de-x" className="ph-las-5-section">
+              <div className="ph-las-5-header">
+                <h2>LAS 5 DE X</h2>
+                <p>Lo más importante en 1 minuto</p>
+                <a href="/recientes" className="ph-las-5-btn">Ver resumen completo &rarr;</a>
+              </div>
+              <div className="ph-las-5-list">
+                {articles.slice(0, 5).map((a, i) => (
+                  <a key={a.id} href={articleHref(a)} className="ph-las-5-item">
+                    <div className="ph-las-5-number">{i + 1}</div>
+                    <div className="ph-las-5-img">
+                      {a.featuredImageUrl ? <img src={a.featuredImageUrl} alt="" /> : <div className="placeholder" />}
+                    </div>
+                    <div className="ph-las-5-text">{a.title}</div>
+                  </a>
+                ))}
+              </div>
+            </div>
+
+            {/* Print Edition Banner Placeholder */}
+            <div className="ph-print-banner">
+              <div className="ph-print-banner-inner">
+                <img src="/logo.png" alt="" className="ph-print-logo" style={{width: 40, height: 40, objectFit: 'contain'}} />
+                <div className="ph-print-text">
+                  <h3>BUSCA LA EDICIÓN IMPRESA</h3>
+                  <p>MARTES Y VIERNES</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Dynamic Categories */}
+            {[...categories].sort((a, b) => (a.order || 0) - (b.order || 0)).map((catObj) => {
               const catKey = (catObj.name || "").toLowerCase().trim();
-              
               const fromGroup = grouped[catKey] || [];
               const fromFetch = categoryArticlesMap[catKey] || [];
               
@@ -380,63 +321,73 @@ const HomePage = () => {
               
               const title = catObj.name || "Categoría";
               const slug = catObj.slug || slugify(title);
-              const layout = index % 2 === 0 ? "A" : "B";
-              const grey = index % 2 !== 0;
 
-              return layout === "A" ? (
-                <CategorySectionA
-                  key={catObj.id || slug}
-                  title={title}
-                  categoryId={slug}
-                  articles={catArticles}
-                  grey={grey}
-                />
-              ) : (
-                <CategorySectionB
-                  key={catObj.id || slug}
-                  title={title}
-                  categoryId={slug}
-                  articles={catArticles}
-                  grey={grey}
-                />
+              // On mobile, render as a simple horizontal list for "Estado", "Córdoba", "Análisis y Opinión" etc.
+              // For "Investigación Especial" we want a dark hero. We will simulate that based on the title.
+              if (title.toUpperCase().includes("INVESTIGACIÓN")) {
+                return (
+                  <div key={slug} className="ph-investigacion-section">
+                    <SectionHeader title={title.toUpperCase()} href={`/categoria/${slug}`} linkLabel="VER TODAS" linkStyle="arrow" />
+                    <FeaturedCard article={catArticles[0]} category={title} />
+                    <div className="ph-list-grid">
+                      {catArticles.slice(1, 3).map((a) => (
+                        <HorizCard key={a.id} article={a} category={title} />
+                      ))}
+                    </div>
+                  </div>
+                );
+              }
+
+              return (
+                <div key={slug} className="ph-section">
+                  <SectionHeader title={title.toUpperCase()} href={`/categoria/${slug}`} linkLabel="VER TODAS" linkStyle="arrow" />
+                  <div className="ph-list-grid">
+                    {catArticles.slice(0, 3).map((a) => (
+                      <HorizCard key={a.id} article={a} category={title} />
+                    ))}
+                  </div>
+                </div>
               );
             })}
 
-            {/* CTA Banner */}
-            <section className="ph-cta">
-              <div className="ph-cta-inner">
-                <h2 className="ph-cta-title">Mantente Informado</h2>
-                <p className="ph-cta-text">
-                  Recibe <strong>gratis</strong> un resumen claro de lo más importante del día, sin
-                  publicidad intrusiva.
-                </p>
-                <Link className="ph-cta-button" to="/suscripcion">
-                  Suscríbete Ahora
-                </Link>
+            {/* Videografía Block */}
+            <div className="ph-videografia-section">
+              <SectionHeader title="VIDEOGRAFÍA" href="/videoteca" linkLabel="VER TODOS" linkStyle="arrow" />
+              <div className="ph-video-main">
+                <div className="ph-video-thumbnail">
+                  <PlayIcon />
+                </div>
+                <h3>Información de Altura en Video</h3>
               </div>
-            </section>
+              <div className="ph-video-list">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="ph-video-item">
+                    <div className="ph-video-thumb-small"><PlayIcon /></div>
+                    <div className="ph-video-info">
+                      <h4>Resumen de noticias en video</h4>
+                      <span><ClockIcon /> 01:30</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
 
-            {/* Citizen Report Banner */}
-            <section className="ph-cta" style={{ background: "var(--status-draft-bg)", color: "var(--text-main)", marginTop: "24px" }}>
-              <div className="ph-cta-inner">
-                <h2 className="ph-cta-title">¿Tienes una Noticia?</h2>
-                <p className="ph-cta-text">
-                  Si fuiste testigo de algún acontecimiento importante, haz tu <strong>denuncia ciudadana</strong> aquí.
-                </p>
-                <button 
-                  className="ph-cta-button" 
-                  onClick={() => navigate("/reportar")}
-                  style={{ background: "var(--text-main)", color: "var(--bg-surface)", border: "none", cursor: "pointer", fontSize: "1rem", padding: "12px 24px" }}
-                >
-                  Reportar Noticia
-                </button>
-              </div>
-            </section>
+            {/* Newsletter Subscription */}
+            <div className="ph-newsletter-section">
+              <div className="ph-newsletter-icon"><MailIcon /></div>
+              <h3>NEWSLETTER</h3>
+              <p>Recibe las noticias más importantes en tu correo cada mañana.</p>
+              <form className="ph-newsletter-form">
+                <input type="email" placeholder="Tu correo electrónico" required />
+                <button type="submit">SUSCRÍBEME</button>
+              </form>
+            </div>
           </>
         )}
       </main>
 
       <PublicFooter categories={categories} />
+      <MobileBottomNav />
     </div>
   );
 };
