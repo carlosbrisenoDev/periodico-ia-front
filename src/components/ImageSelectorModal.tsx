@@ -1,5 +1,5 @@
-import { useState, useRef, ChangeEvent } from "react";
-import { apiFetch, ApiError } from "../libs/http.ts";
+import { useState, useRef, type ChangeEvent } from "react";
+import { apiFetch } from "../libs/http.ts";
 import { API_BASE_URL } from "../libs/config.ts";
 
 type ImageAsset = {

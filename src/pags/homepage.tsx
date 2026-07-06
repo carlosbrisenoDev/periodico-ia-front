@@ -16,7 +16,7 @@ import PublicFooter from "../components/PublicFooter.tsx";
 import PublicNavbar from "../components/PublicNavbar.tsx";
 
 import MobileBottomNav from "../components/MobileBottomNav.tsx";
-import { MailIcon, BadgeIcon, PlayIcon, ClockIcon } from "../components/Icons.tsx";
+import { MailIcon, BadgeIcon, PlayIcon } from "../components/Icons.tsx";
 
 /* ── helpers ─────────────────────────────────────────── */
 
