@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { apiFetch, getPublicCategories } from "../libs/http.ts";
+import "./recentpage.css";
 import { API_BASE_URL } from "../libs/config.ts";
 import type { PublicArticle, PublicCategory } from "../libs/types.ts";
 import PublicNavbar from "../components/PublicNavbar.tsx";

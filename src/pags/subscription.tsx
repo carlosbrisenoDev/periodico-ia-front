@@ -1,5 +1,6 @@
 import { type FormEvent, useState, useEffect } from "react";
 import { ApiError, registerSubscriber, subscriberLogin, getPublicCategories } from "../libs/http.ts";
+import "./subscription.css";
 import type { PublicCategory } from "../libs/types.ts";
 import PublicNavbar from "../components/PublicNavbar.tsx";
 import PublicFooter from "../components/PublicFooter.tsx";

@@ -1,11 +1,20 @@
 import { useEffect, useState, useMemo } from "react";
 import { useParams } from "react-router-dom";
+import "./categorypage.css";
 import { API_BASE_URL } from "../libs/config.ts";
 import { apiFetch, getPublicCategories } from "../libs/http.ts";
 import type { PublicArticle, PublicCategory } from "../libs/types.ts";
 import PublicFooter from "../components/PublicFooter.tsx";
 import PublicNavbar from "../components/PublicNavbar.tsx";
+import { PlayIcon } from "../components/Icons.tsx";
 
+type VideoAsset = {
+  id: string;
+  url: string;
+  platform: string;
+  videoExternalId: string;
+  title?: string;
+};
 
 /* ── helpers ─────────────────────────────────────────── */
 
@@ -269,6 +278,7 @@ const CategoryPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [categories, setCategories] = useState<PublicCategory[]>([]);
+  const [videos, setVideos] = useState<VideoAsset[]>([]);
 
 
   useEffect(() => {
@@ -281,9 +291,10 @@ const CategoryPage = () => {
         setLoading(true);
         setError(null);
         
-        const [categoryData, fetchedCats] = await Promise.all([
+        const [categoryData, fetchedCats, videosRes] = await Promise.all([
           fetchCategoryArticles(id, controller.signal),
-          getPublicCategories(controller.signal)
+          getPublicCategories(controller.signal),
+          fetch(`${API_BASE_URL}/api/v1/public/videos?limit=5`, { signal: controller.signal }).catch(() => null)
         ]);
 
         setCategoryName(categoryData.name);
@@ -295,6 +306,10 @@ const CategoryPage = () => {
           setColor(categoryData.color as string | undefined);
         }
         setCategories(fetchedCats);
+        if (videosRes && videosRes.ok) {
+          const vData = await videosRes.json();
+          setVideos(Array.isArray(vData) ? vData : []);
+        }
 
       } catch (err: unknown) {
         if (err instanceof Error && err.name === "AbortError") return;
@@ -456,6 +471,96 @@ const CategoryPage = () => {
             )}
           </>
         )}
+
+        {/* Conditional Xalapa / Veracruz sections */}
+        {categoryName.toLowerCase().includes("xalapa") && (
+          <div className="ph-videografia-section" style={{ marginTop: '2rem' }}>
+            <div className="pc-section-header">
+              <h2 className="pc-section-title">VIDEOGRAFÍA</h2>
+              <a className="ph-section-link" href="/videoteca">VER TODOS &gt;</a>
+            </div>
+            <div className="ph-video-container">
+              <div className="ph-video-main" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <h3 style={{ margin: 0, fontSize: '1.25rem' }}>
+                  {videos.length > 0 ? (videos[0].title || "Video") : "Información de Altura en Video"}
+                </h3>
+                <div className="ph-video-thumbnail" style={{ padding: 0, overflow: 'hidden' }}>
+                  {videos.length > 0 ? (
+                    videos[0].platform === 'youtube' ? (
+                      <iframe
+                        src={`https://www.youtube.com/embed/${videos[0].videoExternalId}`}
+                        style={{ width: "100%", height: "100%", border: 0 }}
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                        title={videos[0].title || "Video"}
+                      />
+                    ) : (
+                      <a href={videos[0].url} target="_blank" rel="noopener noreferrer"><PlayIcon /></a>
+                    )
+                  ) : (
+                    <PlayIcon />
+                  )}
+                </div>
+              </div>
+              <div className="ph-video-list">
+                {videos.length > 0 ? videos.slice(1).map((video) => (
+                  <div key={video.id} className="ph-video-item" style={{ flexDirection: 'column', alignItems: 'flex-start' }}>
+                    <div className="ph-video-info" style={{ width: '100%' }}>
+                      <h4 style={{ marginBottom: '8px' }}>{video.title || "Video"}</h4>
+                    </div>
+                    <div style={{ display: 'flex', width: '100%', gap: '12px' }}>
+                      <div className="ph-video-thumb-small" style={{ overflow: 'hidden' }}>
+                        <a href={video.platform === 'youtube' ? `https://youtube.com/watch?v=${video.videoExternalId}` : video.url} target="_blank" rel="noopener noreferrer" style={{ display: 'block', width: '100%', height: '100%' }}>
+                          {video.platform === 'youtube' ? (
+                            <img src={`https://img.youtube.com/vi/${video.videoExternalId}/mqdefault.jpg`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="thumbnail" />
+                          ) : (
+                            <PlayIcon />
+                          )}
+                        </a>
+                      </div>
+                      <div className="ph-video-info" style={{ display: 'flex', alignItems: 'center' }}>
+                        <a href={video.platform === 'youtube' ? `https://youtube.com/watch?v=${video.videoExternalId}` : video.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
+                          <span>Ver en {video.platform}</span>
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                )) : [1, 2, 3].map((i) => (
+                  <div key={i} className="ph-video-item" style={{ flexDirection: 'column', alignItems: 'flex-start' }}>
+                    <div className="ph-video-info" style={{ width: '100%' }}>
+                      <h4 style={{ marginBottom: '8px' }}>Cargando...</h4>
+                    </div>
+                    <div style={{ display: 'flex', width: '100%', gap: '12px' }}>
+                      <div className="ph-video-thumb-small"><PlayIcon /></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {categoryName.toLowerCase().includes("veracruz") && (
+          <div id="las-5-de-x" className="ph-las-5-section" style={{ marginTop: '2rem' }}>
+            <div className="ph-las-5-header">
+              <h2>LAS 5 DE X</h2>
+              <p>Lo más importante en 1 minuto</p>
+              <a href="/recientes" className="ph-las-5-btn">Ver resumen completo &rarr;</a>
+            </div>
+            <div className="ph-las-5-list">
+              {articles.slice(0, 5).map((a, i) => (
+                <a key={a.id} href={articleHref(a)} className="ph-las-5-item">
+                  <div className="ph-las-5-number">{i + 1}</div>
+                  <div className="ph-las-5-img">
+                    {a.featuredImageUrl ? <img src={a.featuredImageUrl} alt="" /> : <div className="placeholder" />}
+                  </div>
+                  <div className="ph-las-5-text">{a.title}</div>
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
+
       </main>
 
       <PublicFooter categories={categories} />

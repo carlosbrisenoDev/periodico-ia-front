@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import "./searchpage.css";
 import { apiFetch, getPublicCategories } from "../libs/http.ts";
 import { API_BASE_URL } from "../libs/config.ts";
 import type { PublicArticle, PublicCategory } from "../libs/types.ts";

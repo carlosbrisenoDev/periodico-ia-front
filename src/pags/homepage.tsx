@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import "./homepage.css";
 import { getHomeData, getLatestPublications, getPublicCategories, getCategoryArticles, apiFetch } from "../libs/http.ts";
 import { API_BASE_URL } from "../libs/config.ts";
 import type { PublicArticle, PublicCategory } from "../libs/types.ts";
@@ -58,6 +59,15 @@ const groupByCategory = (articles: PublicArticle[]) => {
     map[cat].push(a);
   }
   return map;
+};
+
+const sectionBorderMap: Record<string, string> = {
+  "Deportes": "ph-section-title-deportes",
+  "Cultura": "ph-section-title-cultura",
+  "Seguridad": "ph-section-title-seguridad",
+  "Comunidad": "ph-section-title-comunidad",
+  "Opinión": "ph-section-title-opinion",
+  "Noticias": "ph-section-title-noticias",
 };
 
 /* ── Card Components ─────────────────────────────────── */
@@ -319,7 +329,7 @@ const HomePage = () => {
                 </a>
               ) : (
                 <div className="ph-print-banner-inner">
-                  <img src="/logo.png" alt="" className="ph-print-logo" style={{width: 40, height: 40, objectFit: 'contain'}} />
+                  <img src="/logo.png" alt="" className="ph-print-logo" style={{width: 200, height: 200, objectFit: 'contain'}} />
                   <div className="ph-print-text">
                     <h3>BUSCA LA EDICIÓN IMPRESA</h3>
                     <p>MARTES Y VIERNES</p>
@@ -347,12 +357,13 @@ const HomePage = () => {
               
               const title = catObj.name || "Categoría";
               const slug = catObj.slug || slugify(title);
+              const titleClass = sectionBorderMap[title] || "";
 
               // On mobile, render as a simple horizontal list for "Estado", "Córdoba", "Análisis y Opinión" etc.
               // For "Investigación Especial" we want a dark hero. We will simulate that based on the title.
               return (
                 <div key={slug} className={`ph-section ${title.toUpperCase().includes("INVESTIGACIÓN") ? "ph-investigacion-section" : ""}`}>
-                  <SectionHeader title={title.toUpperCase()} href={`/categoria/${slug}`} linkLabel="VER TODAS" linkStyle="arrow" />
+                  <SectionHeader title={title.toUpperCase()} href={`/categoria/${slug}`} linkLabel="VER TODAS" linkStyle="arrow" titleClass={titleClass} />
                   <div className="ph-category-content">
                     {catArticles[0] && (
                       <FeaturedCard article={catArticles[0]} category={title} />

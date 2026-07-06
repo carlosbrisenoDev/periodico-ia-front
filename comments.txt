@@ -1,0 +1,37 @@
+3361: /* Public Layout Styles */
+3720: /* ── Image Row Grid ──────────────────────── */
+3738: /* Layouts */
+4066: /* =============================================
+4077: /* --- Mobile Nav Toggle --- */
+4100: /* --- Mobile Menu Overlay --- */
+4218: /* --- Hero Section --- */
+4244: /* --- Featured Card (Large) --- */
+4346: /* --- Small Card (Vertical) --- */
+4423: /* --- Horizontal Card (side-by-side) --- */
+4542: /* --- Hero Side Stack --- */
+4563: /* --- Section Wrapper --- */
+4594: /* --- Section Header --- */
+4688: /* --- Latest News Grid (3 col) --- */
+4701: /* --- Category Layout A (2 small left + 1 featured right) --- */
+4729: /* --- Category Layout B (1 featured left + 2 horiz right) --- */
+4749: /* --- CTA Banner --- */
+4813: /* --- Loading / Error States --- */
+4859: /* --- Section title border color variants --- */
+4884: /* =============================================
+5052: /* =============================================
+5056: /* ── Banner ─────────────────────────────────── */
+5085: /* ── Main ───────────────────────────────────── */
+5100: /* ── Section ────────────────────────────────── */
+5126: /* ── Featured Grid (hero + 2 side) ──────────── */
+5147: /* ── Featured Card ──────────────────────────── */
+5223: /* ── Small Card ─────────────────────────────── */
+5273: /* ── All-articles Grid ──────────────────────── */
+5332: /* ── Magazine Template ─────────────────────── */
+5393: /* ── List Template ──────────────────────────── */
+5464: /* ── Placeholder ────────────────────────────── */
+5707: /* Recent Page Styles */
+5764: /* =============================================
+5959: /* --- Mobile Responsive Base Layout --- */
+5960: /* The following styles apply globally to base the desktop design on the mobile responsive one */
+5962: /* Navbar and Actions */
+6309: /* --- Desktop Enhancements (Base Mobile Layout) --- */

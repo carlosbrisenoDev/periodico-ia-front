@@ -1,0 +1,167 @@
+/* =============================================
+   SUBSCRIPTION PAGE STYLES (.ps-*)
+   ============================================= */
+
+.ps-main {
+  background: #2a3f52;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 130px);
+  padding: 64px 24px;
+}
+
+@media (min-width: 1024px) {
+  .ps-main {
+    padding: 80px 48px;
+  }
+}
+
+.ps-card {
+  background: #ffffff;
+  width: 100%;
+  max-width: 520px;
+  padding: 48px 40px;
+  border-radius: 4px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+}
+
+@media (max-width: 480px) {
+  .ps-card {
+    padding: 32px 24px;
+  }
+}
+
+.ps-title {
+  font-size: 1.75rem;
+  font-weight: 800;
+  /* font-style: italic; */
+  color: #111827;
+  text-align: center;
+  margin: 0 0 12px;
+  letter-spacing: -0.02em;
+}
+
+.ps-subtitle {
+  font-size: 0.925rem;
+  color: #4b5563;
+  text-align: center;
+  line-height: 1.5;
+  margin: 0 0 32px;
+  font-weight: 400;
+}
+
+.ps-subtitle strong {
+  font-weight: 700;
+  color: #111827;
+}
+
+.ps-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.ps-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #111827;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 8px;
+  margin-top: 20px;
+}
+
+.ps-label:first-of-type {
+  margin-top: 0;
+}
+
+.ps-required {
+  color: #dc2626;
+}
+
+.ps-optional {
+  font-weight: 500;
+  color: #6b7280;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+}
+
+.ps-input {
+  width: 100%;
+  height: 48px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 0 16px;
+  font-size: 0.95rem;
+  color: #111827;
+  background: #f9fafb;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  font-family: inherit;
+}
+
+.ps-input::placeholder {
+  color: #9ca3af;
+}
+
+.ps-input:focus {
+  border-color: #5a7a94;
+  box-shadow: 0 0 0 3px rgba(90, 122, 148, 0.15);
+}
+
+.ps-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.ps-button {
+  margin-top: 28px;
+  width: 100%;
+  height: 52px;
+  border: none;
+  border-radius: 6px;
+  background: #2a3f52;
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  font-family: inherit;
+}
+
+.ps-button:hover {
+  background: #1e3041;
+}
+
+.ps-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.ps-terms {
+  margin-top: 20px;
+  font-size: 0.8rem;
+  color: #6b7280;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.ps-feedback {
+  margin-top: 16px;
+  font-size: 0.9rem;
+  text-align: center;
+  padding: 10px 14px;
+  border-radius: 6px;
+}
+
+.ps-feedback-error {
+  color: #991b1b;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+}
+
+.ps-feedback-success {
+  color: #166534;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+}
