@@ -279,6 +279,7 @@ const CategoryPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [categories, setCategories] = useState<PublicCategory[]>([]);
   const [videos, setVideos] = useState<VideoAsset[]>([]);
+  const [visibleCount, setVisibleCount] = useState(5);
 
 
   useEffect(() => {
@@ -320,6 +321,7 @@ const CategoryPage = () => {
     };
 
     void load();
+    setVisibleCount(5);
     return () => controller.abort();
   }, [id]);
 
@@ -404,72 +406,55 @@ const CategoryPage = () => {
         )}
 
         {!loading && !error && articles.length > 0 && (
-          <>
-            {template === 'magazine' ? (
-              <section className="pc-section pc-section-magazine">
-                <div className="pc-magazine-list">
-                  {articles.map((a, idx) => (
-                    <MagazineCard key={a.id} article={a} category={id === "noticias" ? a.categoryName : categoryName} reverse={idx % 2 !== 0} />
-                  ))}
-                </div>
-              </section>
-            ) : template === 'list' ? (
-              <section className="pc-section pc-section-list">
-                <div className="pc-list-vertical">
-                  {articles.map((a) => (
-                    <ListCard key={a.id} article={a} category={id === "noticias" ? a.categoryName : categoryName} />
-                  ))}
-                </div>
-              </section>
-            ) : template === 'hero-grid' ? (
-              <>
-                {/* Destacadas (Hero Grid) */}
-                <section className="pc-section">
-                  <div className="pc-section-header">
-                    <h2 className="pc-section-title">Destacadas</h2>
-                  </div>
-
-                  <div className="pc-featured-grid">
-                    {featured && (
-                      <FeaturedCard article={featured} category={id === "noticias" ? featured.categoryName : categoryName} />
-                    )}
-                    {sideCards.length > 0 && (
-                      <div className="pc-side-stack">
-                        {sideCards.map((a) => (
-                          <SmallCard key={a.id} article={a} category={id === "noticias" ? a.categoryName : categoryName} />
-                        ))}
-                      </div>
+          <div className="pc-new-layout">
+            {featured && (
+              <div className="pc-main-article">
+                <a href={articleHref(featured)} className="pc-main-article-link">
+                  <div className="pc-main-image">
+                    {featured.featuredImageUrl ? (
+                      <img src={featured.featuredImageUrl} alt={featured.title} />
+                    ) : (
+                      <div className="pc-image-placeholder">{id === "noticias" ? featured.categoryName : categoryName}</div>
                     )}
                   </div>
-                </section>
-
-                {/* Todas las publicaciones */}
-                {allCards.length > 0 && (
-                  <section className="pc-section pc-section-border">
-                    <div className="pc-section-header">
-                      <h2 className="pc-section-title">Todas las publicaciones de {categoryName}</h2>
-                    </div>
-                    <div className="pc-all-grid">
-                      {allCards.map((a) => (
-                        <GridCard key={a.id} article={a} category={id === "noticias" ? a.categoryName : categoryName} />
-                      ))}
-                    </div>
-                  </section>
-                )}
-              </>
-            ) : (
-              <section className="pc-section">
-                <div className="pc-section-header">
-                  <h2 className="pc-section-title">Publicaciones Recientes</h2>
-                </div>
-                <div className="pc-all-grid">
-                  {articles.map((a) => (
-                    <GridCard key={a.id} article={a} category={id === "noticias" ? a.categoryName : categoryName} />
-                  ))}
-                </div>
-              </section>
+                  <div className="pc-main-content">
+                    <h2 className="pc-main-title">{featured.title}</h2>
+                    <p className="pc-main-excerpt">{featured.excerpt}</p>
+                  </div>
+                </a>
+              </div>
             )}
-          </>
+
+            <div className="pc-secondary-list">
+              {allCards.slice(0, visibleCount).map((a) => (
+                <a key={a.id} href={articleHref(a)} className="pc-secondary-card">
+                  <div className="pc-secondary-image">
+                    {a.featuredImageUrl ? (
+                      <img src={a.featuredImageUrl} alt={a.title} />
+                    ) : (
+                      <div className="pc-image-placeholder">{a.categoryName}</div>
+                    )}
+                  </div>
+                  <div className="pc-secondary-content">
+                    <span className="pc-secondary-tag">{a.categoryName}</span>
+                    <h3 className="pc-secondary-title">{a.title}</h3>
+                    <p className="pc-secondary-excerpt">{a.excerpt}</p>
+                  </div>
+                </a>
+              ))}
+            </div>
+
+            {visibleCount < allCards.length && (
+              <div className="pc-load-more-container">
+                <button 
+                  className="pc-load-more-btn" 
+                  onClick={() => setVisibleCount((prev) => prev + 5)}
+                >
+                  Seguir leyendo
+                </button>
+              </div>
+            )}
+          </div>
         )}
 
         {/* Conditional Xalapa / Veracruz sections */}
