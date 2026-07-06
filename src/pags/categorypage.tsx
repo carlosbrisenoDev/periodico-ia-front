@@ -21,24 +21,7 @@ type VideoAsset = {
 
 
 
-const formatArticleDate = (iso: string): string => {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "";
-  return new Intl.DateTimeFormat("es-ES", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  }).format(d);
-};
 
-const formatArticleTime = (iso: string): string => {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "";
-  return new Intl.DateTimeFormat("es-ES", {
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(d);
-};
 
 const articleHref = (a: PublicArticle) => `/articulo/${a.id}`;
 
@@ -150,121 +133,7 @@ const fetchCategoryArticles = async (
 };
 
 
-/* ── Card Components ─────────────────────────────────── */
 
-const FeaturedCard = ({ article, category }: { article: PublicArticle; category: string }) => (
-  <a className="pc-featured-card" href={articleHref(article)}>
-    <div className="pc-featured-image">
-      {article.featuredImageUrl ? (
-        <img src={article.featuredImageUrl} alt={article.title} />
-      ) : (
-        <div className="pc-image-placeholder">{category}</div>
-      )}
-    </div>
-    <div className="pc-featured-body">
-      <span className="pc-badge" style={{ color: "var(--category-color, inherit)", borderColor: "var(--category-color, inherit)" }}>{category}</span>
-      <h2 className="pc-featured-title">{article.title}</h2>
-
-      <p className="pc-featured-excerpt">{article.excerpt}</p>
-      <div className="pc-meta">
-        <span>{formatArticleDate(article.createdAt)}</span>
-        <span>•</span>
-        <span>{formatArticleTime(article.createdAt)}</span>
-        <span>•</span>
-        <span className="pc-meta-author">{article.authorName}</span>
-      </div>
-    </div>
-  </a>
-);
-
-const SmallCard = ({ article, category }: { article: PublicArticle; category: string }) => (
-  <a className="pc-small-card" href={articleHref(article)}>
-    <div className="pc-small-image">
-      {article.featuredImageUrl ? (
-        <img src={article.featuredImageUrl} alt={article.title} />
-      ) : (
-        <div className="pc-image-placeholder">{category}</div>
-      )}
-    </div>
-    <div className="pc-small-body">
-      <div className="pc-small-category" style={{ color: "var(--category-color, inherit)" }}>{category}</div>
-      <h3 className="pc-small-title">{article.title}</h3>
-
-      <div className="pc-meta">
-        <span>{formatArticleDate(article.createdAt)}</span>
-        <span>•</span>
-        <span>{formatArticleTime(article.createdAt)}</span>
-      </div>
-    </div>
-  </a>
-);
-
-const GridCard = ({ article, category }: { article: PublicArticle; category: string }) => (
-  <a className="pc-grid-card" href={articleHref(article)}>
-    <div className="pc-grid-image">
-      {article.featuredImageUrl ? (
-        <img src={article.featuredImageUrl} alt={article.title} />
-      ) : (
-        <div className="pc-image-placeholder">{category}</div>
-      )}
-    </div>
-    <div className="pc-grid-body">
-      <div className="pc-small-category" style={{ color: "var(--category-color, inherit)" }}>{category}</div>
-      <h3 className="pc-grid-title">{article.title}</h3>
-      <div className="pc-meta">
-        <span>{formatArticleDate(article.createdAt)}</span>
-        <span>•</span>
-        <span>{formatArticleTime(article.createdAt)}</span>
-      </div>
-    </div>
-  </a>
-);
-
-const MagazineCard = ({ article, category, reverse }: { article: PublicArticle; category: string; reverse?: boolean }) => (
-  <a className={`pc-magazine-card ${reverse ? "pc-magazine-card-reverse" : ""}`} href={articleHref(article)}>
-    <div className="pc-magazine-image">
-      {article.featuredImageUrl ? (
-        <img src={article.featuredImageUrl} alt={article.title} />
-      ) : (
-        <div className="pc-image-placeholder">{category}</div>
-      )}
-    </div>
-    <div className="pc-magazine-body">
-      <div className="pc-small-category" style={{ color: "var(--category-color, inherit)" }}>{category}</div>
-      <h2 className="pc-magazine-title">{article.title}</h2>
-      <p className="pc-magazine-excerpt">{article.excerpt}</p>
-      <div className="pc-meta">
-        <span>{formatArticleDate(article.createdAt)}</span>
-        <span>•</span>
-        <span>{formatArticleTime(article.createdAt)}</span>
-        <span>•</span>
-        <span className="pc-meta-author">{article.authorName}</span>
-      </div>
-    </div>
-  </a>
-);
-
-const ListCard = ({ article, category }: { article: PublicArticle; category: string }) => (
-  <a className="pc-list-card" href={articleHref(article)}>
-    <div className="pc-list-image">
-      {article.featuredImageUrl ? (
-        <img src={article.featuredImageUrl} alt={article.title} />
-      ) : (
-        <div className="pc-image-placeholder">{category}</div>
-      )}
-    </div>
-    <div className="pc-list-body">
-      <div className="pc-small-category" style={{ color: "var(--category-color, inherit)" }}>{category}</div>
-      <h3 className="pc-list-title">{article.title}</h3>
-      <p className="pc-list-excerpt">{article.excerpt}</p>
-      <div className="pc-meta">
-        <span>{formatArticleDate(article.createdAt)}</span>
-        <span>•</span>
-        <span className="pc-meta-author">{article.authorName}</span>
-      </div>
-    </div>
-  </a>
-);
 
 /* ── Main Component ──────────────────────────────────── */
 
@@ -272,7 +141,6 @@ const CategoryPage = () => {
   const { id } = useParams<{ id: string }>();
   const capitalizedId = id ? id.charAt(0).toUpperCase() + id.slice(1) : "";
   const [categoryName, setCategoryName] = useState(capitalizedId);
-  const [template, setTemplate] = useState("default");
   const [color, setColor] = useState<string | undefined>();
   const [articles, setArticles] = useState<PublicArticle[]>([]);
   const [loading, setLoading] = useState(true);
@@ -300,9 +168,7 @@ const CategoryPage = () => {
 
         setCategoryName(categoryData.name);
         setArticles(categoryData.articles);
-        if ('template' in categoryData) {
-          setTemplate(categoryData.template as string);
-        }
+
         if ('color' in categoryData) {
           setColor(categoryData.color as string | undefined);
         }
