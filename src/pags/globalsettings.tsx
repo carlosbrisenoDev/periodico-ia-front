@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Sidebar } from "../components/sidebar.tsx";
 import { apiFetch } from "../libs/http.ts";
 import { API_BASE_URL } from "../libs/config.ts";
+import ImageSelectorModal from "../components/ImageSelectorModal.tsx";
 
 export default function GlobalSettingsPage() {
   const [adsenseEnabled, setAdsenseEnabled] = useState(false);
@@ -11,6 +12,7 @@ export default function GlobalSettingsPage() {
   const [printEditionImageUrl, setPrintEditionImageUrl] = useState("");
   const [printEditionLink, setPrintEditionLink] = useState("");
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [showImageModal, setShowImageModal] = useState(false);
 
   useEffect(() => {
     fetchSettings();
@@ -18,7 +20,9 @@ export default function GlobalSettingsPage() {
 
   const fetchSettings = async () => {
     try {
-      const data = await apiFetch<any>(`${API_BASE_URL}/api/v1/settings`);
+      const data = await apiFetch<any>(`${API_BASE_URL}/api/v1/settings`, {
+        credentials: "include",
+      });
         setAdsenseEnabled(data.adsenseEnabled || false);
         setAdsenseClientId(data.adsenseClientId || "");
         if (Array.isArray(data.commentBlocklist)) {
@@ -44,6 +48,7 @@ export default function GlobalSettingsPage() {
     try {
       await apiFetch<any>(`${API_BASE_URL}/api/v1/settings`, {
         method: "PATCH",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },
@@ -160,20 +165,34 @@ export default function GlobalSettingsPage() {
               <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
                 <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                   <label style={{ fontWeight: "bold", color: "var(--text-main)" }}>URL de la Imagen</label>
-                  <input
-                    type="text"
-                    value={printEditionImageUrl}
-                    onChange={(e) => setPrintEditionImageUrl(e.target.value)}
-                    placeholder="https://ejemplo.com/imagen.jpg"
-                    style={{
-                      padding: "12px",
-                      borderRadius: "8px",
-                      border: "1px solid var(--border)",
-                      fontSize: "1rem",
-                      background: "transparent",
-                      color: "var(--text-main)"
-                    }}
-                  />
+                  <div className="new-publication-card" style={{ padding: 0, border: 'none', background: 'transparent' }}>
+                    <button
+                      type="button"
+                      className="new-publication-upload-box"
+                      onClick={() => setShowImageModal(true)}
+                    >
+                      <span className="new-publication-upload-title">Seleccionar imagen</span>
+                      <span className="new-publication-upload-subtitle">Subir archivo o buscar en galería</span>
+                    </button>
+                    {printEditionImageUrl && (
+                      <div style={{ marginTop: '16px' }}>
+                        <img
+                          src={printEditionImageUrl}
+                          alt="Vista previa del banner"
+                          className="new-publication-image-preview"
+                          style={{ maxWidth: '100%', borderRadius: '8px' }}
+                        />
+                        <button
+                          type="button"
+                          className="new-publication-clear-image"
+                          onClick={() => setPrintEditionImageUrl("")}
+                          style={{ marginTop: '8px' }}
+                        >
+                          Quitar imagen
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
                 
                 <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
@@ -218,6 +237,16 @@ export default function GlobalSettingsPage() {
           </form>
         </div>
       </main>
+
+      {showImageModal && (
+        <ImageSelectorModal
+          onClose={() => setShowImageModal(false)}
+          onSelect={(url) => {
+            setPrintEditionImageUrl(url);
+            setShowImageModal(false);
+          }}
+        />
+      )}
     </div>
   );
 }

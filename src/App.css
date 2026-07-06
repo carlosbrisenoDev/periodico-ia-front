@@ -4423,12 +4423,13 @@ body,
 /* --- Horizontal Card (side-by-side) --- */
 .ph-horiz-card {
   display: flex;
-  gap: 24px;
+  flex-direction: column;
+  gap: 0;
   text-decoration: none;
   color: inherit;
   background: #ffffff;
   border: 1px solid #e5e7eb;
-  padding: 24px;
+  padding: 0;
   transition: border-color 0.25s;
 }
 
@@ -4438,8 +4439,9 @@ body,
 
 .ph-horiz-image {
   position: relative;
-  width: 224px;
-  height: 160px;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
   overflow: hidden;
   background: #f3f4f6;
   flex-shrink: 0;
@@ -4474,7 +4476,7 @@ body,
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 8px 0;
+  padding: 24px;
 }
 
 .ph-horiz-category {
@@ -6035,8 +6037,9 @@ body,
     border-bottom: none;
   }
   .ph-horiz-image {
-    width: 100px;
-    height: 75px;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
     border-radius: 6px;
   }
   .ph-horiz-body {
@@ -6153,13 +6156,16 @@ body,
 
   /* Videografia */
   .ph-videografia-section {
-    background: #0f172a;
-    color: #fff;
+    background: #0f172a !important;
+    color: #ffffff !important;
     padding: 24px 16px;
     margin: 24px 0;
   }
+  .ph-videografia-section * {
+    color: #ffffff !important;
+  }
   .ph-videografia-section .ph-section-header {
-    border-bottom-color: #fff;
+    border-bottom-color: #ffffff !important;
   }
   .ph-video-main {
     position: relative;
@@ -6362,8 +6368,10 @@ body,
   }
   
   .ph-horiz-image {
-    width: 150px;
-    height: 112px;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    border-radius: 6px;
   }
   
   .ph-horiz-title {

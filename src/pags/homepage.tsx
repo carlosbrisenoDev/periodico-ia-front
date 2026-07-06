@@ -1,7 +1,17 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getHomeData, getLatestPublications, getPublicCategories, getCategoryArticles, apiFetch } from "../libs/http.ts";
+import { API_BASE_URL } from "../libs/config.ts";
 import type { PublicArticle, PublicCategory } from "../libs/types.ts";
+
+type VideoAsset = {
+  id: string;
+  url: string;
+  platform: string;
+  videoExternalId: string;
+  title?: string;
+};
+
 import PublicFooter from "../components/PublicFooter.tsx";
 import PublicNavbar from "../components/PublicNavbar.tsx";
 
@@ -140,6 +150,7 @@ const HomePage = () => {
   const [articles, setArticles] = useState<PublicArticle[]>([]);
   const [featuredArticles, setFeaturedArticles] = useState<PublicArticle[]>([]);
   const [categories, setCategories] = useState<PublicCategory[]>([]);
+  const [videos, setVideos] = useState<VideoAsset[]>([]);
   const [categoryArticlesMap, setCategoryArticlesMap] = useState<Record<string, PublicArticle[]>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -152,11 +163,17 @@ const HomePage = () => {
       try {
         setLoading(true);
 
-        const [homeData, fetchedCats, settingsData] = await Promise.all([
+        const [homeData, fetchedCats, settingsData, videosRes] = await Promise.all([
           getHomeData(controller.signal),
           getPublicCategories(controller.signal),
-          apiFetch<any>(`https://api.informaciondealtura.com/api/v1/settings`, { signal: controller.signal }).catch(() => ({}))
+          apiFetch<any>(`https://api.informaciondealtura.com/api/v1/settings`, { signal: controller.signal }).catch(() => ({})),
+          fetch(`${API_BASE_URL}/api/v1/public/videos?limit=5`, { signal: controller.signal }).catch(() => null)
         ]);
+
+        if (videosRes && videosRes.ok) {
+          const vData = await videosRes.json();
+          setVideos(Array.isArray(vData) ? vData : []);
+        }
 
         setCategories(fetchedCats);
         setFeaturedArticles(homeData.featured);
@@ -355,22 +372,57 @@ const HomePage = () => {
               <SectionHeader title="VIDEOGRAFÍA" href="/videoteca" linkLabel="VER TODOS" linkStyle="arrow" />
               <div className="ph-video-container">
                 <div className="ph-video-main" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  <h3 style={{ margin: 0, fontSize: '1.25rem' }}>Información de Altura en Video</h3>
-                  <div className="ph-video-thumbnail">
-                    <PlayIcon />
+                  <h3 style={{ margin: 0, fontSize: '1.25rem' }}>
+                    {videos.length > 0 ? (videos[0].title || "Video") : "Información de Altura en Video"}
+                  </h3>
+                  <div className="ph-video-thumbnail" style={{ padding: 0, overflow: 'hidden' }}>
+                    {videos.length > 0 ? (
+                      videos[0].platform === 'youtube' ? (
+                        <iframe
+                          src={`https://www.youtube.com/embed/${videos[0].videoExternalId}`}
+                          style={{ width: "100%", height: "100%", border: 0 }}
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                          title={videos[0].title || "Video"}
+                        />
+                      ) : (
+                        <a href={videos[0].url} target="_blank" rel="noopener noreferrer"><PlayIcon /></a>
+                      )
+                    ) : (
+                      <PlayIcon />
+                    )}
                   </div>
                 </div>
                 <div className="ph-video-list">
-                  {[1, 2, 3].map((i) => (
+                  {videos.length > 0 ? videos.slice(1).map((video) => (
+                    <div key={video.id} className="ph-video-item" style={{ flexDirection: 'column', alignItems: 'flex-start' }}>
+                      <div className="ph-video-info" style={{ width: '100%' }}>
+                        <h4 style={{ marginBottom: '8px' }}>{video.title || "Video"}</h4>
+                      </div>
+                      <div style={{ display: 'flex', width: '100%', gap: '12px' }}>
+                        <div className="ph-video-thumb-small" style={{ overflow: 'hidden' }}>
+                          <a href={video.platform === 'youtube' ? `https://youtube.com/watch?v=${video.videoExternalId}` : video.url} target="_blank" rel="noopener noreferrer" style={{ display: 'block', width: '100%', height: '100%' }}>
+                            {video.platform === 'youtube' ? (
+                              <img src={`https://img.youtube.com/vi/${video.videoExternalId}/mqdefault.jpg`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="thumbnail" />
+                            ) : (
+                              <PlayIcon />
+                            )}
+                          </a>
+                        </div>
+                        <div className="ph-video-info" style={{ display: 'flex', alignItems: 'center' }}>
+                          <a href={video.platform === 'youtube' ? `https://youtube.com/watch?v=${video.videoExternalId}` : video.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
+                            <span>Ver en {video.platform}</span>
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  )) : [1, 2, 3].map((i) => (
                     <div key={i} className="ph-video-item" style={{ flexDirection: 'column', alignItems: 'flex-start' }}>
                       <div className="ph-video-info" style={{ width: '100%' }}>
-                        <h4 style={{ marginBottom: '8px' }}>Resumen de noticias en video</h4>
+                        <h4 style={{ marginBottom: '8px' }}>Cargando...</h4>
                       </div>
                       <div style={{ display: 'flex', width: '100%', gap: '12px' }}>
                         <div className="ph-video-thumb-small"><PlayIcon /></div>
-                        <div className="ph-video-info">
-                          <span><ClockIcon /> 01:30</span>
-                        </div>
                       </div>
                     </div>
                   ))}
