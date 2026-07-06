@@ -48,6 +48,22 @@ const getYoutubeEmbedUrl = (url?: string | null) => {
   return (match && match[2].length === 11) ? `https://www.youtube.com/embed/${match[2]}` : null;
 };
 
+/** Convert inline formatting markers to safe HTML */
+const escapeHtml = (text: string): string =>
+  text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+const renderInlineFormatting = (text: string): string => {
+  let html = escapeHtml(text);
+  // **bold** (must be before single *)
+  html = html.replace(/\*\*([\s\S]+?)\*\*/g, '<strong>$1</strong>');
+  // *italic*
+  html = html.replace(/\*([\s\S]+?)\*/g, '<em>$1</em>');
+  // __underline__
+  html = html.replace(/__([\s\S]+?)__/g, '<u>$1</u>');
+  // newlines to <br/>
+  html = html.replace(/\n/g, '<br/>');
+  return html;
+};
 
 
 type SimpleCategory = {
@@ -700,9 +716,9 @@ export const PublicationPreview = () => {
                 }
 
                 return (
-                  <p key={`${block.text.slice(0, 24)}-${index}`}>
-                    {block.text}
-                  </p>
+                  <p key={`${block.text.slice(0, 24)}-${index}`}
+                     dangerouslySetInnerHTML={{ __html: renderInlineFormatting(block.text) }}
+                  />
                 );
               })}
             </div>

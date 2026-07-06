@@ -171,8 +171,8 @@
 
 @media (min-width: 1024px) {
   .ph-hero-grid {
-    grid-template-columns: 2fr 1fr;
-    gap: 48px;
+    grid-template-columns: 3fr 1fr;
+    gap: 32px;
   }
 }
 
@@ -478,7 +478,7 @@
 .ph-hero-side {
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: 16px;
 }
 
 @media (max-width: 1023px) {
@@ -492,7 +492,30 @@
 @media (max-width: 640px) {
   .ph-hero-side {
     grid-template-columns: 1fr;
+    gap: 16px;
   }
+}
+
+/* Compact side cards in hero */
+.ph-hero-side .ph-horiz-card {
+  border: 1px solid #e5e7eb;
+}
+
+.ph-hero-side .ph-horiz-image {
+  aspect-ratio: 16 / 10;
+}
+
+.ph-hero-side .ph-horiz-body {
+  padding: 12px 16px;
+}
+
+.ph-hero-side .ph-horiz-title {
+  font-size: 0.95rem;
+  margin-bottom: 6px;
+}
+
+.ph-hero-side .ph-meta {
+  font-size: 0.7rem;
 }
 
 /* --- Section Wrapper --- */

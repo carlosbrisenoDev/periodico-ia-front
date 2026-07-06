@@ -1641,6 +1641,46 @@ body,
   min-height: 120px;
 }
 
+/* Formatting toolbar */
+.editor-format-toolbar {
+  display: flex;
+  gap: 4px;
+  padding: 6px 8px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-bottom: none;
+  border-radius: 8px 8px 0 0;
+}
+
+.editor-format-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 28px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: #374151;
+  transition: all 0.15s;
+}
+
+.editor-format-btn:hover:not(:disabled) {
+  background: #e5e7eb;
+  border-color: #9ca3af;
+}
+
+.editor-format-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.editor-format-toolbar + .editor-textarea {
+  border-radius: 0 0 8px 8px;
+}
+
 .editor-input:focus,
 .editor-textarea:focus {
   outline: none;

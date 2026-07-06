@@ -233,11 +233,11 @@ const HomePage = () => {
 
   const heroSide = (() => {
     const headlines = featuredArticles.filter(a => a.featuredType === 'headline' && a.id !== heroMain?.id);
-    if (headlines.length >= 2) return headlines.slice(0, 2);
+    if (headlines.length >= 3) return headlines.slice(0, 3);
     
     // Fallback: use any featured that isn't the main, then any recent
     const pool = allKnownArticles.filter(a => a.id !== heroMain?.id);
-    return pool.slice(0, 2);
+    return pool.slice(0, 3);
   })();
 
   const latestThree = articles.slice(0, 3);

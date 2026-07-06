@@ -125,6 +125,7 @@ export const ArticleContentEditor = ({
   const [uploadingImage, setUploadingImage] = useState<boolean>(false);
   const [imageError, setImageError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const textareaRefs = useRef<Map<string, HTMLTextAreaElement>>(new Map());
   const lastValueRef = useRef(value);
 
   useEffect(() => {
@@ -381,6 +382,24 @@ export const ArticleContentEditor = ({
   const iconVideo = <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m22 8-6 4 6 4V8Z"/><rect width="14" height="12" x="2" y="6" rx="2" ry="2"/></svg>;
   const iconGrid = <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg>;
 
+  /* ── Inline formatting helper ── */
+  const wrapSelection = (blockId: string, prefix: string, suffix: string) => {
+    const ta = textareaRefs.current.get(blockId);
+    if (!ta || disabled) return;
+    const start = ta.selectionStart;
+    const end = ta.selectionEnd;
+    const text = ta.value;
+    const selected = text.slice(start, end);
+    const newText = text.slice(0, start) + prefix + selected + suffix + text.slice(end);
+    updateBlock(blockId, (current) => ({ ...current, text: newText }));
+    // Restore cursor after React re-render
+    requestAnimationFrame(() => {
+      ta.focus();
+      const newCursorPos = selected.length > 0 ? start + prefix.length + selected.length + suffix.length : start + prefix.length;
+      ta.setSelectionRange(newCursorPos, newCursorPos);
+    });
+  };
+
   const renderActionChips = (blockId: string) => (
     <div className="editor-chips-group">
       <button type="button" className="editor-action-chip" onClick={() => addBlock("paragraph", blockId)} disabled={disabled}>
@@ -594,16 +613,33 @@ export const ArticleContentEditor = ({
                     disabled={disabled}
                   />
                 ) : (
-                  <textarea
-                    className="editor-textarea"
-                    rows={4}
-                    placeholder="Escribe un párrafo..."
-                    value={block.text}
-                    onChange={(event) =>
-                      updateBlock(block.id, (current) => ({ ...current, text: event.target.value }))
-                    }
-                    disabled={disabled}
-                  />
+                  <>
+                    <div className="editor-format-toolbar">
+                      <button type="button" className="editor-format-btn" title="Negrita" onClick={() => wrapSelection(block.id, '**', '**')} disabled={disabled}>
+                        <strong>B</strong>
+                      </button>
+                      <button type="button" className="editor-format-btn" title="Itálica" onClick={() => wrapSelection(block.id, '*', '*')} disabled={disabled}>
+                        <em>I</em>
+                      </button>
+                      <button type="button" className="editor-format-btn" title="Subrayado" onClick={() => wrapSelection(block.id, '__', '__')} disabled={disabled}>
+                        <u>U</u>
+                      </button>
+                    </div>
+                    <textarea
+                      className="editor-textarea"
+                      rows={4}
+                      placeholder="Escribe un párrafo..."
+                      value={block.text}
+                      ref={(el) => {
+                        if (el) textareaRefs.current.set(block.id, el);
+                        else textareaRefs.current.delete(block.id);
+                      }}
+                      onChange={(event) =>
+                        updateBlock(block.id, (current) => ({ ...current, text: event.target.value }))
+                      }
+                      disabled={disabled}
+                    />
+                  </>
                 )}
 
                 <div className="editor-block-footer">
