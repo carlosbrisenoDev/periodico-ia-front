@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import "./homepage.css";
 import { getHomeData, getLatestPublications, getPublicCategories, getCategoryArticles, apiFetch } from "../libs/http.ts";
 import { API_BASE_URL } from "../libs/config.ts";
@@ -397,7 +397,7 @@ const HomePage = () => {
                           title={videos[0].title || "Video"}
                         />
                       ) : (
-                        <a href={videos[0].url} target="_blank" rel="noopener noreferrer"><PlayIcon /></a>
+                        <Link to={`/video/${videos[0].id}`} state={{ video: videos[0] }}><PlayIcon /></Link>
                       )
                     ) : (
                       <PlayIcon />
@@ -412,18 +412,18 @@ const HomePage = () => {
                       </div>
                       <div style={{ display: 'flex', width: '100%', gap: '12px' }}>
                         <div className="ph-video-thumb-small" style={{ overflow: 'hidden' }}>
-                          <a href={video.platform === 'youtube' ? `https://youtube.com/watch?v=${video.videoExternalId}` : video.url} target="_blank" rel="noopener noreferrer" style={{ display: 'block', width: '100%', height: '100%' }}>
+                          <Link to={`/video/${video.id}`} state={{ video }} style={{ display: 'block', width: '100%', height: '100%' }}>
                             {video.platform === 'youtube' ? (
                               <img src={`https://img.youtube.com/vi/${video.videoExternalId}/mqdefault.jpg`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="thumbnail" />
                             ) : (
                               <PlayIcon />
                             )}
-                          </a>
+                          </Link>
                         </div>
                         <div className="ph-video-info" style={{ display: 'flex', alignItems: 'center' }}>
-                          <a href={video.platform === 'youtube' ? `https://youtube.com/watch?v=${video.videoExternalId}` : video.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
-                            <span>Ver en {video.platform}</span>
-                          </a>
+                          <Link to={`/video/${video.id}`} state={{ video }} style={{ textDecoration: 'none' }}>
+                            <span>Ver video</span>
+                          </Link>
                         </div>
                       </div>
                     </div>
