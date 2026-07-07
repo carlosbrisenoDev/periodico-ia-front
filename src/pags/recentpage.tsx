@@ -6,6 +6,7 @@ import type { PublicArticle, PublicCategory } from "../libs/types.ts";
 import PublicNavbar from "../components/PublicNavbar.tsx";
 import PublicFooter from "../components/PublicFooter.tsx";
 import { NewspaperIcon } from "../components/Icons.tsx";
+import { FormattedText } from "../components/FormattedText.tsx";
 
 
 const formatArticleDate = (iso: string): string => {
@@ -104,9 +105,9 @@ const RecentPage = () => {
                   )}
                 </div>
                 <div className="ph-horiz-body">
-                  <div className="ph-horiz-category">{article.categoryName}</div>
-                  <h3 className="ph-horiz-title">{article.title}</h3>
-                  <p className="ph-horiz-excerpt">{article.excerpt}</p>
+                  <div className="ph-small-category">{article.categoryName || "Noticias"}</div>
+                  <h3 className="ph-horiz-title"><FormattedText text={article.title} /></h3>
+                  <p className="ph-horiz-excerpt"><FormattedText text={article.excerpt} /></p>
                   <div className="ph-horiz-meta">
                     <span>{formatArticleDate(article.createdAt)}</span>
                     <span>•</span>

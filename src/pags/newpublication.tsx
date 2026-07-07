@@ -1,6 +1,7 @@
 import { type ChangeEvent, type FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArticleContentEditor } from "../components/articlecontenteditor.tsx";
+import { FormattedTextField } from "../components/FormattedTextField.tsx";
 import { Sidebar } from "../components/sidebar.tsx";
 import { API_BASE_URL, MAX_UPLOAD_MB } from "../libs/config.ts";
 import { ApiError, apiFetch, getMe } from "../libs/http.ts";
@@ -546,13 +547,12 @@ const NewPublication = () => {
               <label className="new-publication-label" htmlFor="new-publication-title">
                 Título
               </label>
-              <input
+              <FormattedTextField
                 id="new-publication-title"
-                className="new-publication-input"
-                type="text"
                 placeholder="Escribe un título atractivo..."
                 value={form.title}
-                onChange={(event) => updateField("title", event.target.value)}
+                onChange={(val) => updateField("title", val)}
+                disabled={submitting || loadingOptions}
               />
             </article>
 
@@ -560,14 +560,15 @@ const NewPublication = () => {
               <label className="new-publication-label" htmlFor="new-publication-excerpt">
                 Descripción general
               </label>
-              <textarea
+              <FormattedTextField
                 id="new-publication-excerpt"
-                className="new-publication-textarea"
+                multiline
                 rows={4}
                 maxLength={200}
                 placeholder="Escribe una breve descripción del artículo..."
                 value={form.excerpt}
-                onChange={(event) => updateField("excerpt", event.target.value)}
+                onChange={(val) => updateField("excerpt", val)}
+                disabled={submitting || loadingOptions}
               />
               <p className="new-publication-helper-text">
                 Recomendacion: no mas de 3 lineas. ({form.excerpt.length}/200 caracteres)

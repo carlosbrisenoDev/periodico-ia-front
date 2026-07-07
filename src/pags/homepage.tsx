@@ -13,6 +13,7 @@ type VideoAsset = {
   title?: string;
 };
 
+import { FormattedText } from "../components/FormattedText.tsx";
 import PublicFooter from "../components/PublicFooter.tsx";
 import PublicNavbar from "../components/PublicNavbar.tsx";
 
@@ -83,8 +84,8 @@ const FeaturedCard = ({ article, category }: { article: PublicArticle; category:
     </div>
     <div className="ph-featured-body">
       <span className="ph-badge">{category}</span>
-      <h2 className="ph-featured-title">{article.title}</h2>
-      <p className="ph-featured-excerpt">{article.excerpt}</p>
+      <h2 className="ph-featured-title"><FormattedText text={article.title} /></h2>
+      <p className="ph-featured-excerpt"><FormattedText text={article.excerpt} /></p>
       <div className="ph-meta">
         <span>{formatArticleDate(article.createdAt)}</span>
         <span>•</span>
@@ -107,7 +108,7 @@ const HorizCard = ({ article, category }: { article: PublicArticle; category: st
     </div>
     <div className="ph-horiz-body">
       <div className="ph-small-category">{category}</div>
-      <h3 className="ph-horiz-title">{article.title}</h3>
+      <h3 className="ph-horiz-title"><FormattedText text={article.title} /></h3>
       <div className="ph-meta">
         <span>{formatArticleDate(article.createdAt)}</span>
         <span>•</span>
@@ -176,7 +177,7 @@ const HomePage = () => {
         const [homeData, fetchedCats, settingsData, videosRes] = await Promise.all([
           getHomeData(controller.signal),
           getPublicCategories(controller.signal),
-          apiFetch<any>(`https://api.informaciondealtura.com/api/v1/settings`, { signal: controller.signal }).catch(() => ({})),
+          apiFetch<any>(`${API_BASE_URL}/api/v1/public/settings`, { signal: controller.signal }).catch(() => ({})),
           fetch(`${API_BASE_URL}/api/v1/public/videos?limit=5`, { signal: controller.signal }).catch(() => null)
         ]);
 
@@ -240,8 +241,6 @@ const HomePage = () => {
     return pool.slice(0, 3);
   })();
 
-  const latestThree = articles.slice(0, 3);
-
   return (
     <div className="ph-page">
       <PublicNavbar categories={categories} />
@@ -283,163 +282,168 @@ const HomePage = () => {
               </div>
             </section>
 
-            {/* Tendencias / Últimas Noticias */}
-            {latestThree.length > 0 && (
-              <div className="ph-section">
-                <SectionHeader
-                  title="TENDENCIAS"
-                  href="/recientes"
-                  linkLabel="VER TODAS"
-                  linkStyle="arrow"
-                  titleClass="ph-section-title-tendencias"
-                />
-                <div className="ph-list-grid">
-                  {latestThree.map((a) => (
-                    <HorizCard key={a.id} article={a} category={a.categoryName} />
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Las 5 de X */}
-            <div id="las-5-de-x" className="ph-las-5-section">
-              <div className="ph-las-5-header">
-                <h2>LAS 5 DE X</h2>
-                <p>Lo más importante en 1 minuto</p>
-                <a href="/recientes" className="ph-las-5-btn">Ver resumen completo &rarr;</a>
-              </div>
-              <div className="ph-las-5-list">
-                {articles.slice(0, 5).map((a, i) => (
-                  <a key={a.id} href={articleHref(a)} className="ph-las-5-item">
-                    <div className="ph-las-5-number">{i + 1}</div>
-                    <div className="ph-las-5-img">
-                      {a.featuredImageUrl ? <img src={a.featuredImageUrl} alt="" /> : <div className="placeholder" />}
-                    </div>
-                    <div className="ph-las-5-text">{a.title}</div>
-                  </a>
-                ))}
-              </div>
-            </div>
-
             {/* Print Edition Banner */}
             <div className="ph-print-banner">
-              {settings?.printEditionImageUrl ? (
-                <a href={settings.printEditionLink || "#"} target="_blank" rel="noopener noreferrer" style={{ display: 'block', width: '100%' }}>
-                  <img src={settings.printEditionImageUrl} alt="Edición Impresa" style={{ width: '100%', height: 'auto', display: 'block' }} />
-                </a>
-              ) : (
+              <a href={settings?.printEditionLink || "#"} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}>
                 <div className="ph-print-banner-inner">
-                  <img src="/logo.png" alt="" className="ph-print-logo" style={{width: 200, height: 200, objectFit: 'contain'}} />
+                  <img src={settings?.printEditionImageUrl || "/logo.png"} alt="Edición Impresa" className="ph-print-logo" />
                   <div className="ph-print-text">
                     <h3>BUSCA LA EDICIÓN IMPRESA</h3>
                     <p>MARTES Y VIERNES</p>
                   </div>
                 </div>
-              )}
+              </a>
             </div>
 
-            {/* Dynamic Categories */}
-            {[...categories].sort((a, b) => (a.order || 0) - (b.order || 0)).map((catObj) => {
-              const catKey = (catObj.name || "").toLowerCase().trim();
-              const fromGroup = grouped[catKey] || [];
-              const fromFetch = categoryArticlesMap[catKey] || [];
-              
-              const seen = new Set<string>();
-              const catArticles: PublicArticle[] = [];
-              for (const a of [...fromGroup, ...fromFetch]) {
-                if (!seen.has(a.id)) {
-                  seen.add(a.id);
-                  catArticles.push(a);
-                }
-              }
-              
-              if (catArticles.length === 0) return null;
-              
-              const title = catObj.name || "Categoría";
-              const slug = catObj.slug || slugify(title);
-              const titleClass = sectionBorderMap[title] || "";
+            {/* Dynamic Categories & Las 5 de X */}
+            {(() => {
+              const validCategories = [...categories]
+                .sort((a, b) => (a.order || 0) - (b.order || 0))
+                .map((catObj) => {
+                  const catKey = (catObj.name || "").toLowerCase().trim();
+                  const fromGroup = grouped[catKey] || [];
+                  const fromFetch = categoryArticlesMap[catKey] || [];
+                  
+                  const seen = new Set<string>();
+                  const catArticles: PublicArticle[] = [];
+                  for (const a of [...fromGroup, ...fromFetch]) {
+                    if (!seen.has(a.id)) {
+                      seen.add(a.id);
+                      catArticles.push(a);
+                    }
+                  }
+                  return { catObj, catArticles };
+                })
+                .filter(item => item.catArticles.length > 0);
 
-              // On mobile, render as a simple horizontal list for "Estado", "Córdoba", "Análisis y Opinión" etc.
-              // For "Investigación Especial" we want a dark hero. We will simulate that based on the title.
-              return (
-                <div key={slug} className={`ph-section ${title.toUpperCase().includes("INVESTIGACIÓN") ? "ph-investigacion-section" : ""}`}>
-                  <SectionHeader title={title.toUpperCase()} href={`/categoria/${slug}`} linkLabel="VER TODAS" linkStyle="arrow" titleClass={titleClass} />
-                  <div className="ph-category-content">
-                    {catArticles[0] && (
-                      <FeaturedCard article={catArticles[0]} category={title} />
-                    )}
-                    <div className="ph-list-grid" style={{ marginTop: '16px', gridTemplateColumns: '1fr' }}>
-                      {catArticles.slice(1, 3).map((a) => (
-                        <HorizCard key={a.id} article={a} category={title} />
+              const renderCategory = (item: { catObj: PublicCategory, catArticles: PublicArticle[] }, index: number) => {
+                const { catObj, catArticles } = item;
+                const title = catObj.name || "Categoría";
+                const slug = catObj.slug || slugify(title);
+                const titleClass = sectionBorderMap[title] || "";
+
+                return (
+                  <div key={slug} className={`ph-section ${title.toUpperCase().includes("INVESTIGACIÓN") ? "ph-investigacion-section" : ""}`}>
+                    <SectionHeader title={title.toUpperCase()} href={`/categoria/${slug}`} linkLabel="VER TODAS" linkStyle="arrow" titleClass={titleClass} />
+                    <div className={index % 2 === 0 ? "ph-category-layout" : "ph-category-layout-reverse"}>
+                      {catArticles[0] && (
+                        <FeaturedCard article={catArticles[0]} category={title} />
+                      )}
+                      <div className="ph-category-side">
+                        {catArticles.slice(1, 4).map((a) => (
+                          <HorizCard key={a.id} article={a} category={title} />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                );
+              };
+
+              const elements: React.ReactNode[] = [];
+              
+              if (validCategories.length > 0) {
+                elements.push(renderCategory(validCategories[0], 0));
+              }
+
+              // Las 5 de X after first category
+              elements.push(
+                <div key="las-5-de-x" id="las-5-de-x" className="ph-las-5-section">
+                  <div className="ph-las-5-header">
+                    <h2>LAS 5 DE X</h2>
+                    <p>Lo más importante en 1 minuto</p>
+                    <a href="/recientes" className="ph-las-5-btn">Ver resumen completo &rarr;</a>
+                  </div>
+                  <div className="ph-las-5-list">
+                    {articles.slice(0, 5).map((a, i) => (
+                      <a key={a.id} href={articleHref(a)} className="ph-las-5-item">
+                        <div className="ph-las-5-number">{i + 1}</div>
+                        <div className="ph-las-5-img">
+                          {a.featuredImageUrl ? <img src={a.featuredImageUrl} alt="" /> : <div className="placeholder" />}
+                        </div>
+                        <div className="ph-las-5-text"><FormattedText text={a.title} /></div>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              );
+
+              // Second category
+              if (validCategories.length > 1) {
+                elements.push(renderCategory(validCategories[1], 1));
+              }
+
+              // Videografía after second category
+              elements.push(
+                <div key="videografia" className="ph-videografia-section">
+                  <SectionHeader title="VIDEOGRAFÍA" href="/videoteca" linkLabel="VER TODOS" linkStyle="arrow" />
+                  <div className="ph-video-container">
+                    <div className="ph-video-main" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      <h3 style={{ margin: 0, fontSize: '1.25rem' }}>
+                        {videos.length > 0 ? (videos[0].title || "Video") : "Información de Altura en Video"}
+                      </h3>
+                      <div className="ph-video-thumbnail" style={{ padding: 0, overflow: 'hidden' }}>
+                        {videos.length > 0 ? (
+                          videos[0].platform === 'youtube' ? (
+                            <iframe
+                              src={`https://www.youtube.com/embed/${videos[0].videoExternalId}`}
+                              style={{ width: "100%", height: "100%", border: 0 }}
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                              allowFullScreen
+                              title={videos[0].title || "Video"}
+                            />
+                          ) : (
+                            <Link to={`/video/${videos[0].id}`} state={{ video: videos[0] }}><PlayIcon /></Link>
+                          )
+                        ) : (
+                          <PlayIcon />
+                        )}
+                      </div>
+                    </div>
+                    <div className="ph-video-list">
+                      {videos.length > 0 ? videos.slice(1).map((video) => (
+                        <div key={video.id} className="ph-video-item" style={{ flexDirection: 'column', alignItems: 'flex-start' }}>
+                          <div className="ph-video-info" style={{ width: '100%' }}>
+                            <h4 style={{ marginBottom: '8px' }}>{video.title || "Video"}</h4>
+                          </div>
+                          <div style={{ display: 'flex', width: '100%', gap: '12px' }}>
+                            <div className="ph-video-thumb-small" style={{ overflow: 'hidden' }}>
+                              <Link to={`/video/${video.id}`} state={{ video }} style={{ display: 'block', width: '100%', height: '100%' }}>
+                                {video.platform === 'youtube' ? (
+                                  <img src={`https://img.youtube.com/vi/${video.videoExternalId}/mqdefault.jpg`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="thumbnail" />
+                                ) : (
+                                  <PlayIcon />
+                                )}
+                              </Link>
+                            </div>
+                            <div className="ph-video-info" style={{ display: 'flex', alignItems: 'center' }}>
+                              <Link to={`/video/${video.id}`} state={{ video }} style={{ textDecoration: 'none' }}>
+                                <span>Ver video</span>
+                              </Link>
+                            </div>
+                          </div>
+                        </div>
+                      )) : [1, 2, 3].map((i) => (
+                        <div key={i} className="ph-video-item" style={{ flexDirection: 'column', alignItems: 'flex-start' }}>
+                          <div className="ph-video-info" style={{ width: '100%' }}>
+                            <h4 style={{ marginBottom: '8px' }}>Cargando...</h4>
+                          </div>
+                          <div style={{ display: 'flex', width: '100%', gap: '12px' }}>
+                            <div className="ph-video-thumb-small"><PlayIcon /></div>
+                          </div>
+                        </div>
                       ))}
                     </div>
                   </div>
                 </div>
               );
-            })}
 
-            {/* Videografía Block */}
-            <div className="ph-videografia-section">
-              <SectionHeader title="VIDEOGRAFÍA" href="/videoteca" linkLabel="VER TODOS" linkStyle="arrow" />
-              <div className="ph-video-container">
-                <div className="ph-video-main" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  <h3 style={{ margin: 0, fontSize: '1.25rem' }}>
-                    {videos.length > 0 ? (videos[0].title || "Video") : "Información de Altura en Video"}
-                  </h3>
-                  <div className="ph-video-thumbnail" style={{ padding: 0, overflow: 'hidden' }}>
-                    {videos.length > 0 ? (
-                      videos[0].platform === 'youtube' ? (
-                        <iframe
-                          src={`https://www.youtube.com/embed/${videos[0].videoExternalId}`}
-                          style={{ width: "100%", height: "100%", border: 0 }}
-                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                          allowFullScreen
-                          title={videos[0].title || "Video"}
-                        />
-                      ) : (
-                        <Link to={`/video/${videos[0].id}`} state={{ video: videos[0] }}><PlayIcon /></Link>
-                      )
-                    ) : (
-                      <PlayIcon />
-                    )}
-                  </div>
-                </div>
-                <div className="ph-video-list">
-                  {videos.length > 0 ? videos.slice(1).map((video) => (
-                    <div key={video.id} className="ph-video-item" style={{ flexDirection: 'column', alignItems: 'flex-start' }}>
-                      <div className="ph-video-info" style={{ width: '100%' }}>
-                        <h4 style={{ marginBottom: '8px' }}>{video.title || "Video"}</h4>
-                      </div>
-                      <div style={{ display: 'flex', width: '100%', gap: '12px' }}>
-                        <div className="ph-video-thumb-small" style={{ overflow: 'hidden' }}>
-                          <Link to={`/video/${video.id}`} state={{ video }} style={{ display: 'block', width: '100%', height: '100%' }}>
-                            {video.platform === 'youtube' ? (
-                              <img src={`https://img.youtube.com/vi/${video.videoExternalId}/mqdefault.jpg`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="thumbnail" />
-                            ) : (
-                              <PlayIcon />
-                            )}
-                          </Link>
-                        </div>
-                        <div className="ph-video-info" style={{ display: 'flex', alignItems: 'center' }}>
-                          <Link to={`/video/${video.id}`} state={{ video }} style={{ textDecoration: 'none' }}>
-                            <span>Ver video</span>
-                          </Link>
-                        </div>
-                      </div>
-                    </div>
-                  )) : [1, 2, 3].map((i) => (
-                    <div key={i} className="ph-video-item" style={{ flexDirection: 'column', alignItems: 'flex-start' }}>
-                      <div className="ph-video-info" style={{ width: '100%' }}>
-                        <h4 style={{ marginBottom: '8px' }}>Cargando...</h4>
-                      </div>
-                      <div style={{ display: 'flex', width: '100%', gap: '12px' }}>
-                        <div className="ph-video-thumb-small"><PlayIcon /></div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
+              // Remaining categories
+              for (let i = 2; i < validCategories.length; i++) {
+                elements.push(renderCategory(validCategories[i], i));
+              }
+
+              return elements;
+            })()}
 
             {/* Newsletter Subscription */}
             <div className="ph-newsletter-section">

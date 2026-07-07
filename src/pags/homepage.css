@@ -4,7 +4,7 @@
 
 .ph-page {
   min-height: 100vh;
-  background: #ffffff;
+  background: transparent;
   font-family: "Inter", sans-serif;
   color: #111827;
 }
@@ -130,10 +130,15 @@
   height: 40px;
   padding: 0 12px 0 40px;
   border-radius: 6px;
-  border: 1px solid #d0dfe8;
+  border: 1px solid rgb(195, 47, 39);
   background: #f4f7f9;
   font-size: 0.875rem;
   outline: none;
+}
+
+.ph-mobile-search-input:focus {
+  border-color: rgb(195, 47, 39);
+  box-shadow: 0 0 0 3px rgba(195, 47, 39, 0.2);
 }
 
 .ph-mobile-search-wrap {
@@ -147,7 +152,7 @@
   transform: translateY(-50%);
   width: 16px;
   height: 16px;
-  color: #80a0ba;
+  color: rgb(195, 47, 39);
 }
 
 /* --- Hero Section --- */
@@ -164,16 +169,9 @@
 }
 
 .ph-hero-grid {
-  display: grid;
-  grid-template-columns: 1fr;
+  display: flex;
+  flex-direction: column;
   gap: 32px;
-}
-
-@media (min-width: 1024px) {
-  .ph-hero-grid {
-    grid-template-columns: 3fr 1fr;
-    gap: 32px;
-  }
 }
 
 /* --- Featured Card (Large) --- */
@@ -182,12 +180,13 @@
   text-decoration: none;
   color: inherit;
   background: #ffffff;
-  border: 2px solid #e5e7eb;
-  transition: border-color 0.25s;
+  border: 1px solid rgb(195, 47, 39);
+  transition: border-color 0.25s, box-shadow 0.25s;
 }
 
 .ph-featured-card:hover {
-  border-color: #5a7a94;
+  border-color: rgba(195, 47, 39, 0.7);
+  box-shadow: 0 4px 12px rgba(195, 47, 39, 0.1);
 }
 
 .ph-featured-image {
@@ -214,7 +213,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #e8eef3 0%, #d0dfe8 100%);
+  background: #e0f2fe;
   color: #5a7a94;
   font-size: 1.25rem;
   font-weight: 700;
@@ -284,12 +283,13 @@
   text-decoration: none;
   color: inherit;
   background: #ffffff;
-  border: 1px solid #e5e7eb;
-  transition: border-color 0.25s;
+  border: 1px solid rgb(195, 47, 39);
+  transition: border-color 0.25s, box-shadow 0.25s;
 }
 
 .ph-small-card:hover {
-  border-color: #9ca3af;
+  border-color: rgba(195, 47, 39, 0.7);
+  box-shadow: 0 4px 12px rgba(195, 47, 39, 0.1);
 }
 
 .ph-small-image {
@@ -316,7 +316,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #e8eef3 0%, #d0dfe8 100%);
+  background: #e0f2fe;
   color: #5a7a94;
   font-size: 0.95rem;
   font-weight: 700;
@@ -363,13 +363,14 @@
   text-decoration: none;
   color: inherit;
   background: #ffffff;
-  border: 1px solid #e5e7eb;
+  border: 1px solid rgb(195, 47, 39);
   padding: 0;
-  transition: border-color 0.25s;
+  transition: border-color 0.25s, box-shadow 0.25s;
 }
 
 .ph-horiz-card:hover {
-  border-color: #9ca3af;
+  border-color: rgba(195, 47, 39, 0.7);
+  box-shadow: 0 4px 12px rgba(195, 47, 39, 0.1);
 }
 
 .ph-horiz-image {
@@ -399,7 +400,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #e8eef3 0%, #d0dfe8 100%);
+  background: #e0f2fe;
   color: #5a7a94;
   font-size: 0.85rem;
   font-weight: 700;
@@ -476,13 +477,85 @@
 
 /* --- Hero Side Stack --- */
 .ph-hero-side {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
+
+@media (min-width: 768px) {
+  .ph-hero-side {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 32px;
+  }
+}
+
+/* Compact side cards in hero */
+.ph-hero-side .ph-horiz-card {
+  border: 1px solid #e5e7eb;
+  flex-direction: column;
+}
+
+.ph-hero-side .ph-horiz-image {
+  aspect-ratio: 16 / 10;
+  width: 100%;
+}
+
+.ph-hero-side .ph-horiz-body {
+  padding: 16px;
+}
+
+.ph-hero-side .ph-horiz-title {
+  font-size: 1.1rem;
+  margin-bottom: 8px;
+}
+
+.ph-hero-side .ph-meta {
+  font-size: 0.75rem;
+}
+
+/* --- Category Side Layout (1 large + 3 small) --- */
+.ph-category-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 32px;
+  margin-top: 16px;
+}
+
+@media (min-width: 1024px) {
+  .ph-category-layout {
+    grid-template-columns: 3fr 1fr;
+    gap: 32px;
+  }
+}
+
+.ph-category-layout-reverse {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 32px;
+  margin-top: 16px;
+}
+
+@media (min-width: 1024px) {
+  .ph-category-layout-reverse {
+    grid-template-columns: 1fr 3fr;
+    gap: 32px;
+  }
+  .ph-category-layout-reverse > .ph-featured-card {
+    order: 2;
+  }
+  .ph-category-layout-reverse > .ph-category-side {
+    order: 1;
+  }
+}
+
+.ph-category-side {
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
 @media (max-width: 1023px) {
-  .ph-hero-side {
+  .ph-category-side {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 24px;
@@ -490,31 +563,30 @@
 }
 
 @media (max-width: 640px) {
-  .ph-hero-side {
+  .ph-category-side {
     grid-template-columns: 1fr;
     gap: 16px;
   }
 }
 
-/* Compact side cards in hero */
-.ph-hero-side .ph-horiz-card {
+.ph-category-side .ph-horiz-card {
   border: 1px solid #e5e7eb;
 }
 
-.ph-hero-side .ph-horiz-image {
+.ph-category-side .ph-horiz-image {
   aspect-ratio: 16 / 10;
 }
 
-.ph-hero-side .ph-horiz-body {
+.ph-category-side .ph-horiz-body {
   padding: 12px 16px;
 }
 
-.ph-hero-side .ph-horiz-title {
+.ph-category-side .ph-horiz-title {
   font-size: 0.95rem;
   margin-bottom: 6px;
 }
 
-.ph-hero-side .ph-meta {
+.ph-category-side .ph-meta {
   font-size: 0.7rem;
 }
 

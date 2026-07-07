@@ -4,6 +4,7 @@ import "./searchpage.css";
 import { apiFetch, getPublicCategories } from "../libs/http.ts";
 import { API_BASE_URL } from "../libs/config.ts";
 import type { PublicArticle, PublicCategory } from "../libs/types.ts";
+import { FormattedText } from "../components/FormattedText.tsx";
 import PublicNavbar from "../components/PublicNavbar.tsx";
 import PublicFooter from "../components/PublicFooter.tsx";
 import { SearchIcon } from "../components/Icons.tsx";
@@ -145,10 +146,10 @@ const SearchPage = () => {
                       className="search-article-image" 
                     />
                   </div>
-                  <div className="search-article-content">
-                    <span className="search-article-category">{article.categoryName}</span>
-                    <h3 className="search-article-title">{article.title}</h3>
-                    <p className="search-article-excerpt">{article.excerpt}</p>
+                  <div className="search-article-body">
+                    <span className="search-article-category">{article.categoryName || "Noticias"}</span>
+                    <h3 className="search-article-title"><FormattedText text={article.title} /></h3>
+                    {article.excerpt && <p className="search-article-excerpt"><FormattedText text={article.excerpt} /></p>}
                     <div className="search-article-footer">
                       <div className="search-article-footer-item">
                         {date}

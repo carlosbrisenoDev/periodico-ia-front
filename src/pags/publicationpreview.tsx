@@ -4,6 +4,7 @@ import { API_BASE_URL } from "../libs/config.ts";
 import { parseContentBlocks } from "../libs/contentBlocks.ts";
 import { ApiError, apiFetch, getArticleRecommendations } from "../libs/http.ts";
 import { CalendarIcon, ClockIcon } from "../components/Icons.tsx";
+import { FormattedText } from "../components/FormattedText.tsx";
 import PublicNavbar from "../components/PublicNavbar.tsx";
 import PublicFooter from "../components/PublicFooter.tsx";
 import type {
@@ -47,24 +48,6 @@ const getYoutubeEmbedUrl = (url?: string | null) => {
   const match = url.match(regExp);
   return (match && match[2].length === 11) ? `https://www.youtube.com/embed/${match[2]}` : null;
 };
-
-/** Convert inline formatting markers to safe HTML */
-const escapeHtml = (text: string): string =>
-  text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-
-const renderInlineFormatting = (text: string): string => {
-  let html = escapeHtml(text);
-  // **bold** (must be before single *)
-  html = html.replace(/\*\*([\s\S]+?)\*\*/g, '<strong>$1</strong>');
-  // *italic*
-  html = html.replace(/\*([\s\S]+?)\*/g, '<em>$1</em>');
-  // __underline__
-  html = html.replace(/__([\s\S]+?)__/g, '<u>$1</u>');
-  // newlines to <br/>
-  html = html.replace(/\n/g, '<br/>');
-  return html;
-};
-
 
 type SimpleCategory = {
   id: string;
@@ -128,7 +111,6 @@ const normalizeCategories = (payload: unknown[]): SimpleCategory[] =>
       }
 
       const record = item as Record<string, unknown>;
-      console.log(record);
 
       if (typeof record.id !== "string" || typeof record.name !== "string") {
         return null;
@@ -202,7 +184,6 @@ const useArticleSEO = (article: PublicationPreviewArticle | null) => {
     const url = `${window.location.origin}/articulo/${article.slug || article.id}`;
     const imageUrl = normalizeAssetUrl(article.featuredImageUrl) || `${window.location.origin}/default-share.jpg`;
 
-    // 1. Google Indexing & SEO (Title & Description)
     document.title = title;
 
     const setMetaTag = (attrName: string, attrValue: string, content: string) => {
@@ -217,7 +198,6 @@ const useArticleSEO = (article: PublicationPreviewArticle | null) => {
 
     setMetaTag("name", "description", description);
     
-    // 2. Social Media Meta (Open Graph for Facebook/WhatsApp/LinkedIn)
     setMetaTag("property", "og:type", "article");
     setMetaTag("property", "og:title", title);
     setMetaTag("property", "og:description", description);
@@ -225,13 +205,11 @@ const useArticleSEO = (article: PublicationPreviewArticle | null) => {
     setMetaTag("property", "og:url", url);
     setMetaTag("property", "og:site_name", "Información de Altura");
 
-    // 3. Social Media Meta (Twitter Cards)
     setMetaTag("name", "twitter:card", "summary_large_image");
     setMetaTag("name", "twitter:title", title);
     setMetaTag("name", "twitter:description", description);
     setMetaTag("name", "twitter:image", imageUrl);
 
-    // 4. Extra Article Meta for Social & AI context
     if (article.authorName) setMetaTag("property", "article:author", article.authorName);
     if (article.publishedAt) setMetaTag("property", "article:published_time", article.publishedAt);
     if (article.categoryName) setMetaTag("property", "article:section", article.categoryName);
@@ -239,7 +217,6 @@ const useArticleSEO = (article: PublicationPreviewArticle | null) => {
       setMetaTag("property", "article:tag", article.tags.join(", "));
     }
 
-    // 5. AI Understanding & Rich Snippets (JSON-LD)
     let script = document.querySelector("script[id='seo-jsonld']") as HTMLScriptElement;
     if (!script) {
       script = document.createElement("script");
@@ -284,17 +261,14 @@ export const PublicationPreview = () => {
       const stored = localStorage.getItem("periodico_preview_draft");
       if (stored) {
         const data = JSON.parse(stored) as ArticlePreviewLocationState;
-        // Only use local storage if the ID matches the current route ID
         if (id && data.article?.id === id) {
           return data;
         }
-        // If we are on the generic preview route /publication/preview (no ID)
         if (!id) {
           return data;
         }
       }
     } catch {
-      // Ignore errors
     }
     return null;
   }, [id]);
@@ -317,7 +291,6 @@ export const PublicationPreview = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
 
-  // Inyectar SEO y Metadatos para RRSS e IA
   useArticleSEO(article);
 
   useEffect(() => {
@@ -426,7 +399,7 @@ export const PublicationPreview = () => {
 
   const recommendationTitle = useMemo(() => {
     if (article?.categoryName) {
-      return `Más de Noticias`;
+      return `Más de ${article.categoryName}`;
     }
 
     return "Recomendaciones";
@@ -523,8 +496,6 @@ export const PublicationPreview = () => {
       .replace(/(^-|-$)/g, "");
   }
 
-  console.log({ categories });
-
   return (
     <div className="public-layout">
       <PublicNavbar
@@ -542,8 +513,6 @@ export const PublicationPreview = () => {
                   const matchedCategory = categories.find(c => c.id === article?.categoryId);
                   const slugToUse = article?.categorySlug || matchedCategory?.slug || slugify(article?.categoryName || "");
                   navigate(`/categoria/${slugToUse}`);
-                  console.log(article);
-
                   return;
                 }
                 navigate("/");
@@ -584,8 +553,10 @@ export const PublicationPreview = () => {
                 ))}
               </div>
             ) : null}
-            <h1 className="public-article-title">{article.title}</h1>
-            <p className="public-article-excerpt">{article.excerpt}</p>
+            <div className="public-article-header">
+              <h1 className="public-article-title"><FormattedText text={article.title} /></h1>
+              {article.excerpt && <p className="public-article-excerpt"><FormattedText text={article.excerpt} /></p>}
+            </div>
 
             <div style={{ display: "flex", gap: "10px", marginBottom: "20px" }}>
               <button 
@@ -666,8 +637,16 @@ export const PublicationPreview = () => {
                 if (block.type === "subtitle") {
                   return (
                     <h3 key={`${block.text.slice(0, 24)}-${index}`}>
-                      {block.text}
+                      <FormattedText text={block.text} />
                     </h3>
+                  );
+                }
+
+                if (block.type === "paragraph") {
+                  return (
+                    <p key={`${block.text.slice(0, 24)}-${index}`}>
+                      <FormattedText text={block.text} />
+                    </p>
                   );
                 }
 
@@ -715,11 +694,7 @@ export const PublicationPreview = () => {
                   );
                 }
 
-                return (
-                  <p key={`${block.text.slice(0, 24)}-${index}`}
-                     dangerouslySetInnerHTML={{ __html: renderInlineFormatting(block.text) }}
-                  />
-                );
+                return null;
               })}
             </div>
 
@@ -748,7 +723,6 @@ export const PublicationPreview = () => {
               </div>
             </div>
 
-            {/* Comments Section */}
             {article.id && !article.id.startsWith("public-") && !article.id.startsWith("article-") && (
               <CommentsSection articleId={article.id} allowComments={article.allowComments} />
             )}
@@ -777,7 +751,8 @@ export const PublicationPreview = () => {
                         {item.categoryName ? (
                           <div className="public-card-category">{item.categoryName}</div>
                         ) : null}
-                        <h3 className="public-card-title">{item.title}</h3>
+                        <h3 className="public-card-title"><FormattedText text={item.title} /></h3>
+                        {item.excerpt && <p className="public-card-excerpt"><FormattedText text={item.excerpt} /></p>}
                         <div className="public-card-meta">
                           <span>{formatDate(item.publishedAt)}</span>
                           <span>•</span>
