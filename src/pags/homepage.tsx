@@ -345,34 +345,7 @@ const HomePage = () => {
                 elements.push(renderCategory(validCategories[0], 0));
               }
 
-              // Las 5 de X after first category
-              elements.push(
-                <div key="las-5-de-x" id="las-5-de-x" className="ph-las-5-section">
-                  <div className="ph-las-5-header">
-                    <h2>LAS 5 DE X</h2>
-                    <p>Lo más importante en 1 minuto</p>
-                    <a href="/recientes" className="ph-las-5-btn">Ver resumen completo &rarr;</a>
-                  </div>
-                  <div className="ph-las-5-list">
-                    {articles.slice(0, 5).map((a, i) => (
-                      <a key={a.id} href={articleHref(a)} className="ph-las-5-item">
-                        <div className="ph-las-5-number">{i + 1}</div>
-                        <div className="ph-las-5-img">
-                          {a.featuredImageUrl ? <img src={a.featuredImageUrl} alt="" /> : <div className="placeholder" />}
-                        </div>
-                        <div className="ph-las-5-text"><FormattedText text={a.title} /></div>
-                      </a>
-                    ))}
-                  </div>
-                </div>
-              );
-
-              // Second category
-              if (validCategories.length > 1) {
-                elements.push(renderCategory(validCategories[1], 1));
-              }
-
-              // Videografía after second category
+              // Videografía after first category
               elements.push(
                 <div key="videografia" className="ph-videografia-section">
                   <SectionHeader title="VIDEOGRAFÍA" href="/videoteca" linkLabel="VER TODOS" linkStyle="arrow" />
@@ -433,6 +406,33 @@ const HomePage = () => {
                         </div>
                       ))}
                     </div>
+                  </div>
+                </div>
+              );
+
+              // Second category
+              if (validCategories.length > 1) {
+                elements.push(renderCategory(validCategories[1], 1));
+              }
+
+              // Las 5 de X after second category
+              elements.push(
+                <div key="las-5-de-x" id="las-5-de-x" className="ph-las-5-section">
+                  <div className="ph-las-5-header">
+                    <h2>LAS 5 DE X</h2>
+                    <p>Lo más importante en 1 minuto</p>
+                    <a href="/recientes" className="ph-las-5-btn">Ver resumen completo &rarr;</a>
+                  </div>
+                  <div className="ph-las-5-list">
+                    {articles.slice(0, 5).map((a, i) => (
+                      <a key={a.id} href={articleHref(a)} className="ph-las-5-item">
+                        <div className="ph-las-5-number">{i + 1}</div>
+                        <div className="ph-las-5-img">
+                          {a.featuredImageUrl ? <img src={a.featuredImageUrl} alt="" /> : <div className="placeholder" />}
+                        </div>
+                        <div className="ph-las-5-text"><FormattedText text={a.title} /></div>
+                      </a>
+                    ))}
                   </div>
                 </div>
               );
