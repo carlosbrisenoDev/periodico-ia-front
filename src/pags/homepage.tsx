@@ -340,13 +340,10 @@ const HomePage = () => {
               };
 
               const elements: React.ReactNode[] = [];
-              
-              if (validCategories.length > 0) {
-                elements.push(renderCategory(validCategories[0], 0));
-              }
+              let renderedVideo = false;
+              let renderedLas5 = false;
 
-              // Videografía after first category
-              elements.push(
+              const renderVideoBlock = () => (
                 <div key="videografia" className="ph-videografia-section">
                   <SectionHeader title="VIDEOGRAFÍA" href="/videoteca" linkLabel="VER TODOS" linkStyle="arrow" />
                   <div className="ph-video-container">
@@ -410,13 +407,7 @@ const HomePage = () => {
                 </div>
               );
 
-              // Second category
-              if (validCategories.length > 1) {
-                elements.push(renderCategory(validCategories[1], 1));
-              }
-
-              // Las 5 de X after second category
-              elements.push(
+              const renderLas5Block = () => (
                 <div key="las-5-de-x" id="las-5-de-x" className="ph-las-5-section">
                   <div className="ph-las-5-header">
                     <h2>LAS 5 DE X</h2>
@@ -437,10 +428,25 @@ const HomePage = () => {
                 </div>
               );
 
-              // Remaining categories
-              for (let i = 2; i < validCategories.length; i++) {
-                elements.push(renderCategory(validCategories[i], i));
+              for (let i = 0; i < validCategories.length; i++) {
+                const catItem = validCategories[i];
+                elements.push(renderCategory(catItem, i));
+                
+                const catName = (catItem.catObj.name || "").toLowerCase().trim();
+                if (catName === "xalapa") {
+                  elements.push(renderVideoBlock());
+                  renderedVideo = true;
+                }
+                
+                if (catName === "veracruz") {
+                  elements.push(renderLas5Block());
+                  renderedLas5 = true;
+                }
               }
+
+              // Fallback just in case those categories are not present
+              if (!renderedVideo) elements.push(renderVideoBlock());
+              if (!renderedLas5) elements.push(renderLas5Block());
 
               return elements;
             })()}
