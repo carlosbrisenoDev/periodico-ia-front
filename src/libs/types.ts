@@ -44,7 +44,7 @@ export type PublicArticle = {
   authorName: string;
   categoryName: string;
   isFeatured?: boolean;
-  featuredType?: "none" | "hero" | "headline" | "category_hero" | "breaking";
+  featuredType?: "none" | "hero" | "headline" | "category_hero" | "breaking" | "las_5_de_x";
 };
 
 export type PublicHomeResponse = {

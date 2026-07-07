@@ -77,6 +77,7 @@ import SearchPage from "./pags/searchpage.tsx";
 import RecentPage from "./pags/recentpage.tsx";
 import PublicVideosPage from "./pags/publicvideos.tsx";
 import VideoViewPage from "./pags/videoview.tsx";
+import PrintEditionPage from "./pags/printedition.tsx";
 import {
   getOptionalMe,
 } from "./libs/http.ts";
@@ -146,6 +147,7 @@ const AppContent = () => {
         <Route path="/recientes" element={<RecentPage />} />
         <Route path="/videoteca" element={<PublicVideosPage />} />
         <Route path="/video/:id" element={<VideoViewPage />} />
+        <Route path="/edicion-impresa" element={<PrintEditionPage />} />
         <Route path="/suscripcion" element={<SubscriptionPage />} />
         <Route path="/adminlogin" element={<AdminLoginPage />} />
         <Route path="/reportar" element={<ReportNewsPage />} />

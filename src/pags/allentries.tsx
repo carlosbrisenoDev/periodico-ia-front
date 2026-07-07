@@ -19,7 +19,7 @@ type ArticleEntry = {
   scheduledAt?: string | null;
 };
 
-type FeaturedType = "none" | "hero" | "headline" | "category_hero" | "breaking";
+type FeaturedType = "none" | "hero" | "headline" | "category_hero" | "breaking" | "las_5_de_x";
 
 type EntryPageVariant = "mine" | "all";
 
@@ -49,6 +49,11 @@ const FEATURED_MENU_OPTIONS: Array<{
   {
     value: "headline",
     label: "Subdestacada en Primera Plana",
+    description: " ",
+  },
+  {
+    value: "las_5_de_x",
+    label: "Las 5 de X",
     description: " ",
   },
   /*
@@ -95,7 +100,7 @@ const normalizeEntry = (item: unknown, index: number): ArticleEntry | null => {
 
   const featuredTypeRaw = typeof record.featuredType === "string" ? record.featuredType : null;
   const featuredType: FeaturedType =
-    featuredTypeRaw === "hero" || featuredTypeRaw === "headline" || featuredTypeRaw === "category_hero" || featuredTypeRaw === "breaking"
+    featuredTypeRaw === "hero" || featuredTypeRaw === "headline" || featuredTypeRaw === "category_hero" || featuredTypeRaw === "breaking" || featuredTypeRaw === "las_5_de_x"
       ? featuredTypeRaw
       : "none";
   const isFeatured = typeof record.isFeatured === "boolean" ? record.isFeatured : featuredType !== "none";
@@ -141,19 +146,20 @@ const normalizeEntry = (item: unknown, index: number): ArticleEntry | null => {
 };
 
 const featuredTypeLabel = (value: FeaturedType): string => {
-  if (value === "hero") {
-    return "Destacada en Primera Plana";
+  switch (value) {
+    case "hero":
+      return "Destacada";
+    case "headline":
+      return "Subdestacada";
+    case "category_hero":
+      return "Dest. Categoría";
+    case "breaking":
+      return "Subdest. Categoría";
+    case "las_5_de_x":
+      return "Las 5 de X";
+    default:
+      return "Ninguno";
   }
-  if (value === "headline") {
-    return "Subdestacada en Primera Plana";
-  }
-  if (value === "category_hero") {
-    return "Destacada en Categoría";
-  }
-  if (value === "breaking") {
-    return "Subdestacada en Categoría";
-  }
-  return "Sin destacar";
 };
 
 const statusLabel = (status: string): string => {
@@ -494,6 +500,7 @@ export const AllEntries = ({ variant = "mine" }: AllEntriesProps) => {
           payload.featuredType === "headline" ||
           payload.featuredType === "category_hero" ||
           payload.featuredType === "breaking" ||
+          payload.featuredType === "las_5_de_x" ||
           payload.featuredType === "none"
           ? payload.featuredType
           : null;
@@ -686,10 +693,12 @@ export const AllEntries = ({ variant = "mine" }: AllEntriesProps) => {
                                 Subdestacada Cat.
                               </span>
                             )}
-                            {(entry.featuredType === "hero" || entry.featuredType === "headline") && (
-                              <span className="entries-badge badge-orange">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m12 3 2.9 5.9 6.6 1-4.8 4.7 1.1 6.6-5.8-3.1-5.8 3.1 1.1-6.6L2.5 9.9l6.6-1z"/></svg>
-                                {entry.featuredType === "hero" ? "Destacada Home" : "Subdestacada Home"}
+                            {(entry.featuredType === "hero" || entry.featuredType === "headline" || entry.featuredType === "las_5_de_x") && (
+                              <span
+                                className={`entries-badge ${entry.featuredType === "hero" ? "badge-orange" : "badge-blue"}`}
+                                title={entry.featuredType === "hero" ? "Destacada en Primera Plana" : entry.featuredType === "las_5_de_x" ? "Las 5 de X" : "Subdestacada en Primera Plana"}
+                              >
+                                {entry.featuredType === "hero" ? "Destacada Home" : entry.featuredType === "las_5_de_x" ? "Las 5 de X" : "Subdestacada Home"}
                               </span>
                             )}
                           </div>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Sidebar } from "../components/sidebar.tsx";
 import { apiFetch } from "../libs/http.ts";
 import { API_BASE_URL } from "../libs/config.ts";
@@ -13,6 +13,8 @@ export default function GlobalSettingsPage() {
   const [printEditionLink, setPrintEditionLink] = useState("");
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [showImageModal, setShowImageModal] = useState(false);
+  const [uploadingPdf, setUploadingPdf] = useState(false);
+  const pdfInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     fetchSettings();
@@ -66,6 +68,43 @@ export default function GlobalSettingsPage() {
       setMessage({ type: "error", text: "Error de red al guardar la configuración." });
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 10 * 1024 * 1024) { // 10MB limit for PDFs
+      setMessage({ type: "error", text: "El PDF no debe superar los 10MB." });
+      return;
+    }
+
+    setUploadingPdf(true);
+    setMessage(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("image", file); // Backend expects 'image' field even for PDF
+
+      const uploaded = await apiFetch<{ url?: string; message?: string }>(`${API_BASE_URL}/api/v1/image/upload`, {
+        method: "POST",
+        credentials: "include",
+        body: formData,
+      });
+
+      if (uploaded.url) {
+        let cleanUrl = uploaded.url;
+        if (cleanUrl.startsWith("/api/v1/")) cleanUrl = cleanUrl.replace("/api/v1/", "");
+        if (cleanUrl.startsWith("/")) cleanUrl = cleanUrl.substring(1);
+        setPrintEditionLink(`${API_BASE_URL}/${cleanUrl}`);
+        setMessage({ type: "success", text: "PDF subido correctamente." });
+      }
+    } catch (err: unknown) {
+      setMessage({ type: "error", text: err instanceof Error ? err.message : "Error al subir el PDF." });
+    } finally {
+      setUploadingPdf(false);
+      if (pdfInputRef.current) pdfInputRef.current.value = "";
     }
   };
 
@@ -196,21 +235,49 @@ export default function GlobalSettingsPage() {
                 </div>
                 
                 <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                  <label style={{ fontWeight: "bold", color: "var(--text-main)" }}>Enlace al hacer click</label>
-                  <input
-                    type="text"
-                    value={printEditionLink}
-                    onChange={(e) => setPrintEditionLink(e.target.value)}
-                    placeholder="https://ejemplo.com/edicion-impresa"
-                    style={{
-                      padding: "12px",
-                      borderRadius: "8px",
-                      border: "1px solid var(--border)",
-                      fontSize: "1rem",
-                      background: "transparent",
-                      color: "var(--text-main)"
-                    }}
-                  />
+                  <label style={{ fontWeight: "bold", color: "var(--text-main)" }}>Enlace al hacer click o PDF</label>
+                  <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+                    <input
+                      type="text"
+                      value={printEditionLink}
+                      onChange={(e) => setPrintEditionLink(e.target.value)}
+                      placeholder="https://ejemplo.com/edicion-impresa o subir PDF"
+                      style={{
+                        flex: 1,
+                        padding: "12px",
+                        borderRadius: "8px",
+                        border: "1px solid var(--border)",
+                        fontSize: "1rem",
+                        background: "transparent",
+                        color: "var(--text-main)"
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => pdfInputRef.current?.click()}
+                      disabled={uploadingPdf}
+                      style={{
+                        background: "var(--border)",
+                        color: "var(--text-main)",
+                        padding: "12px 16px",
+                        borderRadius: "8px",
+                        border: "none",
+                        fontSize: "0.95rem",
+                        fontWeight: "500",
+                        cursor: uploadingPdf ? "not-allowed" : "pointer",
+                        whiteSpace: "nowrap"
+                      }}
+                    >
+                      {uploadingPdf ? "Subiendo..." : "Subir PDF"}
+                    </button>
+                    <input
+                      type="file"
+                      ref={pdfInputRef}
+                      accept="application/pdf"
+                      style={{ display: "none" }}
+                      onChange={handlePdfUpload}
+                    />
+                  </div>
                 </div>
               </div>
             </div>

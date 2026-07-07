@@ -129,9 +129,6 @@ const PublicNavbar = ({ categories, activeCategorySlug }: Omit<PublicNavbarProps
                 </div>
               )}
 
-              <Link className={`public-nav-link ${activeCategorySlug === "recientes" ? "active" : ""}`} to="/recientes">
-                Recientes
-              </Link>
               <Link className={`public-nav-link ${activeCategorySlug === "videos" ? "active" : ""}`} to="/videoteca">
                 Videos
               </Link>

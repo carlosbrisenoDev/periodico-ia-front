@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useNavigationType } from "react-router-dom";
 import "./homepage.css";
 import { getHomeData, getLatestPublications, getPublicCategories, getCategoryArticles, apiFetch } from "../libs/http.ts";
 import { API_BASE_URL } from "../libs/config.ts";
@@ -158,6 +158,7 @@ const SectionHeader = ({
 
 const HomePage = () => {
   const navigate = useNavigate();
+  const navType = useNavigationType();
   const [articles, setArticles] = useState<PublicArticle[]>([]);
   const [featuredArticles, setFeaturedArticles] = useState<PublicArticle[]>([]);
   const [categories, setCategories] = useState<PublicCategory[]>([]);
@@ -214,11 +215,36 @@ const HomePage = () => {
         setError("No se pudieron cargar publicaciones recientes.");
       } finally {
         setLoading(false);
+        if (navType === "POP") {
+          setTimeout(() => {
+            const savedScroll = sessionStorage.getItem('homeScroll');
+            if (savedScroll) {
+              window.scrollTo(0, parseInt(savedScroll, 10));
+            }
+          }, 50);
+        } else {
+          window.scrollTo(0, 0);
+        }
       }
     };
 
     void load();
     return () => controller.abort();
+  }, [navType]);
+
+  useEffect(() => {
+    let timeout: ReturnType<typeof setTimeout>;
+    const handleScroll = () => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        sessionStorage.setItem('homeScroll', window.scrollY.toString());
+      }, 100);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      clearTimeout(timeout);
+    };
   }, []);
 
   // Combine all articles we have for grouping, ensuring featured articles are included in their categories
@@ -239,6 +265,16 @@ const HomePage = () => {
     // Fallback: use any featured that isn't the main, then any recent
     const pool = allKnownArticles.filter(a => a.id !== heroMain?.id);
     return pool.slice(0, 3);
+  })();
+
+  const las5Selection = (() => {
+    const specific = featuredArticles.filter(a => a.featuredType === 'las_5_de_x');
+    if (specific.length >= 5) return specific.slice(0, 5);
+    
+    // Fallback: fill with recent articles that aren't already in specific
+    const specificIds = new Set(specific.map(a => a.id));
+    const filler = articles.filter(a => !specificIds.has(a.id));
+    return [...specific, ...filler].slice(0, 5);
   })();
 
   return (
@@ -284,7 +320,7 @@ const HomePage = () => {
 
             {/* Print Edition Banner */}
             <div className="ph-print-banner">
-              <a href={settings?.printEditionLink || "#"} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}>
+              <a href="/edicion-impresa" style={{ textDecoration: 'none', color: 'inherit', display: 'block', cursor: 'pointer' }}>
                 <div className="ph-print-banner-inner">
                   <img src={settings?.printEditionImageUrl || "/logo.png"} alt="Edición Impresa" className="ph-print-logo" />
                   <div className="ph-print-text">
@@ -415,7 +451,7 @@ const HomePage = () => {
                     <a href="/recientes" className="ph-las-5-btn">Ver resumen completo &rarr;</a>
                   </div>
                   <div className="ph-las-5-list">
-                    {articles.slice(0, 5).map((a, i) => (
+                    {las5Selection.map((a, i) => (
                       <a key={a.id} href={articleHref(a)} className="ph-las-5-item">
                         <div className="ph-las-5-number">{i + 1}</div>
                         <div className="ph-las-5-img">
