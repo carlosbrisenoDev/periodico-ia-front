@@ -4403,8 +4403,8 @@ body,
     gap: 12px;
   }
   .ph-video-thumb-small {
-    width: 80px;
-    height: 60px;
+    width: 160px;
+    height: 120px;
     background: #334155;
     border-radius: 4px;
     display: flex;

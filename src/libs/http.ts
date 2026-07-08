@@ -402,13 +402,11 @@ const normalizePublicArticle = (
             ? firstCategory.name
             : "General",
     isFeatured: typeof record.isFeatured === "boolean" ? record.isFeatured : false,
-    featuredType:
-      record.featuredType === "hero" ||
-      record.featuredType === "headline" ||
-      record.featuredType === "category_hero" ||
-      record.featuredType === "breaking"
-        ? record.featuredType
-        : "none",
+    featuredTypes: Array.isArray(record.featuredTypes)
+      ? record.featuredTypes.filter((t): t is "hero" | "headline" | "category_hero" | "breaking" | "las_5_de_x" =>
+          ["hero", "headline", "category_hero", "breaking", "las_5_de_x"].includes(t as string)
+        )
+      : [],
   };
 };
 

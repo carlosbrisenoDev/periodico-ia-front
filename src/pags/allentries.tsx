@@ -14,7 +14,7 @@ type ArticleEntry = {
   categoryIds: string[];
   categoryName: string;
   isFeatured: boolean;
-  featuredType: FeaturedType;
+  featuredTypes: FeaturedType[];
   publishedAt?: string | null;
   scheduledAt?: string | null;
 };
@@ -98,12 +98,11 @@ const normalizeEntry = (item: unknown, index: number): ArticleEntry | null => {
       ? (categories[0] as Record<string, unknown>)
       : null;
 
-  const featuredTypeRaw = typeof record.featuredType === "string" ? record.featuredType : null;
-  const featuredType: FeaturedType =
-    featuredTypeRaw === "hero" || featuredTypeRaw === "headline" || featuredTypeRaw === "category_hero" || featuredTypeRaw === "breaking" || featuredTypeRaw === "las_5_de_x"
-      ? featuredTypeRaw
-      : "none";
-  const isFeatured = typeof record.isFeatured === "boolean" ? record.isFeatured : featuredType !== "none";
+  const featuredTypesRaw = Array.isArray(record.featuredTypes) ? record.featuredTypes : [];
+  const featuredTypes = featuredTypesRaw.filter((t: any): t is FeaturedType => 
+    t === "hero" || t === "headline" || t === "category_hero" || t === "breaking" || t === "las_5_de_x"
+  );
+  const isFeatured = typeof record.isFeatured === "boolean" ? record.isFeatured : featuredTypes.length > 0;
 
   return {
     id:
@@ -139,7 +138,7 @@ const normalizeEntry = (item: unknown, index: number): ArticleEntry | null => {
       ? record.categoryIds.map(String) 
       : [],
     isFeatured,
-    featuredType: isFeatured ? (featuredType === "none" ? "hero" : featuredType) : "none",
+    featuredTypes: isFeatured && featuredTypes.length === 0 ? ["hero"] : featuredTypes,
     publishedAt: typeof record.publishedAt === "string" ? record.publishedAt : null,
     scheduledAt: typeof record.scheduledAt === "string" ? record.scheduledAt : null,
   };
@@ -436,6 +435,22 @@ export const AllEntries = ({ variant = "mine" }: AllEntriesProps) => {
     return () => controller.abort();
   }, [myAuthorIds, navigate, statusFilter, variant, refreshKey]);
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (openFeaturedMenuId && featuredMenuRefs.current[openFeaturedMenuId]) {
+        const menuNode = featuredMenuRefs.current[openFeaturedMenuId];
+        if (menuNode && !menuNode.contains(event.target as Node)) {
+          setOpenFeaturedMenuId(null);
+        }
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [openFeaturedMenuId]);
+
   const authorOptions = useMemo(() => {
     const namesFromEntries = entries.map((entry) => authorMap[entry.authorId] || entry.authorName);
     return Array.from(new Set([...authors, ...namesFromEntries])).sort((a, b) =>
@@ -461,26 +476,31 @@ export const AllEntries = ({ variant = "mine" }: AllEntriesProps) => {
     });
   }, [entries, authorMap, categoryMap, statusFilter, authorFilter]);
 
-  const updateFeaturedType = async (
+  const toggleFeaturedType = async (
     entryId: string,
-    currentType: FeaturedType,
-    nextType: FeaturedType,
+    currentTypes: FeaturedType[],
+    toggledType: FeaturedType,
   ) => {
-    const nextIsFeatured = nextType !== "none";
-    const previousIsFeatured = currentType !== "none";
+    let nextTypes = [...currentTypes];
+    if (nextTypes.includes(toggledType)) {
+      nextTypes = nextTypes.filter(t => t !== toggledType);
+    } else {
+      nextTypes.push(toggledType);
+    }
+    const nextIsFeatured = nextTypes.length > 0;
 
     setActionError(null);
     setTogglingFeaturedById((prev) => ({ ...prev, [entryId]: true }));
     setEntries((prev) =>
       prev.map((entry) =>
         entry.id === entryId
-          ? { ...entry, featuredType: nextType, isFeatured: nextIsFeatured }
+          ? { ...entry, featuredTypes: nextTypes, isFeatured: nextIsFeatured }
           : entry,
       ),
     );
 
     try {
-      const payload = await apiFetch<{ isFeatured?: boolean; featuredType?: string }>(
+      const payload = await apiFetch<{ isFeatured?: boolean; featuredTypes?: string[] }>(
         `${API_BASE_URL}/api/v1/article/${entryId}/feature`,
         {
           method: "PATCH",
@@ -490,30 +510,27 @@ export const AllEntries = ({ variant = "mine" }: AllEntriesProps) => {
           },
           body: JSON.stringify({
             isFeatured: nextIsFeatured,
-            featuredType: nextType,
+            featuredTypes: nextTypes,
           }),
         },
       );
 
-      const payloadType =
-        payload.featuredType === "hero" ||
-          payload.featuredType === "headline" ||
-          payload.featuredType === "category_hero" ||
-          payload.featuredType === "breaking" ||
-          payload.featuredType === "las_5_de_x" ||
-          payload.featuredType === "none"
-          ? payload.featuredType
-          : null;
-      const resolvedType: FeaturedType = payloadType ?? (payload.isFeatured ? nextType : "none");
+      const payloadTypes = Array.isArray(payload.featuredTypes) 
+          ? payload.featuredTypes.filter((t: any): t is FeaturedType => 
+            t === "hero" || t === "headline" || t === "category_hero" || t === "breaking" || t === "las_5_de_x"
+          )
+          : undefined;
+
+      const resolvedTypes: FeaturedType[] = payloadTypes ?? (payload.isFeatured ? nextTypes : []);
 
       setEntries((prev) =>
         prev.map((entry) =>
           entry.id === entryId
             ? {
-              ...entry,
-              featuredType: resolvedType,
-              isFeatured: resolvedType !== "none",
-            }
+                ...entry,
+                featuredTypes: resolvedTypes,
+                isFeatured: typeof payload.isFeatured === "boolean" ? payload.isFeatured : resolvedTypes.length > 0,
+              }
             : entry,
         ),
       );
@@ -529,7 +546,7 @@ export const AllEntries = ({ variant = "mine" }: AllEntriesProps) => {
       setEntries((prev) =>
         prev.map((entry) =>
           entry.id === entryId
-            ? { ...entry, featuredType: currentType, isFeatured: previousIsFeatured }
+            ? { ...entry, featuredTypes: currentTypes, isFeatured: currentTypes.length > 0 }
             : entry,
         ),
       );
@@ -679,26 +696,33 @@ export const AllEntries = ({ variant = "mine" }: AllEntriesProps) => {
                     <tr key={entry.id}>
                       <td className="entries-title-cell">
                         <div className="entries-title-text">{entry.title}</div>
-                        {entry.featuredType !== "none" ? (
+                        {entry.featuredTypes.length > 0 ? (
                           <div className="entries-featured-tags">
-                            {(entry.featuredType === "hero" || entry.featuredType === "category_hero") && (
+                            {entry.featuredTypes.includes("category_hero") && (
                               <span className="entries-badge badge-blue">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m12 3 2.9 5.9 6.6 1-4.8 4.7 1.1 6.6-5.8-3.1-5.8 3.1 1.1-6.6L2.5 9.9l6.6-1z"/></svg>
                                 Destacada Cat.
                               </span>
                             )}
-                            {entry.featuredType === "breaking" && (
+                            {entry.featuredTypes.includes("breaking") && (
                               <span className="entries-badge badge-blue">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m12 3 2.9 5.9 6.6 1-4.8 4.7 1.1 6.6-5.8-3.1-5.8 3.1 1.1-6.6L2.5 9.9l6.6-1z"/></svg>
                                 Subdestacada Cat.
                               </span>
                             )}
-                            {(entry.featuredType === "hero" || entry.featuredType === "headline" || entry.featuredType === "las_5_de_x") && (
-                              <span
-                                className={`entries-badge ${entry.featuredType === "hero" ? "badge-orange" : "badge-blue"}`}
-                                title={entry.featuredType === "hero" ? "Destacada en Primera Plana" : entry.featuredType === "las_5_de_x" ? "Las 5 de X" : "Subdestacada en Primera Plana"}
-                              >
-                                {entry.featuredType === "hero" ? "Destacada Home" : entry.featuredType === "las_5_de_x" ? "Las 5 de X" : "Subdestacada Home"}
+                            {entry.featuredTypes.includes("hero") && (
+                              <span className="entries-badge badge-orange" title="Destacada en Primera Plana">
+                                Destacada Home
+                              </span>
+                            )}
+                            {entry.featuredTypes.includes("headline") && (
+                              <span className="entries-badge badge-blue" title="Subdestacada en Primera Plana">
+                                Subdestacada Home
+                              </span>
+                            )}
+                            {entry.featuredTypes.includes("las_5_de_x") && (
+                              <span className="entries-badge badge-blue" title="Las 5 de X">
+                                Las 5 de X
                               </span>
                             )}
                           </div>
@@ -819,15 +843,15 @@ export const AllEntries = ({ variant = "mine" }: AllEntriesProps) => {
                               className={[
                                 "entries-action-button",
                                 "star",
-                                `featured-${entry.featuredType}`,
-                                entry.featuredType !== "none" ? "active" : "",
+                                `featured-${entry.featuredTypes}`,
+                                entry.featuredTypes.length > 0 ? "active" : "",
                                 openFeaturedMenuId === entry.id ? "open" : "",
                               ]
                                 .filter(Boolean)
                                 .join(" ")}
-                              title={`Destacado: ${featuredTypeLabel(entry.featuredType)}`}
+                              title={`Destacado: ${entry.featuredTypes.map(featuredTypeLabel).join(', ')}`}
                               aria-label={`Abrir opciones de destacado para ${entry.title}`}
-                              aria-pressed={entry.featuredType !== "none"}
+                              aria-pressed={entry.featuredTypes.length > 0}
                               aria-expanded={openFeaturedMenuId === entry.id}
                               disabled={isUpdatingFeatured || Boolean(deletingById[entry.id])}
                               onClick={() => {
@@ -838,7 +862,7 @@ export const AllEntries = ({ variant = "mine" }: AllEntriesProps) => {
                             >
                               <svg
                                 viewBox="0 0 24 24"
-                                fill={entry.featuredType !== "none" ? "currentColor" : "none"}
+                                fill={entry.featuredTypes.length > 0 ? "currentColor" : "none"}
                                 stroke="currentColor"
                                 strokeWidth="2"
                                 strokeLinecap="round"
@@ -854,7 +878,7 @@ export const AllEntries = ({ variant = "mine" }: AllEntriesProps) => {
                                 <div className="entries-featured-menu-header">Destacados</div>
                                 <hr className="entries-featured-menu-separator" />
                                 {FEATURED_MENU_OPTIONS.map((option, index) => {
-                                  const isSelected = entry.featuredType === option.value;
+                                  const isSelected = entry.featuredTypes.includes(option.value as FeaturedType);
                                   
                                   return (
                                     <React.Fragment key={option.value}>
@@ -865,10 +889,9 @@ export const AllEntries = ({ variant = "mine" }: AllEntriesProps) => {
                                         role="menuitemradio"
                                         aria-checked={isSelected}
                                         disabled={isUpdatingFeatured || Boolean(deletingById[entry.id])}
-                                        onClick={() => {
-                                          setOpenFeaturedMenuId(null);
-                                          const nextType = isSelected ? "none" : option.value;
-                                          void updateFeaturedType(entry.id, entry.featuredType, nextType);
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          void toggleFeaturedType(entry.id, entry.featuredTypes, option.value as FeaturedType);
                                         }}
                                       >
                                         <strong>{option.label}</strong>

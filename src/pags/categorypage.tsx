@@ -61,13 +61,7 @@ const normalizePublicArticle = (item: unknown, index: number): PublicArticle | n
           ? firstCat.name
           : "General",
     isFeatured: typeof r.isFeatured === "boolean" ? r.isFeatured : false,
-    featuredType:
-      r.featuredType === "hero" ||
-      r.featuredType === "headline" ||
-      r.featuredType === "category_hero" ||
-      r.featuredType === "breaking"
-        ? (r.featuredType as any)
-        : "none",
+    featuredTypes: Array.isArray(r.featuredTypes) ? r.featuredTypes : [],
   };
 };
 
@@ -180,19 +174,19 @@ const CategoryPage = () => {
     if (articles.length === 0) return null;
 
     // 1. Prioritize category_hero (Category-specific featured)
-    const catHero = articles.find(a => a.featuredType === 'category_hero');
+    const catHero = articles.find(a => (a.featuredTypes || []).includes('category_hero'));
     if (catHero) return catHero;
 
     // 2. Fallback to global hero if it exists in this category
-    const globalHero = articles.find(a => a.featuredType === 'hero');
+    const globalHero = articles.find(a => (a.featuredTypes || []).includes('hero'));
     if (globalHero) return globalHero;
 
     // 3. Fallback to a global headline
-    const headline = articles.find(a => a.featuredType === 'headline');
+    const headline = articles.find(a => (a.featuredTypes || []).includes('headline'));
     if (headline) return headline;
 
     // 4. Prefer a non-breaking article for the main slot to leave breaking for side cards
-    const firstNonBreaking = articles.find(a => a.featuredType === 'none');
+    const firstNonBreaking = articles.find(a => (!a.featuredTypes || a.featuredTypes.length === 0));
     if (firstNonBreaking) return firstNonBreaking;
 
     // 5. Ultimate fallback
@@ -204,16 +198,16 @@ const CategoryPage = () => {
 
     const fId = featured.id;
     // 1. Prioritize articles specifically marked for category side slots (breaking)
-    const breaking = articles.filter(a => a.featuredType === 'breaking' && a.id !== fId);
+    const breaking = articles.filter(a => (a.featuredTypes || []).includes('breaking') && a.id !== fId);
     
     // 2. Then headlines that weren't picked for the main slot
-    const headlines = articles.filter(a => a.featuredType === 'headline' && a.id !== fId);
+    const headlines = articles.filter(a => (a.featuredTypes || []).includes('headline') && a.id !== fId);
     
     // 3. Then any other articles
     const others = articles.filter(a => 
       a.id !== fId && 
-      a.featuredType !== 'breaking' && 
-      a.featuredType !== 'headline'
+      !(a.featuredTypes || []).includes('breaking') && 
+      !(a.featuredTypes || []).includes('headline')
     );
 
     const combined = [...breaking, ...headlines, ...others];

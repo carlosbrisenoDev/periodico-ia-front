@@ -253,13 +253,13 @@ const HomePage = () => {
   const grouped = groupByCategory(allKnownArticles);
 
   // Hero Selection
-  const heroMain = featuredArticles.find(a => a.featuredType === 'hero') 
+  const heroMain = featuredArticles.find(a => (a.featuredTypes || []).includes('hero')) 
     || featuredArticles[0] 
     || articles[0] 
     || null;
 
   const heroSide = (() => {
-    const headlines = featuredArticles.filter(a => a.featuredType === 'headline' && a.id !== heroMain?.id);
+    const headlines = featuredArticles.filter(a => (a.featuredTypes || []).includes('headline') && a.id !== heroMain?.id);
     if (headlines.length >= 3) return headlines.slice(0, 3);
     
     // Fallback: use any featured that isn't the main, then any recent
@@ -268,13 +268,7 @@ const HomePage = () => {
   })();
 
   const las5Selection = (() => {
-    const specific = featuredArticles.filter(a => a.featuredType === 'las_5_de_x');
-    if (specific.length >= 5) return specific.slice(0, 5);
-    
-    // Fallback: fill with recent articles that aren't already in specific
-    const specificIds = new Set(specific.map(a => a.id));
-    const filler = articles.filter(a => !specificIds.has(a.id));
-    return [...specific, ...filler].slice(0, 5);
+    return featuredArticles.filter(a => (a.featuredTypes || []).includes('las_5_de_x')).slice(0, 5);
   })();
 
   return (
@@ -407,34 +401,28 @@ const HomePage = () => {
                     </div>
                     <div className="ph-video-list">
                       {videos.length > 0 ? videos.slice(1).map((video) => (
-                        <div key={video.id} className="ph-video-item" style={{ flexDirection: 'column', alignItems: 'flex-start' }}>
-                          <div className="ph-video-info" style={{ width: '100%' }}>
-                            <h4 style={{ marginBottom: '8px' }}>{video.title || "Video"}</h4>
+                        <div key={video.id} className="ph-video-item" style={{ alignItems: 'flex-start', marginBottom: '16px' }}>
+                          <div className="ph-video-thumb-small" style={{ overflow: 'hidden', flexShrink: 0 }}>
+                            <Link to={`/video/${video.id}`} state={{ video }} style={{ display: 'block', width: '100%', height: '100%' }}>
+                              {video.platform === 'youtube' ? (
+                                <img src={`https://img.youtube.com/vi/${video.videoExternalId}/mqdefault.jpg`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="thumbnail" />
+                              ) : (
+                                <PlayIcon />
+                              )}
+                            </Link>
                           </div>
-                          <div style={{ display: 'flex', width: '100%', gap: '12px' }}>
-                            <div className="ph-video-thumb-small" style={{ overflow: 'hidden' }}>
-                              <Link to={`/video/${video.id}`} state={{ video }} style={{ display: 'block', width: '100%', height: '100%' }}>
-                                {video.platform === 'youtube' ? (
-                                  <img src={`https://img.youtube.com/vi/${video.videoExternalId}/mqdefault.jpg`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="thumbnail" />
-                                ) : (
-                                  <PlayIcon />
-                                )}
-                              </Link>
-                            </div>
-                            <div className="ph-video-info" style={{ display: 'flex', alignItems: 'center' }}>
-                              <Link to={`/video/${video.id}`} state={{ video }} style={{ textDecoration: 'none' }}>
-                                <span>Ver video</span>
-                              </Link>
-                            </div>
+                          <div className="ph-video-info" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                            <h4 style={{ margin: '0 0 8px 0', fontSize: '1rem' }}>{video.title || "Video"}</h4>
+                            <Link to={`/video/${video.id}`} state={{ video }} style={{ textDecoration: 'none' }}>
+                              <span>Ver video</span>
+                            </Link>
                           </div>
                         </div>
                       )) : [1, 2, 3].map((i) => (
-                        <div key={i} className="ph-video-item" style={{ flexDirection: 'column', alignItems: 'flex-start' }}>
-                          <div className="ph-video-info" style={{ width: '100%' }}>
-                            <h4 style={{ marginBottom: '8px' }}>Cargando...</h4>
-                          </div>
-                          <div style={{ display: 'flex', width: '100%', gap: '12px' }}>
-                            <div className="ph-video-thumb-small"><PlayIcon /></div>
+                        <div key={i} className="ph-video-item" style={{ alignItems: 'flex-start', marginBottom: '16px' }}>
+                          <div className="ph-video-thumb-small" style={{ flexShrink: 0 }}><PlayIcon /></div>
+                          <div className="ph-video-info" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                            <h4 style={{ margin: '0 0 8px 0', fontSize: '1rem' }}>Cargando...</h4>
                           </div>
                         </div>
                       ))}
