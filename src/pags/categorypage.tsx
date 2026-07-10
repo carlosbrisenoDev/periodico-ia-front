@@ -135,7 +135,7 @@ const CategoryPage = () => {
 
   useEffect(() => {
     if (!id) return;
-
+    
     const controller = new AbortController();
 
     const load = async () => {

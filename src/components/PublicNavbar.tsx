@@ -191,7 +191,7 @@ const PublicNavbar = ({ categories, activeCategorySlug }: Omit<PublicNavbarProps
             className="ph-mobile-nav-link subscribe-mobile-link" 
             to="/suscripcion"
             onClick={() => setMobileOpen(false)}
-            style={{ marginTop: 'auto', borderTop: '1px solid #eee', color: '#8b1f1f', fontWeight: 'bold' }}
+            style={{ marginTop: 'auto', borderTop: '1px solid #eee', color: 'var(--theme-primary-color)', fontWeight: 'bold' }}
           >
             Suscribirse
           </Link>

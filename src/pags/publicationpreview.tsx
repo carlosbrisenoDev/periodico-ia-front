@@ -529,7 +529,7 @@ export const PublicationPreview = () => {
         ) : null}
 
         {!loading && error ? (
-          <div className="public-article" style={{ textAlign: "center", color: "#8b1f1f" }}>{error}</div>
+          <div className="public-article" style={{ textAlign: "center", color: "var(--theme-primary-color)" }}>{error}</div>
         ) : null}
 
         {!loading && article ? (
@@ -579,7 +579,7 @@ export const PublicationPreview = () => {
               {isPlaying && (
                 <button 
                   onClick={handleStopTTS} 
-                  style={{ display: "flex", alignItems: "center", gap: "6px", padding: "8px 12px", border: "1px solid var(--border)", borderRadius: "20px", background: "var(--bg-surface)", cursor: "pointer", fontSize: "0.875rem", color: "#ef4444" }}
+                  style={{ display: "flex", alignItems: "center", gap: "6px", padding: "8px 12px", border: "1px solid var(--border)", borderRadius: "20px", background: "var(--bg-surface)", cursor: "pointer", fontSize: "0.875rem", color: "var(--theme-primary-color)" }}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg>
                   Detener
@@ -817,7 +817,7 @@ export const PublicationPreview = () => {
                     <button type="button" onClick={() => setShowReportModal(false)} disabled={reporting}>
                       Cancelar
                     </button>
-                    <button type="submit" className="primary" disabled={reporting} style={{ backgroundColor: "#ef4444" }}>
+                    <button type="submit" className="primary" disabled={reporting} style={{ backgroundColor: "var(--theme-primary-color)" }}>
                       {reporting ? "Enviando..." : "Enviar Reporte"}
                     </button>
                   </div>

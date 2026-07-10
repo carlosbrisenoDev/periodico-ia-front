@@ -11,6 +11,10 @@ export default function GlobalSettingsPage() {
   const [saving, setSaving] = useState(false);
   const [printEditionImageUrl, setPrintEditionImageUrl] = useState("");
   const [printEditionLink, setPrintEditionLink] = useState("");
+  const [themeBackground, setThemeBackground] = useState("#ffffff");
+  const [themeForeground, setThemeForeground] = useState("#20242b");
+  const [themeNavbarBg, setThemeNavbarBg] = useState("#ffffff");
+  const [themePrimaryColor, setThemePrimaryColor] = useState("#2563eb");
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [showImageModal, setShowImageModal] = useState(false);
   const [uploadingPdf, setUploadingPdf] = useState(false);
@@ -32,6 +36,12 @@ export default function GlobalSettingsPage() {
         }
         setPrintEditionImageUrl(data.printEditionImageUrl || "");
         setPrintEditionLink(data.printEditionLink || "");
+        if (data.themeColors) {
+          setThemeBackground(data.themeColors.background || "#ffffff");
+          setThemeForeground(data.themeColors.foreground || "#20242b");
+          setThemeNavbarBg(data.themeColors.navbarBg || "#ffffff");
+          setThemePrimaryColor(data.themeColors.primaryColor || "#2563eb");
+        }
     } catch (err) {
       console.error("Error fetching settings:", err);
     }
@@ -60,6 +70,12 @@ export default function GlobalSettingsPage() {
           commentBlocklist: blocklistArray,
           printEditionImageUrl,
           printEditionLink,
+          themeColors: {
+            background: themeBackground,
+            foreground: themeForeground,
+            navbarBg: themeNavbarBg,
+            primaryColor: themePrimaryColor
+          }
         }),
       });
 
@@ -282,12 +298,54 @@ export default function GlobalSettingsPage() {
               </div>
             </div>
 
+            {/* Theme Colors Section */}
+            <div style={{ background: "var(--surface)", padding: "24px", borderRadius: "8px", border: "1px solid var(--border)" }}>
+              <h2 style={{ fontSize: "1.5rem", marginBottom: "16px", color: "var(--text-main)" }}>Colores del Tema</h2>
+              <p style={{ marginBottom: "16px", color: "var(--text-muted)", fontSize: "0.9rem" }}>
+                Personaliza los colores principales de la interfaz. Los cambios se aplicarán a toda la web pública.
+              </p>
+              
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "16px" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                  <label style={{ fontWeight: "bold", color: "var(--text-main)" }}>Fondo de la página</label>
+                  <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                    <input type="color" value={themeBackground} onChange={e => setThemeBackground(e.target.value)} style={{ width: "40px", height: "40px", padding: "0", border: "none", borderRadius: "4px", cursor: "pointer" }} />
+                    <input type="text" value={themeBackground} onChange={e => setThemeBackground(e.target.value)} style={{ padding: "8px", borderRadius: "4px", border: "1px solid var(--border)", width: "100px", background: "transparent", color: "var(--text-main)" }} />
+                  </div>
+                </div>
+
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                  <label style={{ fontWeight: "bold", color: "var(--text-main)" }}>Texto principal</label>
+                  <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                    <input type="color" value={themeForeground} onChange={e => setThemeForeground(e.target.value)} style={{ width: "40px", height: "40px", padding: "0", border: "none", borderRadius: "4px", cursor: "pointer" }} />
+                    <input type="text" value={themeForeground} onChange={e => setThemeForeground(e.target.value)} style={{ padding: "8px", borderRadius: "4px", border: "1px solid var(--border)", width: "100px", background: "transparent", color: "var(--text-main)" }} />
+                  </div>
+                </div>
+
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                  <label style={{ fontWeight: "bold", color: "var(--text-main)" }}>Fondo de Navbar</label>
+                  <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                    <input type="color" value={themeNavbarBg} onChange={e => setThemeNavbarBg(e.target.value)} style={{ width: "40px", height: "40px", padding: "0", border: "none", borderRadius: "4px", cursor: "pointer" }} />
+                    <input type="text" value={themeNavbarBg} onChange={e => setThemeNavbarBg(e.target.value)} style={{ padding: "8px", borderRadius: "4px", border: "1px solid var(--border)", width: "100px", background: "transparent", color: "var(--text-main)" }} />
+                  </div>
+                </div>
+
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                  <label style={{ fontWeight: "bold", color: "var(--text-main)" }}>Color Primario (Acentos)</label>
+                  <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                    <input type="color" value={themePrimaryColor} onChange={e => setThemePrimaryColor(e.target.value)} style={{ width: "40px", height: "40px", padding: "0", border: "none", borderRadius: "4px", cursor: "pointer" }} />
+                    <input type="text" value={themePrimaryColor} onChange={e => setThemePrimaryColor(e.target.value)} style={{ padding: "8px", borderRadius: "4px", border: "1px solid var(--border)", width: "100px", background: "transparent", color: "var(--text-main)" }} />
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "16px" }}>
               <button
                 type="submit"
                 disabled={saving}
                 style={{
-                  background: "#8b1f1f",
+                  background: "var(--theme-primary-color)",
                   color: "white",
                   padding: "12px 24px",
                   borderRadius: "8px",

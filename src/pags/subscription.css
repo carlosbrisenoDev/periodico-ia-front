@@ -76,7 +76,7 @@
 }
 
 .ps-required {
-  color: #dc2626;
+  color: var(--theme-primary-color);
 }
 
 .ps-optional {

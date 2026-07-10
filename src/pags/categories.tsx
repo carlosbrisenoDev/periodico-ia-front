@@ -66,7 +66,7 @@ const getInitial = (name: string): string => {
     return letter || "C";
 };
 
-const BADGE_COLORS = ["#3B82F6", "#10B981", "#F59E0B", "#8B5CF6", "#06B6D4", "#EC4899", "#6366F1", "#EF4444",];
+const BADGE_COLORS = ["#3B82F6", "#10B981", "#F59E0B", "#8B5CF6", "#06B6D4", "#EC4899", "#6366F1", "var(--theme-primary-color)",];
 
 const colorForCategory = (seed: string): string => {
     let hash = 0;

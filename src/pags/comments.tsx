@@ -195,7 +195,7 @@ const CommentsModeration = () => {
                   )}
                   <button 
                     onClick={() => handleDelete(comment.id)}
-                    style={{ padding: "0.5rem 1rem", backgroundColor: "#ef4444", color: "white", border: "none", borderRadius: "4px", cursor: "pointer", fontSize: "0.875rem", fontWeight: "500", marginLeft: "auto" }}
+                    style={{ padding: "0.5rem 1rem", backgroundColor: "var(--theme-primary-color)", color: "white", border: "none", borderRadius: "4px", cursor: "pointer", fontSize: "0.875rem", fontWeight: "500", marginLeft: "auto" }}
                   >
                     Eliminar
                   </button>

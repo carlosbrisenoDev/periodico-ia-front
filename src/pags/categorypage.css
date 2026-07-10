@@ -113,7 +113,7 @@
   aspect-ratio: 16 / 10;
   overflow: hidden;
   border-radius: 4px;
-  background: #e5e7eb;
+  background: #ffffff;
 }
 
 .pc-featured-image img {
@@ -187,7 +187,7 @@
   aspect-ratio: 16 / 10;
   overflow: hidden;
   border-radius: 4px;
-  background: #e5e7eb;
+  background: #ffffff;
 }
 
 .pc-small-image img {
@@ -255,7 +255,7 @@
   aspect-ratio: 16 / 10;
   overflow: hidden;
   border-radius: 4px;
-  background: #e5e7eb;
+  background: #ffffff;
 }
 
 .pc-grid-image img {
@@ -315,7 +315,7 @@
   aspect-ratio: 16 / 10;
   overflow: hidden;
   border-radius: 4px;
-  background: #e5e7eb;
+  background: #ffffff;
 }
 .pc-magazine-image img {
   width: 100%;
@@ -364,7 +364,7 @@
   aspect-ratio: 4 / 3;
   overflow: hidden;
   border-radius: 4px;
-  background: #e5e7eb;
+  background: #ffffff;
 }
 @media (min-width: 640px) {
   .pc-list-image {
@@ -428,7 +428,7 @@
 
 .dashboard-status-deleted {
   background-color: #fee2e2;
-  color: #dc2626;
+  color: var(--theme-primary-color);
 }
 
 /* ── New Category Layout ──────────────────────── */
@@ -467,7 +467,7 @@
 .pc-main-image {
   width: 100%;
   aspect-ratio: 16 / 9;
-  background: #e5e7eb;
+  background: #ffffff;
   border-radius: 8px;
   overflow: hidden;
 }
@@ -522,7 +522,7 @@
 .pc-secondary-image {
   width: 50%;
   aspect-ratio: 16 / 10;
-  background: #e5e7eb;
+  background: #ffffff;
   border-radius: 6px;
   overflow: hidden;
   flex-shrink: 0;

@@ -99,7 +99,7 @@ export const CommentsSection = ({ articleId, allowComments = true }: CommentsSec
         {loading ? (
           <p>Cargando comentarios...</p>
         ) : error ? (
-          <p style={{ color: "red" }}>{error}</p>
+          <p style={{ color: "var(--theme-primary-color)" }}>{error}</p>
         ) : comments.length === 0 ? (
           <p style={{ color: "#6b7280" }}>No hay comentarios aún. ¡Sé el primero en comentar!</p>
         ) : (
@@ -167,7 +167,7 @@ export const CommentsSection = ({ articleId, allowComments = true }: CommentsSec
               />
             </div>
             
-            {submitError && <p style={{ color: "red", margin: 0 }}>{submitError}</p>}
+            {submitError && <p style={{ color: "var(--theme-primary-color)", margin: 0 }}>{submitError}</p>}
             
             <button
               type="submit"

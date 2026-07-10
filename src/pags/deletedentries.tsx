@@ -283,7 +283,7 @@ const DeletedEntries = () => {
                                 borderRadius: 12,
                                 minHeight: 40,
                                 padding: "0 14px",
-                                background: "#dc3545",
+                                background: "var(--theme-primary-color)",
                                 color: "#ffffff",
                                 fontWeight: 700,
                                 cursor: "pointer",

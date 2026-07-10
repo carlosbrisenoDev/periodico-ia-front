@@ -57,7 +57,7 @@ export default function PublicVideosPage() {
       <PublicNavbar categories={categories} activeCategorySlug="videos" />
       
       <main className="public-main" style={{ padding: "40px 20px", maxWidth: "1200px", margin: "0 auto" }}>
-        <h1 style={{ fontSize: "2rem", marginBottom: "32px", borderBottom: "2px solid #8b1f1f", paddingBottom: "12px", color: "var(--text-main)" }}>Videoteca</h1>
+        <h1 style={{ fontSize: "2rem", marginBottom: "32px", borderBottom: "2px solid var(--theme-primary-color)", paddingBottom: "12px", color: "var(--text-main)" }}>Videoteca</h1>
         
         {loading ? (
           <p style={{ color: "var(--text-main)" }}>Cargando videos...</p>
@@ -79,7 +79,7 @@ export default function PublicVideosPage() {
                   </div>
                 ) : (
                   <div style={{ height: "200px", backgroundColor: "var(--bg-surface)", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "8px" }}>
-                    <a href={video.url} target="_blank" rel="noopener noreferrer" style={{ color: "#8b1f1f", textDecoration: "underline" }}>
+                    <a href={video.url} target="_blank" rel="noopener noreferrer" style={{ color: "var(--theme-primary-color)", textDecoration: "underline" }}>
                       Ver video en {video.platform}
                     </a>
                   </div>

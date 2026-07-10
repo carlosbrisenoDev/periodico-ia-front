@@ -112,12 +112,12 @@
 }
 
 .ph-mobile-nav-link:hover {
-  background: #f4f7f9;
+  background: #ffffff;
 }
 
 .ph-mobile-nav-link.active {
   color: #5a7a94;
-  background: #e8eef3;
+  background: #ffffff;
 }
 
 .ph-mobile-search {
@@ -131,7 +131,7 @@
   padding: 0 12px 0 40px;
   border-radius: 6px;
   border: 1px solid rgb(195, 47, 39);
-  background: #f4f7f9;
+  background: #ffffff;
   font-size: 0.875rem;
   outline: none;
 }
@@ -193,7 +193,7 @@
   position: relative;
   aspect-ratio: 21 / 9;
   overflow: hidden;
-  background: #f3f4f6;
+  background: #ffffff;
 }
 
 .ph-featured-image img {
@@ -213,7 +213,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #e0f2fe;
+  background: #ffffff;
   color: #5a7a94;
   font-size: 1.25rem;
   font-weight: 700;
@@ -232,7 +232,7 @@
   color: #5a7a94;
   text-transform: uppercase;
   padding: 4px 12px;
-  background: #e8eef3;
+  background: #ffffff;
   border: 1px solid #b0c5d6;
   font-weight: 700;
   margin-bottom: 16px;
@@ -296,7 +296,7 @@
   position: relative;
   aspect-ratio: 4 / 3;
   overflow: hidden;
-  background: #f3f4f6;
+  background: #ffffff;
 }
 
 .ph-small-image img {
@@ -316,7 +316,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #e0f2fe;
+  background: #ffffff;
   color: #5a7a94;
   font-size: 0.95rem;
   font-weight: 700;
@@ -379,7 +379,7 @@
   height: auto;
   aspect-ratio: 16 / 9;
   overflow: hidden;
-  background: #f3f4f6;
+  background: #ffffff;
   flex-shrink: 0;
 }
 
@@ -400,7 +400,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #e0f2fe;
+  background: #ffffff;
   color: #5a7a94;
   font-size: 0.85rem;
   font-weight: 700;
@@ -604,7 +604,7 @@
 }
 
 .ph-section-grey {
-  background: #f3f4f6;
+  background: #ffffff;
   border-top: 2px solid #5a7a94;
   border-bottom: 2px solid #5a7a94;
 }
@@ -837,7 +837,7 @@
 }
 
 .ph-cta-button:hover {
-  background: #e5e7eb;
+  background: #ffffff;
 }
 
 /* --- Loading / Error States --- */
@@ -874,7 +874,7 @@
 .ph-error {
   text-align: center;
   padding: 64px 24px;
-  color: #9a2330;
+  color: var(--theme-primary-color);
   font-size: 0.95rem;
 }
 

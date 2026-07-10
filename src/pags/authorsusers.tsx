@@ -855,7 +855,7 @@ const AuthorsUsers = () => {
                           <button
                             type="button"
                             onClick={() => deleteAuthor(author)}
-                            style={{ padding: "4px 8px", fontSize: "12px", borderRadius: "4px", backgroundColor: "#fee2e2", color: "#ef4444", border: "none", cursor: "pointer" }}
+                            style={{ padding: "4px 8px", fontSize: "12px", borderRadius: "4px", backgroundColor: "#fee2e2", color: "var(--theme-primary-color)", border: "none", cursor: "pointer" }}
                             disabled={Boolean(deletingById[author.id])}
                           >
                             Eliminar
@@ -1180,7 +1180,7 @@ const AuthorsUsers = () => {
                     className="danger"
                     onClick={submitDeleteUser}
                     disabled={savingUserEdit || profile?.id === editUserForm.id}
-                    style={{ backgroundColor: profile?.id === editUserForm.id ? "#fca5a5" : "#ef4444", color: "white", border: "none", padding: "8px 16px", borderRadius: "8px", fontWeight: "600", cursor: profile?.id === editUserForm.id ? "not-allowed" : "pointer" }}
+                    style={{ backgroundColor: profile?.id === editUserForm.id ? "#fca5a5" : "var(--theme-primary-color)", color: "white", border: "none", padding: "8px 16px", borderRadius: "8px", fontWeight: "600", cursor: profile?.id === editUserForm.id ? "not-allowed" : "pointer" }}
                     title={profile?.id === editUserForm.id ? "No puedes eliminar tu propio usuario" : "Eliminar Usuario"}
                   >
                     Eliminar Usuario

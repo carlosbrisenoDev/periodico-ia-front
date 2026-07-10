@@ -9,6 +9,31 @@ import {
 } from "react-router-dom";
 import "./App.css";
 
+import { API_BASE_URL } from "./libs/config.ts";
+
+const useThemeColors = () => {
+  useEffect(() => {
+    const fetchTheme = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/v1/settings/public`);
+        if (!response.ok) return;
+        const data = await response.json();
+        if (data.themeColors) {
+          const root = document.documentElement;
+          root.style.setProperty('--bg-page', data.themeColors.background || '#ffffff');
+          root.style.setProperty('--bg-surface', data.themeColors.background || '#ffffff');
+          root.style.setProperty('--text-main', data.themeColors.foreground || '#20242b');
+          root.style.setProperty('--theme-navbar-bg', data.themeColors.navbarBg || '#ffffff');
+          root.style.setProperty('--theme-primary-color', data.themeColors.primaryColor || '#2563eb');
+        }
+      } catch (err) {
+        console.error("Error fetching theme colors:", err);
+      }
+    };
+    fetchTheme();
+  }, []);
+};
+
 const useContentProtection = () => {
   const location = useLocation();
 
@@ -21,7 +46,7 @@ const useContentProtection = () => {
     ].some(path => location.pathname.includes(path) || location.pathname.startsWith(path));
 
     if (!isAdminRoute) {
-      // Apply CSS protection
+      // Apply CSS protectio
       document.body.style.userSelect = "none";
       document.body.style.webkitUserSelect = "none";
       
@@ -136,6 +161,7 @@ const App = () => {
 };
 
 const AppContent = () => {
+  useThemeColors();
   useContentProtection();
 
   return (
