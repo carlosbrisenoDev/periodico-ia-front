@@ -21,10 +21,16 @@ const useThemeColors = () => {
         if (data.themeColors) {
           const root = document.documentElement;
           root.style.setProperty('--bg-page', data.themeColors.background || '#ffffff');
-          root.style.setProperty('--bg-surface', data.themeColors.background || '#ffffff');
+          root.style.setProperty('--bg-surface', data.themeColors.surface || data.themeColors.background || '#ffffff');
           root.style.setProperty('--text-main', data.themeColors.foreground || '#20242b');
           root.style.setProperty('--theme-navbar-bg', data.themeColors.navbarBg || '#ffffff');
           root.style.setProperty('--theme-primary-color', data.themeColors.primaryColor || '#2563eb');
+          root.style.setProperty('--theme-footer-bg', data.themeColors.footerBg || '#111827');
+          root.style.setProperty('--theme-footer-text', data.themeColors.footerText || '#f9fafb');
+          root.style.setProperty('--theme-livebar-bg', data.themeColors.liveBarBg || '#dc2626');
+          root.style.setProperty('--theme-livebar-text', data.themeColors.liveBarText || '#ffffff');
+          root.style.setProperty('--text-muted', data.themeColors.mutedText || '#6f7280');
+          root.style.setProperty('--border', data.themeColors.border || '#e2e3e6');
         }
       } catch (err) {
         console.error("Error fetching theme colors:", err);

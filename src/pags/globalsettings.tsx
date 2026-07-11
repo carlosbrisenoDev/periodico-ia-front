@@ -15,6 +15,13 @@ export default function GlobalSettingsPage() {
   const [themeForeground, setThemeForeground] = useState("#20242b");
   const [themeNavbarBg, setThemeNavbarBg] = useState("#ffffff");
   const [themePrimaryColor, setThemePrimaryColor] = useState("#2563eb");
+  const [themeFooterBg, setThemeFooterBg] = useState("#111827");
+  const [themeFooterText, setThemeFooterText] = useState("#f9fafb");
+  const [themeLiveBarBg, setThemeLiveBarBg] = useState("#dc2626");
+  const [themeLiveBarText, setThemeLiveBarText] = useState("#ffffff");
+  const [themeMutedText, setThemeMutedText] = useState("#6f7280");
+  const [themeSurface, setThemeSurface] = useState("#ffffff");
+  const [themeBorder, setThemeBorder] = useState("#e2e3e6");
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [showImageModal, setShowImageModal] = useState(false);
   const [uploadingPdf, setUploadingPdf] = useState(false);
@@ -41,6 +48,13 @@ export default function GlobalSettingsPage() {
           setThemeForeground(data.themeColors.foreground || "#20242b");
           setThemeNavbarBg(data.themeColors.navbarBg || "#ffffff");
           setThemePrimaryColor(data.themeColors.primaryColor || "#2563eb");
+          setThemeFooterBg(data.themeColors.footerBg || "#111827");
+          setThemeFooterText(data.themeColors.footerText || "#f9fafb");
+          setThemeLiveBarBg(data.themeColors.liveBarBg || "#dc2626");
+          setThemeLiveBarText(data.themeColors.liveBarText || "#ffffff");
+          setThemeMutedText(data.themeColors.mutedText || "#6f7280");
+          setThemeSurface(data.themeColors.surface || "#ffffff");
+          setThemeBorder(data.themeColors.border || "#e2e3e6");
         }
     } catch (err) {
       console.error("Error fetching settings:", err);
@@ -74,7 +88,14 @@ export default function GlobalSettingsPage() {
             background: themeBackground,
             foreground: themeForeground,
             navbarBg: themeNavbarBg,
-            primaryColor: themePrimaryColor
+            primaryColor: themePrimaryColor,
+            footerBg: themeFooterBg,
+            footerText: themeFooterText,
+            liveBarBg: themeLiveBarBg,
+            liveBarText: themeLiveBarText,
+            mutedText: themeMutedText,
+            surface: themeSurface,
+            border: themeBorder
           }
         }),
       });
@@ -131,7 +152,7 @@ export default function GlobalSettingsPage() {
       </aside>
 
       <main className="content utility-page-content settings-content">
-        <div style={{ padding: "24px", maxWidth: "800px", margin: "0 auto" }}>
+        <div style={{ padding: "24px", maxWidth: "800px", margin: "0 auto", paddingBottom: "100px" }}>
           <h1 style={{ fontSize: "2rem", marginBottom: "24px", color: "var(--text-main)" }}>Ajustes del Sitio</h1>
 
           {message && (
@@ -337,15 +358,71 @@ export default function GlobalSettingsPage() {
                     <input type="text" value={themePrimaryColor} onChange={e => setThemePrimaryColor(e.target.value)} style={{ padding: "8px", borderRadius: "4px", border: "1px solid var(--border)", width: "100px", background: "transparent", color: "var(--text-main)" }} />
                   </div>
                 </div>
+
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                  <label style={{ fontWeight: "bold", color: "var(--text-main)" }}>Fondo del Footer</label>
+                  <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                    <input type="color" value={themeFooterBg} onChange={e => setThemeFooterBg(e.target.value)} style={{ width: "40px", height: "40px", padding: "0", border: "none", borderRadius: "4px", cursor: "pointer" }} />
+                    <input type="text" value={themeFooterBg} onChange={e => setThemeFooterBg(e.target.value)} style={{ padding: "8px", borderRadius: "4px", border: "1px solid var(--border)", width: "100px", background: "transparent", color: "var(--text-main)" }} />
+                  </div>
+                </div>
+
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                  <label style={{ fontWeight: "bold", color: "var(--text-main)" }}>Texto del Footer</label>
+                  <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                    <input type="color" value={themeFooterText} onChange={e => setThemeFooterText(e.target.value)} style={{ width: "40px", height: "40px", padding: "0", border: "none", borderRadius: "4px", cursor: "pointer" }} />
+                    <input type="text" value={themeFooterText} onChange={e => setThemeFooterText(e.target.value)} style={{ padding: "8px", borderRadius: "4px", border: "1px solid var(--border)", width: "100px", background: "transparent", color: "var(--text-main)" }} />
+                  </div>
+                </div>
+
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                  <label style={{ fontWeight: "bold", color: "var(--text-main)" }}>Barra Superior (Fondo)</label>
+                  <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                    <input type="color" value={themeLiveBarBg} onChange={e => setThemeLiveBarBg(e.target.value)} style={{ width: "40px", height: "40px", padding: "0", border: "none", borderRadius: "4px", cursor: "pointer" }} />
+                    <input type="text" value={themeLiveBarBg} onChange={e => setThemeLiveBarBg(e.target.value)} style={{ padding: "8px", borderRadius: "4px", border: "1px solid var(--border)", width: "100px", background: "transparent", color: "var(--text-main)" }} />
+                  </div>
+                </div>
+
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                  <label style={{ fontWeight: "bold", color: "var(--text-main)" }}>Barra Superior (Texto)</label>
+                  <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                    <input type="color" value={themeLiveBarText} onChange={e => setThemeLiveBarText(e.target.value)} style={{ width: "40px", height: "40px", padding: "0", border: "none", borderRadius: "4px", cursor: "pointer" }} />
+                    <input type="text" value={themeLiveBarText} onChange={e => setThemeLiveBarText(e.target.value)} style={{ padding: "8px", borderRadius: "4px", border: "1px solid var(--border)", width: "100px", background: "transparent", color: "var(--text-main)" }} />
+                  </div>
+                </div>
+
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                  <label style={{ fontWeight: "bold", color: "var(--text-main)" }}>Texto Secundario (Muted)</label>
+                  <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                    <input type="color" value={themeMutedText} onChange={e => setThemeMutedText(e.target.value)} style={{ width: "40px", height: "40px", padding: "0", border: "none", borderRadius: "4px", cursor: "pointer" }} />
+                    <input type="text" value={themeMutedText} onChange={e => setThemeMutedText(e.target.value)} style={{ padding: "8px", borderRadius: "4px", border: "1px solid var(--border)", width: "100px", background: "transparent", color: "var(--text-main)" }} />
+                  </div>
+                </div>
+
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                  <label style={{ fontWeight: "bold", color: "var(--text-main)" }}>Superficies (Tarjetas)</label>
+                  <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                    <input type="color" value={themeSurface} onChange={e => setThemeSurface(e.target.value)} style={{ width: "40px", height: "40px", padding: "0", border: "none", borderRadius: "4px", cursor: "pointer" }} />
+                    <input type="text" value={themeSurface} onChange={e => setThemeSurface(e.target.value)} style={{ padding: "8px", borderRadius: "4px", border: "1px solid var(--border)", width: "100px", background: "transparent", color: "var(--text-main)" }} />
+                  </div>
+                </div>
+
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                  <label style={{ fontWeight: "bold", color: "var(--text-main)" }}>Bordes</label>
+                  <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                    <input type="color" value={themeBorder} onChange={e => setThemeBorder(e.target.value)} style={{ width: "40px", height: "40px", padding: "0", border: "none", borderRadius: "4px", cursor: "pointer" }} />
+                    <input type="text" value={themeBorder} onChange={e => setThemeBorder(e.target.value)} style={{ padding: "8px", borderRadius: "4px", border: "1px solid var(--border)", width: "100px", background: "transparent", color: "var(--text-main)" }} />
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "16px" }}>
+            <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "32px" }}>
               <button
                 type="submit"
                 disabled={saving}
                 style={{
-                  background: "var(--theme-primary-color)",
+                  background: "#dc2626",
                   color: "white",
                   padding: "12px 24px",
                   borderRadius: "8px",
