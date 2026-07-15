@@ -130,14 +130,14 @@
   height: 40px;
   padding: 0 12px 0 40px;
   border-radius: 6px;
-  border: 1px solid var(--card-border-color, rgb(195, 47, 39));
+  border: 1px solid var(--card-border-color, transparent);
   background: #ffffff;
   font-size: 0.875rem;
   outline: none;
 }
 
 .ph-mobile-search-input:focus {
-  border-color: var(--card-border-color, rgb(195, 47, 39));
+  border-color: var(--card-border-color, transparent);
   box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
 }
 
@@ -152,14 +152,14 @@
   transform: translateY(-50%);
   width: 16px;
   height: 16px;
-  color: var(--card-border-color, rgb(195, 47, 39));
+  color: var(--card-border-color, transparent);
 }
 
 /* --- Hero Section --- */
 .ph-hero {
   max-width: 1100px;
   margin: 0 auto;
-  padding: 48px 0;
+  padding: 48px 24px;
 }
 
 @media (min-width: 1024px) {
@@ -180,12 +180,12 @@
   text-decoration: none;
   color: inherit;
   background: #ffffff;
-  border: 1px solid var(--card-border-color, rgb(195, 47, 39));
+  border: 1px solid var(--card-border-color, transparent);
   transition: border-color 0.25s, box-shadow 0.25s;
 }
 
 .ph-featured-card:hover {
-  border-color: var(--card-border-color, rgb(195, 47, 39));
+  border-color: var(--card-border-color, transparent);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
@@ -283,12 +283,12 @@
   text-decoration: none;
   color: inherit;
   background: #ffffff;
-  border: 1px solid var(--card-border-color, rgb(195, 47, 39));
+  border: 1px solid var(--card-border-color, transparent);
   transition: border-color 0.25s, box-shadow 0.25s;
 }
 
 .ph-small-card:hover {
-  border-color: var(--card-border-color, rgb(195, 47, 39));
+  border-color: var(--card-border-color, transparent);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
@@ -363,13 +363,13 @@
   text-decoration: none;
   color: inherit;
   background: #ffffff;
-  border: 1px solid var(--card-border-color, rgb(195, 47, 39));
+  border: 1px solid var(--card-border-color, transparent);
   padding: 0;
   transition: border-color 0.25s, box-shadow 0.25s;
 }
 
 .ph-horiz-card:hover {
-  border-color: var(--card-border-color, rgb(195, 47, 39));
+  border-color: var(--card-border-color, transparent);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
@@ -594,7 +594,7 @@
 .ph-section {
   max-width: 1100px;
   margin: 0 auto;
-  padding: 48px 0;
+  padding: 48px 24px;
 }
 
 @media (min-width: 1024px) {

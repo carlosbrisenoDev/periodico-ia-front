@@ -3488,7 +3488,7 @@ body,
 }
 
 .public-nav-date {
-  color: rgb(195, 47, 39);
+  color: #4b5563;
   font-size: 0.875rem;
   font-weight: 700;
   display: none;
@@ -3577,7 +3577,7 @@ body,
   transform: translateY(-50%);
   width: 16px;
   height: 16px;
-  color: rgb(195, 47, 39);
+  color: #9ca3af;
 }
 
 .public-nav-search-input {
@@ -3586,7 +3586,7 @@ body,
   padding-left: 40px;
   padding-right: 12px;
   border-radius: 6px;
-  border: 1px solid rgb(195, 47, 39);
+  border: 1px solid #d1d5db;
   background-color: #ffffff;
   font-size: 0.875rem;
   outline: none;
@@ -3594,8 +3594,8 @@ body,
 }
 
 .public-nav-search-input:focus {
-  border-color: rgb(195, 47, 39);
-  box-shadow: 0 0 0 3px rgba(195, 47, 39, 0.2);
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
 }
 
 .public-main {
@@ -3934,15 +3934,15 @@ body,
 .public-card {
   display: block;
   background-color: #ffffff;
-  border: 1px solid rgb(195, 47, 39);
+  border: 1px solid var(--card-border-color, transparent);
   text-decoration: none;
   color: inherit;
   transition: border-color 0.2s;
 }
 
 .public-card:hover {
-  border-color: rgba(195, 47, 39, 0.5);
-  box-shadow: 0 4px 12px rgba(195, 47, 39, 0.1);
+  border-color: var(--card-border-color, transparent);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .public-card-image-wrap {
@@ -4178,7 +4178,7 @@ body,
     gap: 4px;
     padding: 6px 4px;
     border-radius: 4px;
-    border: 1px solid var(--theme-livebar-text, rgb(195, 47, 39));
+    border: 1px solid var(--theme-livebar-text, transparent);
     background: transparent;
     color: var(--theme-livebar-text, #111827);
   }

@@ -31,6 +31,7 @@ const useThemeColors = () => {
           root.style.setProperty('--theme-livebar-text', data.themeColors.liveBarText || '#ffffff');
           root.style.setProperty('--text-muted', data.themeColors.mutedText || '#6f7280');
           root.style.setProperty('--border', data.themeColors.border || '#e2e3e6');
+          root.style.setProperty('--card-border-color', data.themeColors.cardBorder || 'transparent');
         }
       } catch (err) {
         console.error("Error fetching theme colors:", err);
