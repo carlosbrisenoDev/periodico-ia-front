@@ -49,7 +49,7 @@ const FOOTER_ITEMS: NavItem[] = [
     { label: "Cerrar Sesión", icon: "logout" },
 ];
 
-import SIDEBAR_LOGO_PATH from "../assets/logo.png";
+const SIDEBAR_LOGO_PATH = "/logo.png";
 
 const Icon = ({ icon }: { icon: NavItem["icon"] }) => {
     if (icon === "home") {

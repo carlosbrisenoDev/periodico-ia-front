@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { MenuIcon, CloseIcon, SearchIcon, MoonIcon, SunIcon } from "./Icons.tsx";
-import logoSrc from "../assets/logo.png";
+const logoSrc = "/logo.png";
 import type { PublicCategory } from "../libs/types.ts";
 
 

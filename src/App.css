@@ -4248,10 +4248,18 @@ body,
   
   /* Las 5 de X Section */
   .ph-las-5-section {
-    background: #ffffff;
+    background: #111827;
     color: #fff;
     padding: 24px 16px;
-    margin: 24px 0;
+    margin: 24px 24px;
+    border-radius: 8px;
+  }
+  @media (min-width: 1024px) {
+    .ph-las-5-section {
+      max-width: calc(1400px - 48px);
+      margin: 48px auto;
+      padding: 32px 48px;
+    }
   }
   .ph-las-5-header h2 {
     margin: 0;
@@ -4453,12 +4461,19 @@ body,
 
   /* Newsletter */
   .ph-newsletter-section {
-    background: #1e3a8a;
+    background: #5a7a94;
     color: #fff;
     padding: 32px 24px;
     text-align: center;
     border-radius: 8px;
-    margin: 24px 16px;
+    margin: 32px 24px;
+  }
+  @media (min-width: 1024px) {
+    .ph-newsletter-section {
+      max-width: calc(1400px - 48px);
+      margin: 48px auto;
+      padding: 48px;
+    }
   }
   .ph-newsletter-icon {
     font-size: 2.5rem;

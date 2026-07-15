@@ -22,6 +22,7 @@ export default function GlobalSettingsPage() {
   const [themeMutedText, setThemeMutedText] = useState("#6f7280");
   const [themeSurface, setThemeSurface] = useState("#ffffff");
   const [themeBorder, setThemeBorder] = useState("#e2e3e6");
+  const [themeCardBorder, setThemeCardBorder] = useState("#c32f27");
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [showImageModal, setShowImageModal] = useState(false);
   const [uploadingPdf, setUploadingPdf] = useState(false);
@@ -55,6 +56,7 @@ export default function GlobalSettingsPage() {
           setThemeMutedText(data.themeColors.mutedText || "#6f7280");
           setThemeSurface(data.themeColors.surface || "#ffffff");
           setThemeBorder(data.themeColors.border || "#e2e3e6");
+          setThemeCardBorder(data.themeColors.cardBorder || "#c32f27");
         }
     } catch (err) {
       console.error("Error fetching settings:", err);
@@ -95,7 +97,8 @@ export default function GlobalSettingsPage() {
             liveBarText: themeLiveBarText,
             mutedText: themeMutedText,
             surface: themeSurface,
-            border: themeBorder
+            border: themeBorder,
+            cardBorder: themeCardBorder
           }
         }),
       });
@@ -414,9 +417,16 @@ export default function GlobalSettingsPage() {
                     <input type="text" value={themeBorder} onChange={e => setThemeBorder(e.target.value)} style={{ padding: "8px", borderRadius: "4px", border: "1px solid var(--border)", width: "100px", background: "transparent", color: "var(--text-main)" }} />
                   </div>
                 </div>
+              
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                  <label style={{ fontWeight: "bold", color: "var(--text-main)" }}>Bordes de Tarjetas</label>
+                  <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                    <input type="color" value={themeCardBorder} onChange={e => setThemeCardBorder(e.target.value)} style={{ width: "40px", height: "40px", padding: "0", border: "none", borderRadius: "4px", cursor: "pointer" }} />
+                    <input type="text" value={themeCardBorder} onChange={e => setThemeCardBorder(e.target.value)} style={{ padding: "8px", borderRadius: "4px", border: "1px solid var(--border)", width: "100px", background: "transparent", color: "var(--text-main)" }} />
+                  </div>
+                </div>
               </div>
             </div>
-
             <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "32px" }}>
               <button
                 type="submit"

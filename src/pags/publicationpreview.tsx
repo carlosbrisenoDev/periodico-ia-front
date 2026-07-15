@@ -44,9 +44,8 @@ type ArticleDetailResponse = {
 
 const getYoutubeEmbedUrl = (url?: string | null) => {
   if (!url) return null;
-  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-  const match = url.match(regExp);
-  return (match && match[2].length === 11) ? `https://www.youtube.com/embed/${match[2]}` : null;
+  const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/|live\/))([\w-]{11})/i);
+  return match ? `https://www.youtube.com/embed/${match[1]}` : null;
 };
 
 type SimpleCategory = {
@@ -179,8 +178,21 @@ const useArticleSEO = (article: PublicationPreviewArticle | null) => {
   useEffect(() => {
     if (!article) return;
 
+    const plainTextContent = article.blocks
+      ?.filter((b: any) => b.type === "paragraph" || b.type === "header")
+      .map((b: any) => b.content?.replace(/<[^>]+>/g, "") || "")
+      .join(" ")
+      .trim() || "";
+    
+    let description = article.excerpt || plainTextContent;
+    if (description.length > 150) {
+      description = description.substring(0, 147) + "...";
+    }
+    if (!description) {
+      description = "Contenido de alta calidad en Información de Altura";
+    }
+
     const title = article.title ? `${article.title} | Información de Altura` : "Información de Altura";
-    const description = article.excerpt || "Noticia en Información de Altura";
     const url = `${window.location.origin}/articulo/${article.slug || article.id}`;
     const imageUrl = normalizeAssetUrl(article.featuredImageUrl) || `${window.location.origin}/default-share.jpg`;
 
@@ -435,8 +447,8 @@ export const PublicationPreview = () => {
           const normalizedCategories = normalizeCategories(categoriesPayload);
           setCategories(normalizedCategories);
 
-          if (!isMongoId && detail.id) {
-            navigate(`/articulo/${detail.id}`, { replace: true, state: locationState });
+          if (isMongoId && detail.slug) {
+            navigate(`/articulo/${detail.slug}`, { replace: true, state: locationState });
             return;
           }
 
@@ -739,7 +751,7 @@ export const PublicationPreview = () => {
               {recommendations.length > 0 ? (
                 <div className="public-recommendations-grid">
                   {recommendations.map((item) => (
-                    <a key={item.id} href={`/articulo/${item.id}`} className="public-card">
+                    <a key={item.id} href={`/articulo/${item.slug || item.id}`} className="public-card">
                       <div className="public-card-image-wrap">
                         {item.featuredImageUrl ? (
                           <img src={item.featuredImageUrl} alt={item.title} />

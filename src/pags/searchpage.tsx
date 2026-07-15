@@ -138,7 +138,7 @@ const SearchPage = () => {
             results.map((article) => {
               const { date, time } = formatArticleDate(article.createdAt);
               return (
-                <a key={article.id} className="search-article-card" href={`/articulo/${article.id}`}>
+                <a key={article.id} className="search-article-card" href={`/articulo/${article.slug || article.id}`}>
                   <div className="search-article-image-wrapper">
                     <img 
                       src={article.featuredImageUrl || "https://via.placeholder.com/400x250?text=No+Image"} 

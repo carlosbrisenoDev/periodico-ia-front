@@ -13,7 +13,7 @@ import PublicNavbar from "../components/PublicNavbar.tsx";
 
 
 
-const articleHref = (a: PublicArticle) => `/articulo/${a.id}`;
+const articleHref = (a: PublicArticle) => `/articulo/${a.slug || a.id}`;
 
 /* ── Data Fetching ───────────────────────────────────── */
 

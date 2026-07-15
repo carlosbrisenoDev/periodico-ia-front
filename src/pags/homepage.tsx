@@ -42,7 +42,7 @@ const formatArticleTime = (iso: string): string => {
   }).format(d);
 };
 
-const articleHref = (a: PublicArticle) => `/articulo/${a.id}`;
+const articleHref = (a: PublicArticle) => `/articulo/${a.slug || a.id}`;
 
 const slugify = (text: string) =>
   text
@@ -272,7 +272,7 @@ const HomePage = () => {
   })();
 
   return (
-    <div className="ph-page">
+    <div className="ph-page" style={settings?.themeColors?.cardBorder ? { '--card-border-color': settings.themeColors.cardBorder } as React.CSSProperties : undefined}>
       <PublicNavbar categories={categories} />
 
       <main className="ph-main-content">

@@ -94,7 +94,7 @@ const RecentPage = () => {
         {!loading && !error && articles.length > 0 && (
           <div className="recent-list">
             {articles.map((article) => (
-              <a key={article.id} className="ph-horiz-card" href={`/articulo/${article.id}`}>
+              <a key={article.id} className="ph-horiz-card" href={`/articulo/${article.slug || article.id}`}>
                 <div className="ph-horiz-image">
                   {article.featuredImageUrl ? (
                     <img src={article.featuredImageUrl} alt={article.title} />

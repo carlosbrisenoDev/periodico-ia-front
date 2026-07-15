@@ -130,15 +130,15 @@
   height: 40px;
   padding: 0 12px 0 40px;
   border-radius: 6px;
-  border: 1px solid rgb(195, 47, 39);
+  border: 1px solid var(--card-border-color, rgb(195, 47, 39));
   background: #ffffff;
   font-size: 0.875rem;
   outline: none;
 }
 
 .ph-mobile-search-input:focus {
-  border-color: rgb(195, 47, 39);
-  box-shadow: 0 0 0 3px rgba(195, 47, 39, 0.2);
+  border-color: var(--card-border-color, rgb(195, 47, 39));
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
 }
 
 .ph-mobile-search-wrap {
@@ -152,7 +152,7 @@
   transform: translateY(-50%);
   width: 16px;
   height: 16px;
-  color: rgb(195, 47, 39);
+  color: var(--card-border-color, rgb(195, 47, 39));
 }
 
 /* --- Hero Section --- */
@@ -180,13 +180,13 @@
   text-decoration: none;
   color: inherit;
   background: #ffffff;
-  border: 1px solid rgb(195, 47, 39);
+  border: 1px solid var(--card-border-color, rgb(195, 47, 39));
   transition: border-color 0.25s, box-shadow 0.25s;
 }
 
 .ph-featured-card:hover {
-  border-color: rgba(195, 47, 39, 0.7);
-  box-shadow: 0 4px 12px rgba(195, 47, 39, 0.1);
+  border-color: var(--card-border-color, rgb(195, 47, 39));
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .ph-featured-image {
@@ -283,13 +283,13 @@
   text-decoration: none;
   color: inherit;
   background: #ffffff;
-  border: 1px solid rgb(195, 47, 39);
+  border: 1px solid var(--card-border-color, rgb(195, 47, 39));
   transition: border-color 0.25s, box-shadow 0.25s;
 }
 
 .ph-small-card:hover {
-  border-color: rgba(195, 47, 39, 0.7);
-  box-shadow: 0 4px 12px rgba(195, 47, 39, 0.1);
+  border-color: var(--card-border-color, rgb(195, 47, 39));
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .ph-small-image {
@@ -363,14 +363,14 @@
   text-decoration: none;
   color: inherit;
   background: #ffffff;
-  border: 1px solid rgb(195, 47, 39);
+  border: 1px solid var(--card-border-color, rgb(195, 47, 39));
   padding: 0;
   transition: border-color 0.25s, box-shadow 0.25s;
 }
 
 .ph-horiz-card:hover {
-  border-color: rgba(195, 47, 39, 0.7);
-  box-shadow: 0 4px 12px rgba(195, 47, 39, 0.1);
+  border-color: var(--card-border-color, rgb(195, 47, 39));
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .ph-horiz-image {
@@ -909,4 +909,12 @@
 
 .ph-section-title-noticias {
   border-bottom-color: #5a7a94;
+}
+
+@media (max-width: 767px) {
+  .ph-featured-image,
+  .ph-small-image,
+  .ph-horiz-image {
+    aspect-ratio: 1 / 1 !important;
+  }
 }
