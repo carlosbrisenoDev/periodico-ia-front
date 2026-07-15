@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { MenuIcon, CloseIcon, SearchIcon, MoonIcon, SunIcon } from "./Icons.tsx";
-const logoSrc = "/logo.png";
+
 import type { PublicCategory } from "../libs/types.ts";
 
 
@@ -28,6 +28,7 @@ const PublicNavbar = ({ categories, activeCategorySlug }: Omit<PublicNavbarProps
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isDark, setIsDark] = useState(false);
   const navigate = useNavigate();
+  const logoSrc = isDark ? "/logo-white.png" : "/logo.png";
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme");
