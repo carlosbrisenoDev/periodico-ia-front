@@ -178,11 +178,21 @@ const useArticleSEO = (article: PublicationPreviewArticle | null) => {
   useEffect(() => {
     if (!article) return;
 
-    const plainTextContent = article.blocks
-      ?.filter((b: any) => b.type === "paragraph" || b.type === "header")
-      .map((b: any) => b.content?.replace(/<[^>]+>/g, "") || "")
-      .join(" ")
-      .trim() || "";
+    let plainTextContent = "";
+    try {
+      if (article.content) {
+        const blocks = JSON.parse(article.content);
+        if (Array.isArray(blocks)) {
+          plainTextContent = blocks
+            .filter((b: any) => b.type === "paragraph" || b.type === "header")
+            .map((b: any) => b.content?.replace(/<[^>]+>/g, "") || "")
+            .join(" ")
+            .trim();
+        }
+      }
+    } catch(e) {
+      plainTextContent = article.content?.replace(/<[^>]+>/g, "").trim() || "";
+    }
     
     let description = article.excerpt || plainTextContent;
     if (description.length > 150) {
