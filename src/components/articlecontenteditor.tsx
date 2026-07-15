@@ -383,6 +383,7 @@ export const ArticleContentEditor = ({
   const iconGrid = <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg>;
   
   const iconAlignLeft = <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="21" x2="3" y1="6" y2="6"/><line x1="15" x2="3" y1="12" y2="12"/><line x1="17" x2="3" y1="18" y2="18"/></svg>;
+  const iconAlignCenter = <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="21" x2="3" y1="6" y2="6"/><line x1="19" x2="5" y1="12" y2="12"/><line x1="21" x2="3" y1="18" y2="18"/></svg>;
   const iconAlignRight = <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="21" x2="3" y1="6" y2="6"/><line x1="21" x2="9" y1="12" y2="12"/><line x1="21" x2="7" y1="18" y2="18"/></svg>;
   const iconAlignJustify = <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="21" x2="3" y1="6" y2="6"/><line x1="21" x2="3" y1="12" y2="12"/><line x1="21" x2="3" y1="18" y2="18"/></svg>;
 
@@ -633,6 +634,9 @@ export const ArticleContentEditor = ({
                       <div className="editor-format-group" style={{ marginLeft: "auto", display: "flex", gap: "2px" }}>
                         <button type="button" className={`editor-format-btn ${block.align === "left" ? "active" : ""}`} title="Alinear Izquierda" onClick={() => updateBlock(block.id, (c) => ({ ...c, align: "left" }))} disabled={disabled}>
                           {iconAlignLeft}
+                        </button>
+                        <button type="button" className={`editor-format-btn ${block.align === "center" ? "active" : ""}`} title="Centrar" onClick={() => updateBlock(block.id, (c) => ({ ...c, align: "center" }))} disabled={disabled}>
+                          {iconAlignCenter}
                         </button>
                         <button type="button" className={`editor-format-btn ${block.align === "justify" || !block.align ? "active" : ""}`} title="Justificar" onClick={() => updateBlock(block.id, (c) => ({ ...c, align: "justify" }))} disabled={disabled}>
                           {iconAlignJustify}
