@@ -1,5 +1,5 @@
 export type ContentBlock =
-  | { type: "paragraph"; text: string }
+  | { type: "paragraph"; text: string; align?: "left" | "right" | "justify" | "center" }
   | { type: "subtitle"; text: string }
   | { type: "image"; url: string; caption?: string }
   | { type: "video"; url: string }
@@ -16,6 +16,7 @@ export const parseContentBlocks = (content: string): ContentBlock[] => {
   const lines = content.split(/\r?\n/);
   const blocks: ContentBlock[] = [];
   const paragraphBuffer: string[] = [];
+  let currentAlign: "left" | "right" | "justify" | "center" | undefined = undefined;
 
   const flushParagraph = () => {
     if (paragraphBuffer.length === 0) {
@@ -29,7 +30,8 @@ export const parseContentBlocks = (content: string): ContentBlock[] => {
       return;
     }
 
-    blocks.push({ type: "paragraph", text });
+    blocks.push({ type: "paragraph", text, align: currentAlign || "justify" });
+    currentAlign = undefined;
   };
 
   for (const rawLine of lines) {
@@ -37,6 +39,13 @@ export const parseContentBlocks = (content: string): ContentBlock[] => {
 
     if (!line) {
       flushParagraph();
+      continue;
+    }
+
+    const alignMatch = line.match(/^\[\[align:(left|right|justify|center)]]$/i);
+    if (alignMatch) {
+      flushParagraph();
+      currentAlign = alignMatch[1].toLowerCase() as any;
       continue;
     }
 
@@ -95,6 +104,9 @@ export const serializeContentBlocks = (blocks: ContentBlock[]): string => {
     .flatMap((block) => {
       if (block.type === "paragraph") {
         const text = block.text.trim();
+        if (text && block.align && block.align !== "justify") {
+          return [`[[align:${block.align}]]\n${text}`];
+        }
         return text ? [text] : [];
       }
 

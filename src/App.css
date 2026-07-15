@@ -4634,3 +4634,16 @@ body,
     flex: 1;
   }
 }
+.editor-format-group {
+  display: flex;
+  gap: 4px;
+}
+
+.editor-format-btn.active {
+  background: var(--brand, #000);
+  color: white;
+  border-color: var(--brand, #000);
+}
+.editor-format-btn.active svg {
+  stroke: white;
+}

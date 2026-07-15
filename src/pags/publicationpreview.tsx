@@ -666,7 +666,7 @@ export const PublicationPreview = () => {
 
                 if (block.type === "paragraph") {
                   return (
-                    <p key={`${block.text.slice(0, 24)}-${index}`}>
+                    <p key={`${block.text.slice(0, 24)}-${index}`} style={{ textAlign: (block as any).align || "justify" }}>
                       <FormattedText text={block.text} />
                     </p>
                   );

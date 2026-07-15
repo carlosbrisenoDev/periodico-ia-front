@@ -4,7 +4,7 @@ import { serializeContentBlocks, parseContentBlocks, type ContentBlock } from ".
 import { ApiError, apiFetch } from "../libs/http.ts";
 
 type EditableBlock =
-  | { id: string; type: "paragraph"; text: string }
+  | { id: string; type: "paragraph"; text: string; align?: "left" | "right" | "justify" | "center" }
   | { id: string; type: "subtitle"; text: string }
   | { id: string; type: "image"; url: string; caption?: string }
   | { id: string; type: "video"; url: string }
@@ -59,7 +59,7 @@ const createEditableBlock = (block: ContentBlock): EditableBlock => {
     return { id: createBlockId(), type: "image-row", urls: block.urls, layout: block.layout };
   }
 
-  return { id: createBlockId(), type: "paragraph", text: block.text };
+  return { id: createBlockId(), type: "paragraph", text: block.text, align: block.align || "justify" };
 };
 
 const createEmptyBlock = (type: EditableBlock["type"]): EditableBlock => {
@@ -79,7 +79,7 @@ const createEmptyBlock = (type: EditableBlock["type"]): EditableBlock => {
     return { id: createBlockId(), type, urls: ["", "", ""], layout: "equal" };
   }
 
-  return { id: createBlockId(), type, text: "" };
+  return { id: createBlockId(), type, text: "", align: "justify" };
 };
 
 const initializeBlocks = (value: string): EditableBlock[] => {
@@ -106,7 +106,7 @@ const stripIds = (blocks: EditableBlock[]): ContentBlock[] =>
 
     return block.type === "subtitle"
       ? { type: "subtitle", text: block.text }
-      : { type: "paragraph", text: block.text };
+      : { type: "paragraph", text: block.text, align: block.align || "justify" };
   });
 
 export const ArticleContentEditor = ({
@@ -381,6 +381,10 @@ export const ArticleContentEditor = ({
   const iconDown = <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>;
   const iconVideo = <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m22 8-6 4 6 4V8Z"/><rect width="14" height="12" x="2" y="6" rx="2" ry="2"/></svg>;
   const iconGrid = <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg>;
+  
+  const iconAlignLeft = <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="21" x2="3" y1="6" y2="6"/><line x1="15" x2="3" y1="12" y2="12"/><line x1="17" x2="3" y1="18" y2="18"/></svg>;
+  const iconAlignRight = <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="21" x2="3" y1="6" y2="6"/><line x1="21" x2="9" y1="12" y2="12"/><line x1="21" x2="7" y1="18" y2="18"/></svg>;
+  const iconAlignJustify = <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="21" x2="3" y1="6" y2="6"/><line x1="21" x2="3" y1="12" y2="12"/><line x1="21" x2="3" y1="18" y2="18"/></svg>;
 
   /* ── Inline formatting helper ── */
   const wrapSelection = (blockId: string, prefix: string, suffix: string) => {
@@ -615,15 +619,28 @@ export const ArticleContentEditor = ({
                 ) : (
                   <>
                     <div className="editor-format-toolbar">
-                      <button type="button" className="editor-format-btn" title="Negrita" onClick={() => wrapSelection(block.id, '**', '**')} disabled={disabled}>
-                        <strong>B</strong>
-                      </button>
-                      <button type="button" className="editor-format-btn" title="Itálica" onClick={() => wrapSelection(block.id, '*', '*')} disabled={disabled}>
-                        <em>I</em>
-                      </button>
-                      <button type="button" className="editor-format-btn" title="Subrayado" onClick={() => wrapSelection(block.id, '__', '__')} disabled={disabled}>
-                        <u>U</u>
-                      </button>
+                      <div className="editor-format-group">
+                        <button type="button" className="editor-format-btn" title="Negrita" onClick={() => wrapSelection(block.id, '**', '**')} disabled={disabled}>
+                          <strong>B</strong>
+                        </button>
+                        <button type="button" className="editor-format-btn" title="Itálica" onClick={() => wrapSelection(block.id, '*', '*')} disabled={disabled}>
+                          <em>I</em>
+                        </button>
+                        <button type="button" className="editor-format-btn" title="Subrayado" onClick={() => wrapSelection(block.id, '__', '__')} disabled={disabled}>
+                          <u>U</u>
+                        </button>
+                      </div>
+                      <div className="editor-format-group" style={{ marginLeft: "auto", display: "flex", gap: "2px" }}>
+                        <button type="button" className={`editor-format-btn ${block.align === "left" ? "active" : ""}`} title="Alinear Izquierda" onClick={() => updateBlock(block.id, (c) => ({ ...c, align: "left" }))} disabled={disabled}>
+                          {iconAlignLeft}
+                        </button>
+                        <button type="button" className={`editor-format-btn ${block.align === "justify" || !block.align ? "active" : ""}`} title="Justificar" onClick={() => updateBlock(block.id, (c) => ({ ...c, align: "justify" }))} disabled={disabled}>
+                          {iconAlignJustify}
+                        </button>
+                        <button type="button" className={`editor-format-btn ${block.align === "right" ? "active" : ""}`} title="Alinear Derecha" onClick={() => updateBlock(block.id, (c) => ({ ...c, align: "right" }))} disabled={disabled}>
+                          {iconAlignRight}
+                        </button>
+                      </div>
                     </div>
                     <textarea
                       className="editor-textarea"
