@@ -40,7 +40,38 @@ const entityMap: Record<string, string> = {
   category: 'Categoría',
   Settings: 'Configuración',
   Video: 'Video',
-  comment: 'Comentario'
+  comment: 'Comentario',
+  Publication: 'Noticia/Artículo',
+  Author: 'Autor',
+  Category: 'Categoría',
+  User: 'Usuario'
+};
+
+const renderAuditDetails = (details: any) => {
+  if (!details) return null;
+  if (typeof details === 'string') return <span>{details}</span>;
+  if (typeof details === 'object') {
+    return (
+      <ul style={{ margin: "4px 0 0 16px", padding: 0, listStyleType: "circle" }}>
+        {Object.entries(details).map(([key, value]) => {
+          if (typeof value === 'object' && value !== null) {
+            return (
+              <li key={key}>
+                <strong>{key}:</strong>
+                <ul style={{ margin: "2px 0 0 16px", padding: 0, listStyleType: "square" }}>
+                  {Object.entries(value).map(([subKey, subValue]) => (
+                    <li key={subKey}><strong>{subKey}:</strong> {String(subValue)}</li>
+                  ))}
+                </ul>
+              </li>
+            );
+          }
+          return <li key={key}><strong>{key}:</strong> {String(value)}</li>;
+        })}
+      </ul>
+    );
+  }
+  return <span>{JSON.stringify(details)}</span>;
 };
 
 const Dashboard = () => {
@@ -117,9 +148,12 @@ const Dashboard = () => {
                 <p className="dashboard-item-meta" style={{ marginTop: 0 }}>
                   Por <strong>{log.userName || log.userEmail || 'Sistema'}</strong> el {formatDate(log.createdAt)} {new Date(log.createdAt).toLocaleTimeString("es-ES")}
                 </p>
-                <p className="dashboard-item-meta" style={{ fontSize: "0.85rem", marginTop: 0 }}>
-                  Detalles: {typeof log.details === 'string' ? log.details : JSON.stringify(log.details)}
-                </p>
+                <div className="dashboard-item-meta" style={{ fontSize: "0.85rem", marginTop: 0, width: "100%" }}>
+                  <div style={{ marginBottom: "2px" }}><strong>Detalles:</strong></div>
+                  <div style={{ background: "#f9fafb", padding: "8px", borderRadius: "4px", border: "1px solid #e5e7eb", overflowX: "auto" }}>
+                    {renderAuditDetails(log.details)}
+                  </div>
+                </div>
               </div>
             ))}
           </div>
