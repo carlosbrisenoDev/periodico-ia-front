@@ -1,5 +1,5 @@
 import React from "react";
-const logoSrc = "/logo.png";
+const logoSrc = "/logo-white.png";
 import { FacebookIcon, XIcon, InstagramIcon, YoutubeIcon, TiktokIcon } from "./Icons.tsx";
 import type { PublicCategory } from "../libs/types.ts";
 import { Link } from "react-router-dom";
