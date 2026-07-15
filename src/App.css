@@ -3441,7 +3441,7 @@ body,
 }
 
 .public-nav-inner {
-  max-width: 1400px;
+  max-width: 1100px;
   margin: 0 auto;
   padding: 0 24px;
 }
@@ -3903,7 +3903,7 @@ body,
 }
 
 .public-recommendations-inner {
-  max-width: 1400px;
+  max-width: 1100px;
   margin: 0 auto;
   padding: 0 24px;
 }
@@ -4001,7 +4001,7 @@ body,
 }
 
 .public-footer-inner {
-  max-width: 1400px;
+  max-width: 1100px;
   margin: 0 auto;
   padding: 0 24px;
 }
@@ -4256,9 +4256,9 @@ body,
   }
   @media (min-width: 1024px) {
     .ph-las-5-section {
-      max-width: calc(1400px - 48px);
+      max-width: 1100px;
       margin: 48px auto;
-      padding: 32px 48px;
+      padding: 32px 24px;
     }
   }
   .ph-las-5-header h2 {
@@ -4327,9 +4327,9 @@ body,
   }
   @media (min-width: 1024px) {
     .ph-print-banner {
-      padding: 64px 48px;
+      padding: 64px 24px;
       margin: 48px auto;
-      max-width: calc(1400px - 96px); /* matches ph-section padding */
+      max-width: 1100px;
     }
   }
   .ph-print-edition-img {
@@ -4470,9 +4470,9 @@ body,
   }
   @media (min-width: 1024px) {
     .ph-newsletter-section {
-      max-width: calc(1400px - 48px);
+      max-width: 1100px;
       margin: 48px auto;
-      padding: 48px;
+      padding: 48px 24px;
     }
   }
   .ph-newsletter-icon {
@@ -4543,7 +4543,7 @@ body,
 /* --- Desktop Enhancements (Base Mobile Layout) --- */
 @media (min-width: 1024px) {
   .ph-main-content {
-    max-width: 1200px;
+    max-width: 1100px;
     margin: 0 auto;
     padding-bottom: 0; /* Remove bottom padding on desktop */
   }
@@ -4553,7 +4553,7 @@ body,
   }
 
   .ph-mobile-action-bar {
-    max-width: 1200px;
+    max-width: 1100px;
     margin: 0 auto;
     border-radius: 8px;
     margin-top: 16px;

@@ -157,14 +157,14 @@
 
 /* --- Hero Section --- */
 .ph-hero {
-  max-width: 1400px;
+  max-width: 1100px;
   margin: 0 auto;
-  padding: 48px 24px;
+  padding: 48px 0;
 }
 
 @media (min-width: 1024px) {
   .ph-hero {
-    padding: 48px 48px 64px;
+    padding: 48px 0 64px;
   }
 }
 
@@ -592,14 +592,14 @@
 
 /* --- Section Wrapper --- */
 .ph-section {
-  max-width: 1400px;
+  max-width: 1100px;
   margin: 0 auto;
-  padding: 48px 24px;
+  padding: 48px 0;
 }
 
 @media (min-width: 1024px) {
   .ph-section {
-    padding: 48px 48px 64px;
+    padding: 48px 0 64px;
   }
 }
 
@@ -786,7 +786,7 @@
 
 @media (min-width: 1024px) {
   .ph-cta {
-    padding: 96px 48px;
+    padding: 96px 24px;
   }
 }
 
