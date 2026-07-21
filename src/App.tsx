@@ -114,6 +114,7 @@ import {
   getOptionalMe,
 } from "./libs/http.ts";
 import type { ProfileData } from "./libs/types.ts";
+import { useAnalytics } from "./libs/analytics.ts";
 
 
 const ProtectedRoute = ({ allowedRoles }: { allowedRoles?: string[] }) => {
@@ -170,6 +171,7 @@ const App = () => {
 const AppContent = () => {
   useThemeColors();
   useContentProtection();
+  useAnalytics();
 
   return (
       <Routes>
