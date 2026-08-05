@@ -379,6 +379,8 @@ const normalizePublicArticle = (
     excerpt: typeof record.excerpt === "string" ? record.excerpt : "Sin descripción.",
     featuredImageUrl:
       typeof record.featuredImageUrl === "string" ? record.featuredImageUrl : undefined,
+    featuredImagePosition:
+      typeof record.featuredImagePosition === "string" ? record.featuredImagePosition : undefined,
     featuredImageCaption:
       typeof record.featuredImageCaption === "string" ? record.featuredImageCaption : undefined,
     scheduledAt:
@@ -483,6 +485,8 @@ const normalizeRecommendation = (item: unknown, index: number): ArticleRecommend
     excerpt: typeof record.excerpt === "string" ? record.excerpt : "Sin descripción.",
     featuredImageUrl:
       typeof record.featuredImageUrl === "string" ? record.featuredImageUrl : undefined,
+    featuredImagePosition:
+      typeof record.featuredImagePosition === "string" ? record.featuredImagePosition : undefined,
     publishedAt:
       typeof record.publishedAt === "string" ? record.publishedAt : new Date().toISOString(),
     tags,

@@ -39,6 +39,7 @@ export type PublicArticle = {
   excerpt: string;
   featuredImageUrl?: string;
   featuredImageCaption?: string | null;
+  featuredImagePosition?: string | null;
   createdAt: string;
   scheduledAt?: string | null;
   authorName: string;
@@ -60,6 +61,7 @@ export type ArticlePreviewData = {
   content: string;
   featuredImageUrl?: string | null;
   featuredImageCaption?: string | null;
+  featuredImagePosition?: string | null;
   tags: string[];
   authorName: string;
   authorAvatarUrl?: string | null;
@@ -74,6 +76,7 @@ export type ArticleRecommendation = {
   title: string;
   excerpt: string;
   featuredImageUrl?: string | null;
+  featuredImagePosition?: string | null;
   publishedAt: string;
   tags: string[];
   matchedTags: string[];

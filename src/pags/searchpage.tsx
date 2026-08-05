@@ -144,6 +144,7 @@ const SearchPage = () => {
                       src={article.featuredImageUrl || "https://via.placeholder.com/400x250?text=No+Image"} 
                       alt={article.title} 
                       className="search-article-image" 
+                      style={{ objectPosition: article.featuredImagePosition || "center" }}
                     />
                   </div>
                   <div className="search-article-body">

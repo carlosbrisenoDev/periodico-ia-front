@@ -3771,7 +3771,7 @@ body,
 
 .public-article-inline-image-wrapper {
   position: relative;
-  aspect-ratio: 16 / 10;
+  aspect-ratio: 16 / 9;
   overflow: hidden;
   background-color: #ffffff;
   border: 1px solid #d1d5db;

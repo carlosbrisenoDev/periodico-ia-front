@@ -2,6 +2,7 @@ import { type ChangeEvent, type FormEvent, useEffect, useMemo, useRef, useState 
 import { useNavigate } from "react-router-dom";
 import { ArticleContentEditor } from "../components/articlecontenteditor.tsx";
 import { FormattedTextField } from "../components/FormattedTextField.tsx";
+import { ImagePositionSelector } from "../components/ImagePositionSelector.tsx";
 import { Sidebar } from "../components/sidebar.tsx";
 import { API_BASE_URL, MAX_UPLOAD_MB } from "../libs/config.ts";
 import { ApiError, apiFetch, getMe } from "../libs/http.ts";
@@ -19,6 +20,7 @@ type PublicationForm = {
   scheduledAt: string;
   featuredImageUrl: string;
   featuredImageCaption: string;
+  featuredImagePosition: string;
   isVideoGallery: boolean;
   videoUrl: string;
   allowComments: boolean;
@@ -66,6 +68,7 @@ const INITIAL_FORM: PublicationForm = {
   scheduledAt: "",
   featuredImageUrl: "",
   featuredImageCaption: "",
+  featuredImagePosition: "center",
   isVideoGallery: false,
   videoUrl: "",
   allowComments: true,
@@ -301,6 +304,7 @@ const NewPublication = () => {
         categoryIds: form.categoryId ? [form.categoryId] : [],
         featuredImageUrl: form.featuredImageUrl.trim() || null,
         featuredImageCaption: form.featuredImageCaption.trim() || null,
+        featuredImagePosition: form.featuredImagePosition || "center",
         isVideoGallery: form.isVideoGallery,
         videoUrl: form.videoUrl.trim() || null,
         allowComments: form.allowComments,
@@ -364,6 +368,7 @@ const NewPublication = () => {
         excerpt: form.excerpt.trim() || "Aún no has escrito una descripción.",
         content: form.content.trim() || "El contenido del artículo se mostrará aquí.",
         featuredImageUrl: form.featuredImageUrl.trim() || null,
+        featuredImagePosition: form.featuredImagePosition || "center",
         isVideoGallery: form.isVideoGallery,
         videoUrl: form.videoUrl.trim() || null,
         tags: parseTagsInput(form.tags),
@@ -679,6 +684,13 @@ const NewPublication = () => {
                     src={form.featuredImageUrl}
                     alt="Vista previa de imagen destacada"
                     className="new-publication-image-preview"
+                    style={{ objectPosition: form.featuredImagePosition || "center" }}
+                  />
+                  <ImagePositionSelector
+                    imageUrl={form.featuredImageUrl}
+                    value={form.featuredImagePosition}
+                    containerRatio={21 / 9}
+                    onChange={(pos) => updateField("featuredImagePosition", pos)}
                   />
                   <label className="new-publication-label mt-12" htmlFor="new-publication-featured-caption">
                     Pie de foto (opcional)
@@ -697,6 +709,7 @@ const NewPublication = () => {
                     onClick={() => {
                       updateField("featuredImageUrl", "");
                       updateField("featuredImageCaption", "");
+                      updateField("featuredImagePosition", "center");
                     }}
                     disabled={submitting || loadingOptions}
                   >

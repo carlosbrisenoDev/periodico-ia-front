@@ -2,6 +2,7 @@ import { type ChangeEvent, type FormEvent, useEffect, useMemo, useRef, useState 
 import { useNavigate, useParams } from "react-router-dom";
 import { ArticleContentEditor } from "../components/articlecontenteditor.tsx";
 import { FormattedTextField } from "../components/FormattedTextField.tsx";
+import { ImagePositionSelector } from "../components/ImagePositionSelector.tsx";
 import { Sidebar } from "../components/sidebar.tsx";
 import { API_BASE_URL, MAX_UPLOAD_MB } from "../libs/config.ts";
 import { ApiError, apiFetch } from "../libs/http.ts";
@@ -20,6 +21,7 @@ type PublicationForm = {
   publishedAt: string;
   featuredImageUrl: string;
   featuredImageCaption: string;
+  featuredImagePosition: string;
   isVideoGallery: boolean;
   videoUrl: string;
   allowComments: boolean;
@@ -50,6 +52,7 @@ type ArticleDetailResponse = {
   publishedAt?: string | null;
   featuredImageUrl?: string | null;
   featuredImageCaption?: string | null;
+  featuredImagePosition?: string | null;
   isVideoGallery?: boolean;
   videoUrl?: string | null;
   allowComments?: boolean;
@@ -79,6 +82,7 @@ const INITIAL_FORM: PublicationForm = {
   publishedAt: "",
   featuredImageUrl: "",
   featuredImageCaption: "",
+  featuredImagePosition: "center",
   isVideoGallery: false,
   videoUrl: "",
   allowComments: true,
@@ -255,6 +259,8 @@ const EditPublication = () => {
             typeof article.featuredImageUrl === "string" ? article.featuredImageUrl : "",
           featuredImageCaption:
             typeof article.featuredImageCaption === "string" ? article.featuredImageCaption : "",
+          featuredImagePosition:
+            typeof article.featuredImagePosition === "string" ? article.featuredImagePosition : "center",
           isVideoGallery: typeof article.isVideoGallery === "boolean" ? article.isVideoGallery : false,
           videoUrl: typeof article.videoUrl === "string" ? article.videoUrl : "",
           allowComments: typeof article.allowComments === "boolean" ? article.allowComments : true,
@@ -359,6 +365,7 @@ const EditPublication = () => {
         tags,
         featuredImageUrl: form.featuredImageUrl.trim() || null,
         featuredImageCaption: form.featuredImageCaption.trim() || null,
+        featuredImagePosition: form.featuredImagePosition || "center",
         isVideoGallery: form.isVideoGallery,
         videoUrl: form.videoUrl.trim() || null,
         allowComments: form.allowComments,
@@ -405,6 +412,7 @@ const EditPublication = () => {
         excerpt: form.excerpt.trim() || "Aún no has escrito una descripción.",
         content: form.content.trim() || "El contenido del artículo se mostrará aquí.",
         featuredImageUrl: form.featuredImageUrl.trim() || null,
+        featuredImagePosition: form.featuredImagePosition || "center",
         isVideoGallery: form.isVideoGallery,
         videoUrl: form.videoUrl.trim() || null,
         tags: parseTagsInput(form.tags),
@@ -716,6 +724,13 @@ const EditPublication = () => {
                     src={form.featuredImageUrl}
                     alt="Vista previa de imagen destacada"
                     className="new-publication-image-preview"
+                    style={{ objectPosition: form.featuredImagePosition || "center" }}
+                  />
+                  <ImagePositionSelector
+                    imageUrl={form.featuredImageUrl}
+                    value={form.featuredImagePosition}
+                    containerRatio={21 / 9}
+                    onChange={(pos) => updateField("featuredImagePosition", pos)}
                   />
                   <label className="new-publication-label mt-12" htmlFor="edit-publication-featured-caption">
                     Pie de foto (opcional)
@@ -735,6 +750,7 @@ const EditPublication = () => {
                     onClick={() => {
                       updateField("featuredImageUrl", "");
                       updateField("featuredImageCaption", "");
+                      updateField("featuredImagePosition", "center");
                     }}
                     disabled={submitting || loading}
                   >

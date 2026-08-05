@@ -97,7 +97,7 @@ const RecentPage = () => {
               <a key={article.id} className="ph-horiz-card" href={`/articulo/${article.slug || article.id}`}>
                 <div className="ph-horiz-image">
                   {article.featuredImageUrl ? (
-                    <img src={article.featuredImageUrl} alt={article.title} />
+                    <img src={article.featuredImageUrl} alt={article.title} style={{ objectPosition: article.featuredImagePosition || "center" }} />
                   ) : (
                     <div className="ph-horiz-image-placeholder">
                       {article.categoryName}

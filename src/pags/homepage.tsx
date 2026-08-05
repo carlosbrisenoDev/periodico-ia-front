@@ -77,7 +77,7 @@ const FeaturedCard = ({ article, category }: { article: PublicArticle; category:
   <a className="ph-featured-card" href={articleHref(article)}>
     <div className="ph-featured-image">
       {article.featuredImageUrl ? (
-        <img src={article.featuredImageUrl} alt={article.title} />
+        <img src={article.featuredImageUrl} alt={article.title} style={{ objectPosition: article.featuredImagePosition || "center" }} />
       ) : (
         <div className="ph-image-placeholder">{category}</div>
       )}
@@ -101,7 +101,7 @@ const HorizCard = ({ article, category }: { article: PublicArticle; category: st
   <a className="ph-horiz-card" href={articleHref(article)}>
     <div className="ph-horiz-image">
       {article.featuredImageUrl ? (
-        <img src={article.featuredImageUrl} alt={article.title} />
+        <img src={article.featuredImageUrl} alt={article.title} style={{ objectPosition: article.featuredImagePosition || "center" }} />
       ) : (
         <div className="ph-image-placeholder">{category}</div>
       )}
@@ -443,7 +443,7 @@ const HomePage = () => {
                       <a key={a.id} href={articleHref(a)} className="ph-las-5-item">
                         <div className="ph-las-5-number">{i + 1}</div>
                         <div className="ph-las-5-img">
-                          {a.featuredImageUrl ? <img src={a.featuredImageUrl} alt="" /> : <div className="placeholder" />}
+                          {a.featuredImageUrl ? <img src={a.featuredImageUrl} alt="" style={{ objectPosition: a.featuredImagePosition || "center" }} /> : <div className="placeholder" />}
                         </div>
                         <div className="ph-las-5-text"><FormattedText text={a.title} /></div>
                       </a>

@@ -42,6 +42,7 @@ const normalizePublicArticle = (item: unknown, index: number): PublicArticle | n
     slug: typeof r.slug === "string" ? r.slug : `article-${index}`,
     excerpt: typeof r.excerpt === "string" ? r.excerpt : "",
     featuredImageUrl: typeof r.featuredImageUrl === "string" ? r.featuredImageUrl : undefined,
+    featuredImagePosition: typeof r.featuredImagePosition === "string" ? r.featuredImagePosition : undefined,
     createdAt:
       typeof r.publishedAt === "string"
         ? r.publishedAt
@@ -257,7 +258,7 @@ const CategoryPage = () => {
                 <a href={articleHref(featured)} className="pc-main-article-link">
                   <div className="pc-main-image">
                     {featured.featuredImageUrl ? (
-                      <img src={featured.featuredImageUrl} alt={featured.title} />
+                      <img src={featured.featuredImageUrl} alt={featured.title} style={{ objectPosition: featured.featuredImagePosition || "center" }} />
                     ) : (
                       <div className="pc-image-placeholder">{id === "noticias" ? featured.categoryName : categoryName}</div>
                     )}
@@ -275,7 +276,7 @@ const CategoryPage = () => {
                 <a key={a.id} href={articleHref(a)} className="pc-secondary-card">
                   <div className="pc-secondary-image">
                     {a.featuredImageUrl ? (
-                      <img src={a.featuredImageUrl} alt={a.title} />
+                      <img src={a.featuredImageUrl} alt={a.title} style={{ objectPosition: a.featuredImagePosition || "center" }} />
                     ) : (
                       <div className="pc-image-placeholder">{a.categoryName}</div>
                     )}

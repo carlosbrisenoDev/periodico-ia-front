@@ -23,6 +23,7 @@ type ArticleDetailResponse = {
   content: string;
   featuredImageUrl: string | null;
   featuredImageCaption: string | null;
+  featuredImagePosition: string | null;
   author: {
     id: string;
     name: string;
@@ -148,6 +149,7 @@ const buildArticleFromPublicDetail = (
     content,
     featuredImageUrl: fallback?.featuredImageUrl ?? detail.featuredImageUrl ?? null,
     featuredImageCaption: fallback?.featuredImageCaption ?? detail.featuredImageCaption ?? null,
+    featuredImagePosition: fallback?.featuredImagePosition ?? detail.featuredImagePosition ?? null,
     tags: fallback?.tags?.length ? fallback.tags : (Array.isArray(detail.tags) ? detail.tags : []),
     authorName: resolvedAuthorName,
     authorAvatarUrl: fallback?.authorAvatarUrl ?? author?.avatarUrl ?? null,
@@ -640,6 +642,7 @@ export const PublicationPreview = () => {
                   <img
                     src={normalizeAssetUrl(article.featuredImageUrl) ?? ""}
                     alt={article.title}
+                    style={{ objectPosition: article.featuredImagePosition || "center" }}
                   />
                   {article.featuredImageCaption && (
                     <figcaption className="public-article-featured-caption">
@@ -679,7 +682,11 @@ export const PublicationPreview = () => {
                   return (
                     <figure key={`${block.url.slice(0, 24)}-${index}`}>
                       <div className="public-article-inline-image-wrapper">
-                        <img src={imageUrl} alt={block.caption || "Imagen del contenido"} />
+                        <img
+                          src={imageUrl}
+                          alt={block.caption || "Imagen del contenido"}
+                          style={{ objectPosition: block.position || "center" }}
+                        />
                       </div>
                       {block.caption && (
                         <figcaption style={{ textAlign: "center", marginTop: "8px", color: "var(--text-muted)", fontSize: "0.875rem" }}>
@@ -709,7 +716,11 @@ export const PublicationPreview = () => {
                     <div key={`row-${index}`} className={`image-row-grid image-row-${block.layout || 'equal'}`}>
                       {block.urls.map((url, i) => (
                         <div key={i} className={`image-row-item image-row-item-${i}`}>
-                          <img src={normalizeAssetUrl(url) ?? ""} alt="Imagen" />
+                          <img
+                            src={normalizeAssetUrl(url) ?? ""}
+                            alt="Imagen"
+                            style={{ objectPosition: block.positions?.[i] || "center" }}
+                          />
                         </div>
                       ))}
                     </div>
@@ -764,7 +775,11 @@ export const PublicationPreview = () => {
                     <a key={item.id} href={`/articulo/${item.slug || item.id}`} className="public-card">
                       <div className="public-card-image-wrap">
                         {item.featuredImageUrl ? (
-                          <img src={item.featuredImageUrl} alt={item.title} />
+                          <img
+                            src={item.featuredImageUrl}
+                            alt={item.title}
+                            style={{ objectPosition: item.featuredImagePosition || "center" }}
+                          />
                         ) : (
                           <div style={{ width: "100%", height: "100%", backgroundColor: "var(--border)" }} />
                         )}

@@ -1,14 +1,14 @@
 export type ContentBlock =
   | { type: "paragraph"; text: string; align?: "left" | "right" | "justify" | "center" }
   | { type: "subtitle"; text: string }
-  | { type: "image"; url: string; caption?: string }
+  | { type: "image"; url: string; caption?: string; position?: string }
   | { type: "video"; url: string }
-  | { type: "image-row"; urls: string[]; layout?: "equal" | "left-large" | "right-large" };
+  | { type: "image-row"; urls: string[]; layout?: "equal" | "left-large" | "right-large"; positions?: string[] };
 
 const SUBTITLE_PATTERN = /^\[\[subtitle:(.+)]]$/i;
-const IMAGE_PATTERN = /^\[\[image:([^|\]]+)(?:\|(.*))?]]$/i;
+const IMAGE_PATTERN = /^\[\[image:\s*(?:pos=([a-z]+):\s*)?([^|\]]+?)(?:\s*\|\s*(.*?))?\s*]]$/i;
 const VIDEO_PATTERN = /^\[\[video:(.+)]]$/i;
-const IMAGEROW_PATTERN = /^\[\[image-row(?::layout=(equal|left-large|right-large)|):(.+)]]$/i;
+const IMAGEROW_PATTERN = /^\[\[image-row((?:\s*:[a-z]+=[^:]+)*)\s*:(.+)]]$/i;
 
 const normalizeLine = (line: string): string => line.trim();
 
@@ -62,10 +62,11 @@ export const parseContentBlocks = (content: string): ContentBlock[] => {
     const imageMatch = line.match(IMAGE_PATTERN);
     if (imageMatch) {
       flushParagraph();
-      const url = imageMatch[1]?.trim();
-      const caption = imageMatch[2]?.trim();
+      const position = imageMatch[1]?.trim().toLowerCase() || "center";
+      const url = imageMatch[2]?.trim();
+      const caption = imageMatch[3]?.trim();
       if (url) {
-        blocks.push({ type: "image", url, caption });
+        blocks.push({ type: "image", url, caption, position });
       }
       continue;
     }
@@ -83,11 +84,18 @@ export const parseContentBlocks = (content: string): ContentBlock[] => {
     const imageRowMatch = line.match(IMAGEROW_PATTERN);
     if (imageRowMatch) {
       flushParagraph();
-      const layout = (imageRowMatch[1] || "equal") as "equal" | "left-large" | "right-large";
+      const paramsStr = imageRowMatch[1] || "";
+      const layoutMatch = paramsStr.match(/layout=(equal|left-large|right-large)/i);
+      const layout = (layoutMatch ? layoutMatch[1] : "equal") as "equal" | "left-large" | "right-large";
+      
+      const posMatch = paramsStr.match(/positions=([a-z,\s]+)/i);
+      const rawPos = posMatch ? posMatch[1].split(",").map(p => p.trim().toLowerCase()) : [];
+
       const urlsRaw = imageRowMatch[2] || "";
       const urls = urlsRaw.split("|").map(u => u.trim()).filter(Boolean);
       if (urls.length > 0) {
-        blocks.push({ type: "image-row", urls, layout });
+        const positions = urls.map((_, i) => rawPos[i] || "center");
+        blocks.push({ type: "image-row", urls, layout, positions });
       }
       continue;
     }
@@ -122,15 +130,18 @@ export const serializeContentBlocks = (blocks: ContentBlock[]): string => {
 
       if (block.type === "image-row") {
         if (block.urls.length === 0) return [];
-        const layoutSegment = block.layout && block.layout !== 'equal' ? `:layout=${block.layout}` : '';
-        return [`[[image-row${layoutSegment}: ${block.urls.join(' | ')}]]`];
+        const layoutSegment = block.layout && block.layout !== "equal" ? `:layout=${block.layout}` : "";
+        const hasNonCenter = block.positions && block.positions.some(p => p && p !== "center");
+        const posSegment = hasNonCenter ? `:positions=${block.urls.map((_, i) => block.positions?.[i] || "center").join(",")}` : "";
+        return [`[[image-row${layoutSegment}${posSegment}: ${block.urls.join(" | ")}]]`];
       }
 
       if (block.type === "image") {
         const url = block.url.trim();
         const caption = block.caption?.trim();
         if (!url) return [];
-        return caption ? [`[[image: ${url} | ${caption}]]`] : [`[[image: ${url}]]`];
+        const posSegment = block.position && block.position !== "center" ? `pos=${block.position}: ` : "";
+        return caption ? [`[[image: ${posSegment}${url} | ${caption}]]`] : [`[[image: ${posSegment}${url}]]`];
       }
 
       return [];

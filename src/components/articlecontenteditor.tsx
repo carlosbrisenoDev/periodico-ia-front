@@ -2,13 +2,14 @@ import { type ChangeEvent, useCallback, useEffect, useRef, useState } from "reac
 import { API_BASE_URL, MAX_UPLOAD_MB } from "../libs/config.ts";
 import { serializeContentBlocks, parseContentBlocks, type ContentBlock } from "../libs/contentBlocks.ts";
 import { ApiError, apiFetch } from "../libs/http.ts";
+import { ImagePositionSelector } from "./ImagePositionSelector.tsx";
 
 type EditableBlock =
   | { id: string; type: "paragraph"; text: string; align?: "left" | "right" | "justify" | "center" }
   | { id: string; type: "subtitle"; text: string }
-  | { id: string; type: "image"; url: string; caption?: string }
+  | { id: string; type: "image"; url: string; caption?: string; position?: string }
   | { id: string; type: "video"; url: string }
-  | { id: string; type: "image-row"; urls: string[]; layout?: "equal" | "left-large" | "right-large" };
+  | { id: string; type: "image-row"; urls: string[]; layout?: "equal" | "left-large" | "right-large"; positions?: string[] };
 
 type ImageAsset = {
   id: string;
@@ -48,7 +49,7 @@ const createEditableBlock = (block: ContentBlock): EditableBlock => {
   }
 
   if (block.type === "image") {
-    return { id: createBlockId(), type: "image", url: block.url, caption: block.caption };
+    return { id: createBlockId(), type: "image", url: block.url, caption: block.caption, position: block.position || "center" };
   }
 
   if (block.type === "video") {
@@ -56,7 +57,7 @@ const createEditableBlock = (block: ContentBlock): EditableBlock => {
   }
 
   if (block.type === "image-row") {
-    return { id: createBlockId(), type: "image-row", urls: block.urls, layout: block.layout };
+    return { id: createBlockId(), type: "image-row", urls: block.urls, layout: block.layout, positions: block.positions || block.urls.map(() => "center") };
   }
 
   return { id: createBlockId(), type: "paragraph", text: block.text, align: block.align || "justify" };
@@ -68,7 +69,7 @@ const createEmptyBlock = (type: EditableBlock["type"]): EditableBlock => {
   }
 
   if (type === "image") {
-    return { id: createBlockId(), type, url: "", caption: "" };
+    return { id: createBlockId(), type, url: "", caption: "", position: "center" };
   }
 
   if (type === "video") {
@@ -76,7 +77,7 @@ const createEmptyBlock = (type: EditableBlock["type"]): EditableBlock => {
   }
 
   if (type === "image-row") {
-    return { id: createBlockId(), type, urls: ["", "", ""], layout: "equal" };
+    return { id: createBlockId(), type, urls: ["", "", ""], layout: "equal", positions: ["center", "center", "center"] };
   }
 
   return { id: createBlockId(), type, text: "", align: "justify" };
@@ -95,13 +96,13 @@ const initializeBlocks = (value: string): EditableBlock[] => {
 const stripIds = (blocks: EditableBlock[]): ContentBlock[] =>
   blocks.map((block) => {
     if (block.type === "image") {
-      return { type: "image", url: block.url, caption: block.caption };
+      return { type: "image", url: block.url, caption: block.caption, position: block.position || "center" };
     }
     if (block.type === "video") {
       return { type: "video", url: block.url };
     }
     if (block.type === "image-row") {
-      return { type: "image-row", urls: block.urls, layout: block.layout };
+      return { type: "image-row", urls: block.urls, layout: block.layout, positions: block.positions || block.urls.map(() => "center") };
     }
 
     return block.type === "subtitle"
@@ -294,7 +295,7 @@ export const ArticleContentEditor = ({
     }
 
     const block = blocks.find((candidate) => candidate.id === activeImageBlockId);
-    return block && block.type === "image" ? block : null;
+    return block && (block.type === "image" || block.type === "image-row") ? block : null;
   };
 
   const updateActiveImageBlock = (url: string) => {
@@ -309,15 +310,21 @@ export const ArticleContentEditor = ({
         if (b.type !== "image-row") return b;
         const newUrls = [...b.urls];
         newUrls[activeImageRowIndex] = url;
-        return { ...b, urls: newUrls };
+        const newPositions = [...(b.positions || b.urls.map(() => "center"))];
+        newPositions[activeImageRowIndex] = "center";
+        return { ...b, urls: newUrls, positions: newPositions };
       });
       return;
     }
 
-    updateBlock(current.id, () => ({
-      ...current,
-      url,
-    }));
+    updateBlock(current.id, (b) => {
+      if (b.type !== "image") return b;
+      return {
+        ...b,
+        url,
+        position: "center",
+      };
+    });
   };
 
   const uploadImage = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -458,11 +465,24 @@ export const ArticleContentEditor = ({
                       <span>Sin imágenes</span>
                     </div>
                   ) : (
-                    <div className="editor-image-preview-wrapper" style={{ display: "flex", flexDirection: "column" }}>
-                      <img
-                        className="editor-image-preview"
-                        src={normalizeImageUrl(block.url)}
-                        alt="Imagen del contenido"
+                    <div className="editor-image-preview-container" style={{ display: "flex", flexDirection: "column" }}>
+                      <div className="editor-image-preview-wrapper" style={{ marginTop: 0 }}>
+                        <img
+                          className="editor-image-preview"
+                          src={normalizeImageUrl(block.url)}
+                          alt="Imagen del contenido"
+                          style={{ objectPosition: block.position || "center" }}
+                        />
+                      </div>
+                      <ImagePositionSelector
+                        imageUrl={normalizeImageUrl(block.url)}
+                        value={block.position || "center"}
+                        containerRatio={16 / 9}
+                        onChange={(pos) =>
+                          updateBlock(block.id, (current) =>
+                            current.type === "image" ? { ...current, position: pos } : current
+                          )
+                        }
                       />
                       <input
                         className="editor-input"
@@ -519,12 +539,15 @@ export const ArticleContentEditor = ({
                         updateBlock(block.id, (b) => {
                           if (b.type !== "image-row") return b;
                           const newUrls = [...b.urls];
+                          const newPos = [...(b.positions || b.urls.map(() => "center"))];
                           if (newLength === 2 && newUrls.length > 2) {
                             newUrls.length = 2;
+                            newPos.length = 2;
                           } else if (newLength === 3 && newUrls.length < 3) {
                             newUrls.push("");
+                            newPos.push("center");
                           }
-                          return { ...b, urls: newUrls, layout: newLength === 2 ? 'equal' : b.layout };
+                          return { ...b, urls: newUrls, positions: newPos, layout: newLength === 2 ? 'equal' : b.layout };
                         });
                       }}
                       style={{ padding: "4px 8px", background: "#f3f4f6", border: "1px solid #d1d5db", borderRadius: "4px" }}
@@ -548,8 +571,29 @@ export const ArticleContentEditor = ({
                             {iconImgBig}
                           </div>
                         ) : (
-                          <div className="editor-image-preview-wrapper" style={{ height: "100px" }}>
-                            <img className="editor-image-preview" src={normalizeImageUrl(url)} alt={`Col ${i}`} />
+                          <div className="editor-image-preview-container" style={{ display: "flex", flexDirection: "column" }}>
+                            <div className="editor-image-preview-wrapper" style={{ marginTop: 0, height: "140px", aspectRatio: "16 / 9" }}>
+                              <img
+                                className="editor-image-preview"
+                                style={{ height: "100%", objectPosition: block.positions?.[i] || "center" }}
+                                src={normalizeImageUrl(url)}
+                                alt={`Col ${i}`}
+                              />
+                            </div>
+                            <ImagePositionSelector
+                              imageUrl={normalizeImageUrl(url)}
+                              value={block.positions?.[i] || "center"}
+                              label={`Encuadre ${i + 1}`}
+                              containerRatio={16 / 9}
+                              onChange={(pos) =>
+                                updateBlock(block.id, (current) => {
+                                  if (current.type !== "image-row") return current;
+                                  const updatedPos = [...(current.positions || current.urls.map(() => "center"))];
+                                  updatedPos[i] = pos;
+                                  return { ...current, positions: updatedPos };
+                                })
+                              }
+                            />
                           </div>
                         )}
                         <button type="button" className="editor-primary-action" onClick={() => openImageMenu(block.id, i)} disabled={disabled} style={{ marginTop: "10px", width: "100%", justifyContent: "center" }}>
