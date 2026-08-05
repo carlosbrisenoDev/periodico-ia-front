@@ -97,6 +97,7 @@ import NewPublication from "./pags/newpublication.tsx";
 import EditPublication from "./pags/editpublication.tsx";
 import ImageLibrary from "./pags/imagelibrary.tsx";
 import VideosPage from "./pags/videos.tsx";
+import PollsPage from "./pags/polls.tsx";
 import ReportNewsPage from "./pags/reportnewspage.tsx";
 import SubscriptionPage from "./pags/subscription.tsx";
 import DeletedEntries from "./pags/deletedentries.tsx";
@@ -195,6 +196,7 @@ const AppContent = () => {
           <Route path="/new-publication" element={<NewPublication />} />
           <Route path="/image-library" element={<ImageLibrary />} />
           <Route path="/videos" element={<VideosPage />} />
+          <Route path="/polls" element={<PollsPage />} />
           <Route path="/publication/preview" element={<PublicationPreview />} />
           <Route path="/publication/:id/preview" element={<PublicationPreview />} />
           <Route path="/publication/:id/edit" element={<EditPublication />} />

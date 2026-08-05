@@ -96,3 +96,32 @@ export type PublicCategory = {
   color?: string | null;
   template?: string;
 };
+
+export type PollOption = {
+  id: string;
+  text: string;
+  imageUrl?: string | null;
+  votes?: number;
+};
+
+export type PollOtherResponse = {
+  text: string;
+  createdAt: string;
+};
+
+export type Poll = {
+  id: string;
+  title: string;
+  description?: string | null;
+  imageUrl?: string | null;
+  allowMultiple?: boolean;
+  allowOther?: boolean;
+  active?: boolean;
+  order?: number;
+  options: PollOption[];
+  otherVotes?: number;
+  otherResponses?: PollOtherResponse[];
+  createdAt?: string;
+  updatedAt?: string;
+};
+

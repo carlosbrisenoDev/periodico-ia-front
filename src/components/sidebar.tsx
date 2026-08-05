@@ -5,7 +5,7 @@ import type { ProfileData } from "../libs/types.ts";
 
 type NavItem = {
     label: string;
-    icon: | "home" | "doc" | "grid" | "users" | "folder" | "plus" | "image" | "video" | "trash" | "settings" | "logout" | "message-circle" | "alert-triangle";
+    icon: | "home" | "doc" | "grid" | "users" | "folder" | "plus" | "image" | "video" | "trash" | "settings" | "logout" | "message-circle" | "alert-triangle" | "poll";
     path?: string;
 };
 
@@ -37,6 +37,10 @@ const PRIMARY_ITEMS: NavItem[] = [{ label: "Dashboard", icon: "home", path: "/da
     label: "Videos",
     icon: "video",
     path: "/videos"
+}, {
+    label: "Encuestas",
+    icon: "poll",
+    path: "/polls"
 }, {
     label: "Entradas Borradas",
     icon: "trash",
@@ -216,6 +220,10 @@ const Icon = ({ icon }: { icon: NavItem["icon"] }) => {
         return (<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>);
     }
 
+    if (icon === "poll") {
+        return (<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>);
+    }
+
     return (<svg
         viewBox="0 0 24 24"
         fill="none"
@@ -384,6 +392,7 @@ export const Sidebar = () => {
                             "/new-publication",
                             "/image-library",
                             "/videos",
+                            "/polls",
                             "/authors-users",
                             "/categories",
                             "/subscribers",

@@ -19,6 +19,7 @@ import PublicNavbar from "../components/PublicNavbar.tsx";
 
 import MobileBottomNav from "../components/MobileBottomNav.tsx";
 import { MailIcon, BadgeIcon, PlayIcon } from "../components/Icons.tsx";
+import { PublicPollsSection } from "../components/PublicPollsSection.tsx";
 
 /* ── helpers ─────────────────────────────────────────── */
 
@@ -474,6 +475,9 @@ const HomePage = () => {
 
               return elements;
             })()}
+
+            {/* Sondeos y Opinión Ciudadana */}
+            <PublicPollsSection />
 
             {/* Newsletter Subscription */}
             <div className="ph-newsletter-section">
